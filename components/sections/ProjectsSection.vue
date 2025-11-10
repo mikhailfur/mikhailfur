@@ -10,11 +10,11 @@
         <div
           v-for="project in projects"
           :key="project.id"
-          :class="`group bg-gray-900/50 rounded-2xl p-8 border border-gray-800 ${projectBorderColors[project.id] || 'hover:border-blue-500/50'} transition-all duration-300 hover:transform hover:scale-105`"
+          :class="`group bg-gray-900/50 rounded-2xl p-8 border border-gray-800 ${projectBorderColors[project.id] || 'hover:border-blue-500/50'} transition-all duration-500 hover:transform hover:scale-105 hover:-translate-y-2 hover:shadow-2xl hover:shadow-blue-500/20`"
         >
           <div class="mb-6">
-            <div :class="`w-12 h-12 bg-gradient-to-r ${project.gradient} rounded-xl flex items-center justify-center mb-4`">
-              <i :class="`${project.icon} text-white text-xl`"></i>
+            <div :class="`w-12 h-12 bg-gradient-to-r ${project.gradient} rounded-xl flex items-center justify-center mb-4 transition-transform duration-500 group-hover:scale-110 group-hover:rotate-6`">
+              <i :class="`${project.icon} text-white text-xl transition-transform duration-500 group-hover:scale-125`"></i>
             </div>
             <h3 class="text-2xl font-bold mb-2">{{ project.title }}</h3>
             <p class="text-gray-400 mb-4">{{ project.description }}</p>
@@ -23,7 +23,8 @@
             <span
               v-for="(tag, index) in project.tags"
               :key="index"
-              class="px-3 py-1 bg-blue-500/20 text-blue-400 rounded-full text-sm"
+              class="px-3 py-1 bg-blue-500/20 text-blue-400 rounded-full text-sm transition-all duration-300 hover:bg-blue-500/30 hover:scale-110"
+              :style="`transition-delay: ${index * 50}ms`"
             >
               {{ tag }}
             </span>

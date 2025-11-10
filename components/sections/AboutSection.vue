@@ -27,7 +27,7 @@
                 <span
                   v-for="(skill, index) in skills"
                   :key="index"
-                  :class="`px-4 py-2 ${skill.bgGradient} rounded-full border ${skill.borderColor} transition-all duration-300 hover:scale-105`"
+                  :class="`px-4 py-2 ${skill.bgGradient} rounded-full border ${skill.borderColor} transition-all duration-500 hover:scale-110 hover:-translate-y-1 hover:shadow-lg cursor-pointer`"
                 >
                   <span :class="`bg-gradient-to-r ${skill.gradient} bg-clip-text text-transparent font-semibold`">
                     {{ skill.name }}
@@ -36,9 +36,9 @@
               </div>
             </div>
             <div class="flex justify-center items-start h-full pt-4 pl-4">
-              <div class="relative w-56 h-56 rounded-full shadow-2xl overflow-hidden border-4 border-gradient-to-r from-blue-500 via-purple-500 to-pink-500 p-1">
+              <div class="relative w-56 h-56 rounded-full shadow-2xl overflow-hidden border-4 border-gradient-to-r from-blue-500 via-purple-500 to-pink-500 p-1 transition-all duration-500 hover:scale-110 hover:rotate-6 hover:shadow-blue-500/30">
                 <div class="w-full h-full rounded-full overflow-hidden">
-                  <img src="/src/avatar.jpg" alt="MikhailFur" class="w-full h-full object-cover rounded-full">
+                  <img src="/src/avatar.jpg" alt="MikhailFur" class="w-full h-full object-cover rounded-full transition-transform duration-500 hover:scale-110">
                 </div>
               </div>
             </div>

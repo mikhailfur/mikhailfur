@@ -10,9 +10,9 @@
           :key="contact.type"
           :href="contact.link"
           :target="contact.type !== 'email' ? '_blank' : undefined"
-          class="bg-gray-900/50 rounded-2xl p-6 border border-gray-800 hover:border-blue-500/50 hover:bg-gray-800/50 transition-all duration-300 cursor-pointer group"
+          class="bg-gray-900/50 rounded-2xl p-6 border border-gray-800 hover:border-blue-500/50 hover:bg-gray-800/50 transition-all duration-500 cursor-pointer group hover:transform hover:scale-105 hover:-translate-y-2 hover:shadow-2xl hover:shadow-blue-500/20"
         >
-          <i :class="`${contact.icon} text-3xl text-blue-400 mb-4 group-hover:text-blue-300 transition-colors`"></i>
+          <i :class="`${contact.icon} text-3xl text-blue-400 mb-4 group-hover:text-blue-300 transition-all duration-500 group-hover:scale-125 group-hover:rotate-12`"></i>
           <h3 class="text-xl font-bold mb-2 group-hover:text-white transition-colors">{{ contact.label }}</h3>
           <p class="text-gray-400 group-hover:text-gray-300 transition-colors">{{ contact.value }}</p>
         </a>
