@@ -1,37 +1,19 @@
-FROM node:20-alpine AS base
+FROM oven/bun:1 AS base
 
-WORKDIR /app
+WORKDIR /usr/src/app
 
-FROM base AS deps
-COPY package.json ./
-RUN npm install
+COPY package.json bun.lockb ./
 
-FROM base AS builder
-WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
+RUN bun install --no-peer-deps --frozen-lockfile
+
+FROM oven/bun:1 AS release
+
+COPY --from=base /usr/src/app/node_modules node_modules
+
 COPY . .
 
-ENV NODE_ENV=production
-RUN npm run build
+RUN bun --bun run build
 
-FROM base AS runner
-WORKDIR /app
-
-ENV NODE_ENV=production
-ENV NUXT_HOST=0.0.0.0
-ENV NUXT_PORT=3000
-
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nuxtjs
-
-COPY --from=builder --chown=nuxtjs:nodejs /app/.output ./
-
-USER nuxtjs
+CMD bun --bun run start
 
 EXPOSE 3000
-
-ENV PORT=3000
-ENV HOSTNAME=0.0.0.0
-
-CMD ["node", "server/index.mjs"]
-
