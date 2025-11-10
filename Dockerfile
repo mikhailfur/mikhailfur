@@ -1,11 +1,11 @@
-FROM oven/bun:1-alpine AS base
+FROM node:20-alpine AS base
 
 WORKDIR /app
 
 FROM base AS deps
-COPY package.json bun.lock* ./
-RUN --mount=type=cache,target=/root/.bun/install/cache \
-    bun install --frozen-lockfile
+COPY package.json ./
+RUN --mount=type=cache,target=/root/.npm \
+    npm install --prefer-offline --no-audit --legacy-peer-deps
 
 FROM base AS builder
 WORKDIR /app
@@ -13,7 +13,7 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
 ENV NODE_ENV=production
-RUN bun run build
+RUN npm run build
 
 FROM node:20-alpine AS runner
 WORKDIR /app
