@@ -22,7 +22,7 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 ENV NUXT_HOST=0.0.0.0
-ENV NUXT_PORT=3001
+ENV NUXT_PORT=3000
 
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nuxtjs
@@ -31,9 +31,9 @@ COPY --from=builder --chown=nuxtjs:nodejs /app/.output ./
 
 USER nuxtjs
 
-EXPOSE 3001
+EXPOSE 3000
 
-ENV PORT=3001
+ENV PORT=3000
 ENV HOSTNAME=0.0.0.0
 
 CMD ["node", "server/index.mjs"]
