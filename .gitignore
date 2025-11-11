@@ -35,6 +35,3 @@ logs
 *.njsproj
 *.sln
 *.sw?
-
-# SSL certificates
-letsencrypt/

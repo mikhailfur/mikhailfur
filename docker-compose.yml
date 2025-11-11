@@ -1,50 +1,14 @@
 services:
-  traefik:
-    image: traefik:v3.3
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ./letsencrypt:/letsencrypt
-      - ./traefik.yml:/traefik.yml:ro
-    networks:
-      - traefik
-    restart: unless-stopped
-    labels:
-      - traefik.enable=true
-      - traefik.docker.network=traefik
-
-  anubis:
-    image: ghcr.io/techarohq/anubis:main
-    environment:
-      - BIND=:8080
-      - TARGET= 
-      - REDIRECT_DOMAINS=mikhailfur.ru
-      - PUBLIC_URL=https://mikhailfur.ru/.anubis
-      - COOKIE_DOMAIN=mikhailfur.ru
-    networks:
-      - traefik
-    restart: unless-stopped
-    labels:
-      - traefik.enable=true
-      - traefik.docker.network=traefik
-      - traefik.http.routers.anubis.rule=Host(`mikhailfur.ru`) && PathPrefix(`/.anubis`)
-      - traefik.http.routers.anubis.entrypoints=websecure
-      - traefik.http.services.anubis.loadbalancer.server.port=8080
-      - traefik.http.routers.anubis.service=anubis
-      - traefik.http.routers.anubis.tls.certresolver=le
-
   app:
     build:
       context: .
       dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
     environment:
       - NODE_ENV=production
       - NUXT_HOST=0.0.0.0
       - NUXT_PORT=3000
-    networks:
-      - traefik
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
@@ -52,17 +16,4 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
-    labels:
-      - traefik.enable=true
-      - traefik.docker.network=traefik
-      - traefik.http.routers.app.rule=Host(`mikhailfur.ru`) && !PathPrefix(`/.anubis`)
-      - traefik.http.routers.app.entrypoints=websecure
-      - traefik.http.services.app.loadbalancer.server.port=3000
-      - traefik.http.routers.app.service=app
-      - traefik.http.routers.app.tls.certresolver=le
-      - traefik.http.routers.app.middlewares=anubis@file
-
-networks:
-  traefik:
-    name: traefik
 
