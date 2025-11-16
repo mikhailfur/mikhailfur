@@ -31,7 +31,7 @@ export const projects: Project[] = [
     title: 'Монолог программиста',
     description: 'Комикс о жизни программиста, написанный и проиллюстрированный мной',
     tags: ['Комикс', 'Творчество'],
-    link: 'https://comic.mikhailfur.ru',
+    link: 'https://t.me/mikhailfurry',
     icon: 'fa-solid fa-newspaper',
     gradient: 'from-orange-500 to-red-500'
   }

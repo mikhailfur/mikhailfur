@@ -3,7 +3,7 @@
     <div class="max-w-6xl mx-auto">
       <div class="text-center mb-16">
         <h2 class="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-white via-blue-100 to-purple-100 bg-clip-text text-transparent">Мои проекты</h2>
-        <p class="text-gray-400 text-lg">Работы, которыми я горжусь</p>
+        <p class="text-gray-400 text-lg">Список проектов из моего портфолио</p>
       </div>
 
       <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
