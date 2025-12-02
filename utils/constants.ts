@@ -54,7 +54,7 @@ export const projectLinkColors: Record<string, string> = {
 export const stats: Stat[] = [
   { value: 8, label: 'Проектов', color: 'blue-400' },
   { value: 3, label: 'Лет опыта', color: 'green-400' },
-  { value: 17, label: 'Мой возраст', color: 'purple-400' },
+  { value: 18, label: 'Мой возраст', color: 'purple-400' },
   { value: 24, label: 'Часа в сутках', color: 'pink-400' }
 ]
 
