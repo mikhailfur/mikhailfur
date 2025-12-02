@@ -7,7 +7,7 @@ WORKDIR /app
 FROM base AS deps
 COPY package.json ./
 RUN --mount=type=cache,target=/root/.npm \
-    npm install --prefer-offline --no-audit --legacy-peer-deps
+    npm install --no-audit --legacy-peer-deps
 
 FROM base AS builder
 WORKDIR /app
