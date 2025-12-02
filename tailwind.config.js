@@ -11,7 +11,22 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        'sans': ['Inter', 'system-ui', 'sans-serif'],
+        'sans': ['-apple-system', 'BlinkMacSystemFont', 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', 'system-ui', 'sans-serif'],
+      },
+      borderRadius: {
+        '4xl': '2rem',
+        '5xl': '2.5rem',
+      },
+      backdropBlur: {
+        xs: '2px',
+      },
+      boxShadow: {
+        'glass': '0 8px 32px 0 rgba(31, 38, 135, 0.37)',
+        'glass-inset': 'inset 0 1px 0 0 rgba(255, 255, 255, 0.05)',
+        'glow-blue': '0 0 20px rgba(59, 130, 246, 0.3), 0 0 40px rgba(59, 130, 246, 0.1)',
+        'glow-purple': '0 0 20px rgba(168, 85, 247, 0.3), 0 0 40px rgba(168, 85, 247, 0.1)',
+        'glow-pink': '0 0 20px rgba(236, 72, 153, 0.3), 0 0 40px rgba(236, 72, 153, 0.1)',
+        'soft': '0 2px 15px -3px rgba(0, 0, 0, 0.07), 0 10px 20px -2px rgba(0, 0, 0, 0.04)',
       },
       animation: {
         'fade-in': 'fadeIn 1s ease-out',
@@ -27,6 +42,8 @@ export default {
         'slide-in-right': 'slideInRight 0.8s ease-out',
         'scale-in': 'scaleIn 0.6s ease-out',
         'rotate-in': 'rotateIn 0.8s ease-out',
+        'aurora': 'aurora 20s ease infinite',
+        'aurora-slow': 'aurora 30s ease infinite',
       },
       keyframes: {
         fadeIn: {
@@ -68,6 +85,17 @@ export default {
         rotateIn: {
           '0%': { transform: 'rotate(-180deg) scale(0.8)', opacity: '0' },
           '100%': { transform: 'rotate(0deg) scale(1)', opacity: '1' },
+        },
+        aurora: {
+          '0%, 100%': {
+            transform: 'translate(0, 0) scale(1)',
+          },
+          '33%': {
+            transform: 'translate(30px, -30px) scale(1.1)',
+          },
+          '66%': {
+            transform: 'translate(-20px, 20px) scale(0.9)',
+          },
         },
       }
     }

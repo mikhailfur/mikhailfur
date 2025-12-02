@@ -1,25 +1,25 @@
 <template>
-  <nav class="fixed top-0 w-full z-50 bg-black/80 backdrop-blur-md border-b border-gray-800 transition-all duration-300" :class="{ 'bg-black/95': isScrolled }">
+  <nav class="fixed top-0 w-full z-50 bg-white/10 backdrop-blur-xl border-b border-white/20 transition-all duration-300" :class="{ 'bg-white/15': isScrolled }">
     <div class="max-w-6xl mx-auto px-6 py-4">
       <div class="flex items-center justify-between">
-        <NuxtLink to="/" class="text-xl font-bold hover:text-blue-400 transition-colors">
+        <NuxtLink to="/" class="text-xl font-bold text-white hover:text-blue-300 transition-colors">
           MikhailFur
         </NuxtLink>
         <div class="hidden md:flex space-x-8">
-          <NuxtLink to="/#home" class="hover:text-blue-400 transition-colors" @click="closeMobileMenu">
+          <NuxtLink to="/#home" class="text-gray-200 hover:text-blue-300 transition-colors font-medium" @click="closeMobileMenu">
             Главная
           </NuxtLink>
-          <NuxtLink to="/#projects" class="hover:text-blue-400 transition-colors" @click="closeMobileMenu">
+          <NuxtLink to="/#projects" class="text-gray-200 hover:text-blue-300 transition-colors font-medium" @click="closeMobileMenu">
             Проекты
           </NuxtLink>
-          <NuxtLink to="/#about" class="hover:text-blue-400 transition-colors" @click="closeMobileMenu">
+          <NuxtLink to="/#about" class="text-gray-200 hover:text-blue-300 transition-colors font-medium" @click="closeMobileMenu">
             О себе
           </NuxtLink>
-          <NuxtLink to="/#contact" class="hover:text-blue-400 transition-colors" @click="closeMobileMenu">
+          <NuxtLink to="/#contact" class="text-gray-200 hover:text-blue-300 transition-colors font-medium" @click="closeMobileMenu">
             Контакты
           </NuxtLink>
         </div>
-        <button class="md:hidden text-white p-2" @click="toggleMobileMenu" aria-label="Toggle menu">
+        <button class="md:hidden text-white p-2 hover:bg-white/10 rounded-2xl transition-colors" @click="toggleMobileMenu" aria-label="Toggle menu">
           <i :class="isMobileMenuOpen ? 'fas fa-times' : 'fas fa-bars'"></i>
         </button>
       </div>
@@ -27,18 +27,18 @@
     
     <!-- Mobile Menu -->
     <Transition name="slide-down">
-      <div v-if="isMobileMenuOpen" class="md:hidden fixed top-16 left-0 right-0 bg-black/95 backdrop-blur-md border-b border-gray-800 p-6 z-40">
+      <div v-if="isMobileMenuOpen" class="md:hidden fixed top-16 left-0 right-0 bg-white/15 backdrop-blur-xl border-b border-white/20 p-6 z-40">
         <div class="flex flex-col space-y-4">
-          <NuxtLink to="/#home" class="hover:text-blue-400 transition-colors py-2" @click="closeMobileMenu">
+          <NuxtLink to="/#home" class="text-gray-200 hover:text-blue-300 transition-colors py-2 font-medium" @click="closeMobileMenu">
             Главная
           </NuxtLink>
-          <NuxtLink to="/#projects" class="hover:text-blue-400 transition-colors py-2" @click="closeMobileMenu">
+          <NuxtLink to="/#projects" class="text-gray-200 hover:text-blue-300 transition-colors py-2 font-medium" @click="closeMobileMenu">
             Проекты
           </NuxtLink>
-          <NuxtLink to="/#about" class="hover:text-blue-400 transition-colors py-2" @click="closeMobileMenu">
+          <NuxtLink to="/#about" class="text-gray-200 hover:text-blue-300 transition-colors py-2 font-medium" @click="closeMobileMenu">
             О себе
           </NuxtLink>
-          <NuxtLink to="/#contact" class="hover:text-blue-400 transition-colors py-2" @click="closeMobileMenu">
+          <NuxtLink to="/#contact" class="text-gray-200 hover:text-blue-300 transition-colors py-2 font-medium" @click="closeMobileMenu">
             Контакты
           </NuxtLink>
         </div>

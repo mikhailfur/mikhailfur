@@ -13,7 +13,7 @@
       </div>
 
       <!-- 3D Background Canvas -->
-      <canvas id="particles-canvas" class="absolute inset-0 w-full h-full"></canvas>
+      <canvas id="particles-canvas" class="absolute inset-0 w-full h-full pointer-events-none" style="mask-image: linear-gradient(to bottom, black 0%, black 85%, transparent 100%); -webkit-mask-image: linear-gradient(to bottom, black 0%, black 85%, transparent 100%);"></canvas>
       
       <!-- Floating Icons -->
       <div class="absolute inset-0 pointer-events-none">
@@ -57,21 +57,21 @@
             <div
               v-for="stat in stats"
               :key="stat.label"
-              class="bg-white/5 backdrop-blur-sm rounded-2xl p-4 border border-white/10 hover:bg-white/10 transition-all duration-300"
+              class="glass-card p-4 relative"
             >
               <div :class="`text-2xl font-bold text-${stat.color}`" :data-count="stat.value">0</div>
-              <div class="text-sm text-gray-400">{{ stat.label }}</div>
+              <div class="text-sm text-gray-300/80">{{ stat.label }}</div>
             </div>
           </div>
           
           <!-- Interactive Buttons -->
           <div class="flex flex-col sm:flex-row gap-4 justify-center animate-slide-up">
-            <NuxtLink to="#projects" class="group px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-full font-medium hover:from-blue-600 hover:to-purple-600 transition-all duration-500 transform hover:scale-110 hover:shadow-2xl hover:shadow-blue-500/50 relative overflow-hidden hover:-translate-y-1">
+            <NuxtLink to="#projects" class="group px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-3xl font-medium hover:from-blue-600 hover:to-purple-600 transition-all duration-500 transform hover:scale-105 hover:shadow-glow-blue relative overflow-hidden hover:-translate-y-1">
               <span class="relative z-10 transition-transform duration-500 group-hover:scale-105">Мои проекты</span>
-              <div class="absolute inset-0 bg-gradient-to-r from-purple-500 to-pink-500 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              <div class="absolute inset-0 bg-gradient-to-r from-purple-500 to-pink-500 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-3xl"></div>
             </NuxtLink>
-            <NuxtLink to="#contact" class="group px-8 py-4 border-2 border-white/20 rounded-full font-medium hover:border-white/40 hover:bg-white/5 transition-all duration-500 transform hover:scale-110 hover:-translate-y-1 backdrop-blur-sm hover:shadow-xl hover:shadow-white/10">
-              <span class="group-hover:text-white transition-colors duration-500">Связаться</span>
+            <NuxtLink to="#contact" class="group px-8 py-4 border-2 border-white/20 rounded-3xl font-medium hover:border-white/40 hover:bg-white/10 transition-all duration-500 transform hover:scale-105 hover:-translate-y-1 backdrop-blur-xl hover:shadow-glow-blue">
+              <span class="text-white group-hover:text-blue-200 transition-colors duration-500">Связаться</span>
             </NuxtLink>
           </div>
         </div>
@@ -96,12 +96,14 @@ import { stats, typedStrings } from '~/utils/constants'
 import { animationConfig } from '~/utils/animations'
 
 const { initParticles, animateCounters, initHeroAnimations, initScrollAnimations, cleanup } = useAnimations()
+const { initLiquidGlass } = useLiquidGlass()
 
 onMounted(() => {
   if (import.meta.client) {
     initParticles('particles-canvas')
     initHeroAnimations()
     initScrollAnimations()
+    initLiquidGlass('.glass-card')
 
     setTimeout(() => {
       animateCounters()

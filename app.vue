@@ -1,5 +1,11 @@
 <template>
-  <div>
+  <div class="relative min-h-screen">
+    <div class="aurora-bg">
+      <div class="aurora-gradient-1"></div>
+      <div class="aurora-gradient-2"></div>
+      <div class="aurora-gradient-3"></div>
+      <div class="aurora-gradient-4"></div>
+    </div>
     <NuxtPage />
   </div>
 </template>
