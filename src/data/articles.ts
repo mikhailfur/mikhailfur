@@ -26,10 +26,16 @@ function parseArticle(source: string, fileName: string): Article {
   };
 }
 
-export async function getArticles(language: Language) {
-  const fileNames = (await readdir(articlesDirectory)).filter((fileName) => fileName.endsWith(`.${language}.md`));
-  const articles = await Promise.all(fileNames.map(async (fileName) => parseArticle(await readFile(path.join(articlesDirectory, fileName), "utf8"), fileName)));
-  return articles.sort((left, right) => Date.parse(right.date) - Date.parse(left.date));
+export async function getArticles(language: Language): Promise<Article[]> {
+  try {
+    const fileNames = (await readdir(articlesDirectory)).filter((fileName) => fileName.endsWith(`.${language}.md`));
+    const articles = await Promise.all(
+      fileNames.map(async (fileName) => parseArticle(await readFile(path.join(articlesDirectory, fileName), "utf8"), fileName))
+    );
+    return articles.sort((left, right) => Date.parse(right.date) - Date.parse(left.date));
+  } catch {
+    return [];
+  }
 }
 
 export async function getLocalizedArticles() {
