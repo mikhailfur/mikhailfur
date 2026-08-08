@@ -74,36 +74,98 @@ function getUsageMap(): Map<string, UsageLog> {
 }
 
 function clientKey(request: NextRequest): string {
-  const reqIp = (request as unknown as { ip?: string }).ip;
-  if (reqIp) {
-    return reqIp.trim();
-  }
+  // 1. Cloudflare IP header (highest priority when proxied through Cloudflare)
   const cfIp = request.headers.get("cf-connecting-ip");
-  if (cfIp) {
+  if (cfIp && cfIp.trim()) {
     return cfIp.trim();
   }
-  const forwarded = request.headers.get("x-forwarded-for");
-  if (forwarded) {
-    return forwarded.split(",")[0].trim();
-  }
+
+  // 2. Vercel Real IP header
   const realIp = request.headers.get("x-real-ip");
-  if (realIp) {
+  if (realIp && realIp.trim()) {
     return realIp.trim();
   }
+
+  // 3. X-Forwarded-For (client IP is first in chain)
+  const forwarded = request.headers.get("x-forwarded-for");
+  if (forwarded) {
+    const firstIp = forwarded.split(",")[0].trim();
+    if (firstIp) return firstIp;
+  }
+
+  // 4. Client IP header
   const clientIp = request.headers.get("x-client-ip");
-  if (clientIp) {
+  if (clientIp && clientIp.trim()) {
     return clientIp.trim();
   }
+
+  // 5. NextRequest IP property
+  const reqIp = (request as unknown as { ip?: string }).ip;
+  if (reqIp && reqIp.trim()) {
+    return reqIp.trim();
+  }
+
   return "127.0.0.1";
 }
 
-function checkRateLimit(key: string): { limited: boolean; reason?: string } {
+async function checkRedisRateLimit(ip: string): Promise<{ limited: boolean; reason?: string } | null> {
+  const url = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
+  if (!url || !token) return null;
+
+  try {
+    const today = new Date().toISOString().split("T")[0];
+    const redisKey = `ratelimit:miyabi:${ip}:${today}`;
+
+    const incrRes = await fetch(`${url}/incr/${encodeURIComponent(redisKey)}`, {
+      headers: { Authorization: `Bearer ${token}` },
+      cache: "no-store",
+    });
+
+    if (!incrRes.ok) {
+      console.error("Upstash Redis INCR returned status", incrRes.status);
+      return null;
+    }
+
+    const incrData = await incrRes.json();
+    const count = typeof incrData.result === "number" ? incrData.result : 1;
+
+    // Expire key after 24 hours
+    if (count === 1) {
+      await fetch(`${url}/expire/${encodeURIComponent(redisKey)}/86400`, {
+        headers: { Authorization: `Bearer ${token}` },
+        cache: "no-store",
+      }).catch(() => {});
+    }
+
+    if (count > MAX_REQUESTS_PER_DAY) {
+      return {
+        limited: true,
+        reason: `Daily request limit reached (${MAX_REQUESTS_PER_DAY} requests / 24h per IP). Please try again tomorrow.`,
+      };
+    }
+
+    return { limited: false };
+  } catch (err) {
+    console.error("Failed to query Upstash Redis rate limit:", err);
+    return null;
+  }
+}
+
+async function checkRateLimit(ip: string): Promise<{ limited: boolean; reason?: string }> {
+  // If Upstash Redis / Vercel KV is configured, use centralized global rate limiting across all Vercel containers
+  const redisStatus = await checkRedisRateLimit(ip);
+  if (redisStatus !== null) {
+    return redisStatus;
+  }
+
+  // Fallback to local persistent log for single-node / local environments
   const now = Date.now();
   const usageMap = getUsageMap();
-  let log = usageMap.get(key);
+  let log = usageMap.get(ip);
   if (!log) {
     log = { requests: [], tokenLogs: [] };
-    usageMap.set(key, log);
+    usageMap.set(ip, log);
   }
 
   // Clean entries older than 24 hours
@@ -262,7 +324,7 @@ export async function POST(request: NextRequest) {
   }
 
   const ip = clientKey(request);
-  const limitStatus = checkRateLimit(ip);
+  const limitStatus = await checkRateLimit(ip);
   if (limitStatus.limited) {
     return NextResponse.json({ error: limitStatus.reason }, { status: 429 });
   }
