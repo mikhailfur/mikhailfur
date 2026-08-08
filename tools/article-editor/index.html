@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MKH_LOG Article Editor</title>
+  <style>
+    :root { color-scheme: dark; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: #0b0907; color: #f4e5d3; }
+    * { box-sizing: border-box; }
+    body { min-width: 320px; margin: 0; }
+    main { width: min(100% - 32px, 1680px); margin: 0 auto; padding: 28px 0 48px; }
+    header { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; padding-bottom: 18px; border-bottom: 1px solid #4b3c30; }
+    h1 { margin: 0; color: #e47d39; font-size: 20px; letter-spacing: .06em; }
+    header p, .hint { margin: 0; color: #a99888; font-size: 12px; line-height: 1.5; }
+    form { margin-top: 24px; }
+    .metadata { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; padding: 16px; border: 1px solid #4b3c30; background: #100d0a; }
+    label { display: grid; gap: 7px; color: #e9ab7d; font-size: 11px; letter-spacing: .04em; }
+    .wide { grid-column: span 2; }
+    input, select, textarea { width: 100%; border: 1px solid #4b3c30; border-radius: 0; outline: 0; background: #0b0907; color: #f4e5d3; padding: 10px; font: 14px/1.5 inherit; }
+    input:focus, select:focus, textarea:focus { border-color: #e47d39; }
+    .workspace { display: grid; grid-template-columns: minmax(390px, .85fr) minmax(580px, 1.15fr); min-height: 720px; border: 1px solid #4b3c30; border-top: 0; }
+    .pane { display: flex; flex-direction: column; min-width: 0; }
+    .pane + .pane { border-left: 1px solid #4b3c30; }
+    .toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 10px; border-bottom: 1px solid #4b3c30; color: #a99888; font-size: 11px; }
+    .toolbar-title { margin-right: auto; color: #e9ab7d; }
+    button { border: 1px solid #665040; border-radius: 0; background: transparent; color: #d9c2ac; padding: 7px 9px; font: 12px inherit; cursor: pointer; }
+    button:hover, button:focus-visible { border-color: #e47d39; color: #e47d39; outline: 0; }
+    #content { flex: 1; min-height: 640px; resize: none; border: 0; }
+    .preview-viewport { flex: 1; overflow: auto; padding: 34px; background: #17120e; }
+    .paper { width: 210mm; min-height: 297mm; margin: 0 auto; padding: 24mm 25mm 20mm; background: #f0e2d0; color: #24180f; font-family: Arial, sans-serif; box-shadow: 0 18px 50px rgba(0, 0, 0, .34); }
+    .paper-header, .paper-meta, .paper-footer { display: flex; justify-content: space-between; gap: 16px; font: 11px ui-monospace, monospace; letter-spacing: .06em; }
+    .paper-header { padding-bottom: 12px; border-bottom: 1px solid #ac8968; }
+    .paper-path { margin: 30px 0 15px; color: #a65427; font: 11px ui-monospace, monospace; }
+    .paper h1 { margin: 0; color: #24180f; font: 500 34px/1.12 Arial, sans-serif; letter-spacing: -.04em; }
+    .paper-lead { margin: 17px 0; color: #684a34; font: 16px/1.55 ui-monospace, monospace; }
+    .paper-meta { padding: 14px 0; border-block: 1px solid #ac8968; color: #805334; }
+    #preview { max-width: 66ch; margin-top: 36px; font-size: 16px; line-height: 1.8; }
+    #preview p, #preview ul, #preview ol, #preview blockquote, #preview pre, #preview figure { margin: 0 0 24px; }
+    #preview h1, #preview h2, #preview h3 { margin: 36px 0 14px; color: #24180f; font-family: Arial, sans-serif; line-height: 1.15; }
+    #preview h2 { font-size: 1.35em; }
+    #preview h3 { font-size: 1.12em; }
+    #preview ul, #preview ol { padding-left: 1.3em; }
+    #preview li + li { margin-top: 7px; }
+    #preview blockquote { padding-left: 18px; border-left: 1px solid #a65427; color: #684a34; }
+    #preview pre { overflow: auto; padding: 16px; background: #18130f; color: #f8e8d5; font: 13px/1.55 ui-monospace, monospace; white-space: pre-wrap; }
+    #preview code { padding: .12em .32em; background: #e7dacb; font: .83em ui-monospace, monospace; }
+    #preview pre code { padding: 0; background: transparent; }
+    #preview a { color: #a65427; text-decoration: underline; text-underline-offset: .18em; }
+    #preview img { display: block; max-width: 100%; height: auto; border: 1px solid #ac8968; }
+    #preview figcaption { margin-top: 7px; color: #684a34; font: 12px ui-monospace, monospace; }
+    .paper-footer { margin-top: 32px; padding-top: 12px; border-top: 1px solid #ac8968; color: #805334; }
+    footer { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-top: 16px; }
+    #download { border-color: #e47d39; color: #e47d39; }
+    @media (max-width: 1100px) { .workspace { grid-template-columns: minmax(320px, .8fr) minmax(460px, 1.2fr); } .preview-viewport { padding: 20px; } .paper { width: 100%; min-height: 0; padding: 11vw; } }
+    @media (max-width: 760px) { main { width: min(100% - 24px, 1680px); padding-top: 18px; } header, footer { align-items: flex-start; flex-direction: column; } .metadata, .workspace { grid-template-columns: 1fr; } .wide { grid-column: auto; } .workspace { min-height: auto; } .pane + .pane { border-top: 1px solid #4b3c30; border-left: 0; } #content { min-height: 430px; } .preview-viewport { min-height: 470px; padding: 0; } .paper { padding: 68px 25px 40px; box-shadow: none; } }
+  </style>
+</head>
+<body>
+  <main>
+    <header><h1>MKH_LOG / ARTICLE EDITOR</h1><p>Работает локально: данные никуда не отправляются.</p></header>
+    <form id="editor">
+      <section class="metadata">
+        <label>Case ID<input id="id" value="case-004" pattern="[a-z0-9]+(?:-[a-z0-9]+)*" required></label>
+        <label>Язык<select id="language"><option value="ru">Русский</option><option value="en">English</option><option value="ko">한국어</option></select></label>
+        <label>Дата<input id="date" type="date" required></label>
+        <label class="wide">Заголовок<input id="title" value="Новая полевая заметка" required></label>
+        <label>Тип<input id="type" value="FIELD NOTE" required></label>
+        <label class="wide">Краткое описание<textarea id="excerpt" rows="2" required>Короткое описание для архива.</textarea></label>
+        <label>Скрываемые фразы <span class="hint">Через |, необязательно</span><input id="redacted"></label>
+      </section>
+      <section class="workspace">
+        <div class="pane">
+          <div class="toolbar"><span class="toolbar-title">Markdown</span><button type="button" data-insert="**жирный текст**">Жирный</button><button type="button" data-insert="*курсив*">Курсив</button><button type="button" data-insert="\n## Подзаголовок\n">Заголовок</button><button type="button" data-insert="\n- Пункт списка\n">Список</button><button type="button" data-insert="\n> Цитата\n">Цитата</button><button type="button" data-insert="\n```ts\nкод\n```\n">Код</button><button type="button" data-insert="\n![Описание изображения](/articles/image.jpg)\n">Изображение</button></div>
+          <textarea id="content" aria-label="Markdown"># Наблюдение
+
+Текст заметки.
+
+## Детали
+
+- Первый пункт
+- Второй пункт
+</textarea>
+        </div>
+        <div class="pane">
+          <div class="toolbar"><span class="toolbar-title">LIVE PREVIEW / A4</span><span>Отображение как на сайте</span></div>
+          <div class="preview-viewport"><article class="paper"><header class="paper-header"><span id="preview-type"></span><span id="preview-id"></span></header><p class="paper-path" id="preview-path"></p><h1 id="preview-title"></h1><p class="paper-lead" id="preview-excerpt"></p><div class="paper-meta"><span id="preview-date"></span><span>PUBLIC NOTE</span></div><div id="preview"></div><footer class="paper-footer"><span id="preview-footer"></span></footer></article></div>
+        </div>
+      </section>
+      <footer><p class="hint">Скачанный файл: <code>case-id.language.md</code>. Изображения указываются путём, их добавление в проект выполняется отдельно.</p><button id="download" type="submit">Скачать Markdown</button></footer>
+    </form>
+  </main>
+  <script>
+    const $ = (id) => document.getElementById(id);
+    const content = $("content");
+    const preview = $("preview");
+    $("date").value = new Date().toISOString().slice(0, 10);
+
+    function appendInline(target, value) {
+      const pattern = /(!?\[([^\]]*)\]\(([^)\s]+)\)|`([^`]+)`|\*\*([^*]+)\*\*|\*([^*]+)\*)/g;
+      let last = 0;
+      for (const match of value.matchAll(pattern)) {
+        target.append(document.createTextNode(value.slice(last, match.index)));
+        if (match[1].startsWith("![")) {
+          target.append(document.createTextNode(match[2]));
+        } else if (match[1].startsWith("[")) {
+          const link = document.createElement("a");
+          link.textContent = match[2];
+          link.href = /^(https?:|\/|#)/.test(match[3]) ? match[3] : "#";
+          link.target = "_blank";
+          link.rel = "noreferrer";
+          target.append(link);
+        } else {
+          const tag = match[4] ? "code" : match[5] ? "strong" : "em";
+          const element = document.createElement(tag);
+          element.textContent = match[4] || match[5] || match[6];
+          target.append(element);
+        }
+        last = match.index + match[0].length;
+      }
+      target.append(document.createTextNode(value.slice(last)));
+    }
+
+    function renderBlock(block) {
+      const lines = block.split("\n");
+      if (lines[0].startsWith("```") && lines.at(-1) === "```") {
+        const pre = document.createElement("pre");
+        const code = document.createElement("code");
+        code.textContent = lines.slice(1, -1).join("\n");
+        pre.append(code);
+        return pre;
+      }
+      const heading = block.match(/^(#{1,3})\s+(.+)$/);
+      if (heading) {
+        const element = document.createElement(`h${heading[1].length}`);
+        appendInline(element, heading[2]);
+        return element;
+      }
+      const image = block.match(/^!\[([^\]]*)\]\(([^\s)]+)\)$/);
+      if (image) {
+        const figure = document.createElement("figure");
+        const element = document.createElement("img");
+        element.src = image[2];
+        element.alt = image[1];
+        figure.append(element);
+        if (image[1]) { const caption = document.createElement("figcaption"); caption.textContent = image[1]; figure.append(caption); }
+        return figure;
+      }
+      if (lines.every((line) => /^[-*]\s+/.test(line))) {
+        const list = document.createElement("ul");
+        lines.forEach((line) => { const item = document.createElement("li"); appendInline(item, line.replace(/^[-*]\s+/, "")); list.append(item); });
+        return list;
+      }
+      if (lines.every((line) => /^\d+\.\s+/.test(line))) {
+        const list = document.createElement("ol");
+        lines.forEach((line) => { const item = document.createElement("li"); appendInline(item, line.replace(/^\d+\.\s+/, "")); list.append(item); });
+        return list;
+      }
+      if (lines.every((line) => line.startsWith("> "))) {
+        const quote = document.createElement("blockquote");
+        appendInline(quote, lines.map((line) => line.slice(2)).join(" "));
+        return quote;
+      }
+      const paragraph = document.createElement("p");
+      appendInline(paragraph, lines.join(" "));
+      return paragraph;
+    }
+
+    function renderPreview() {
+      const id = $("id").value.trim() || "case-id";
+      $("preview-type").textContent = $("type").value || "FIELD NOTE";
+      $("preview-id").textContent = id;
+      $("preview-path").textContent = `/archive/${id}`;
+      $("preview-title").textContent = $("title").value || "Untitled field note";
+      $("preview-excerpt").textContent = $("excerpt").value;
+      $("preview-date").textContent = $("date").value || "DATE";
+      $("preview-footer").textContent = `mikhailfur | ${id}`;
+      preview.replaceChildren(...content.value.trim().split(/\n\s*\n/).filter(Boolean).map(renderBlock));
+    }
+
+    document.querySelectorAll("[data-insert]").forEach((button) => button.addEventListener("click", () => {
+      const start = content.selectionStart;
+      content.setRangeText(button.dataset.insert, start, content.selectionEnd, "end");
+      content.focus();
+      renderPreview();
+    }));
+    document.querySelectorAll("input, select, textarea").forEach((field) => field.addEventListener("input", renderPreview));
+    renderPreview();
+
+    $("editor").addEventListener("submit", (event) => {
+      event.preventDefault();
+      const id = $("id").value.trim().toLowerCase();
+      if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(id)) { $("id").focus(); return; }
+      const field = (name) => $(name).value.replace(/[\r\n]+/g, " ").trim();
+      const redacted = field("redacted");
+      const markdown = `---\nid: ${id}\ntype: ${field("type")}\ntitle: ${field("title")}\ndate: ${field("date")}\nexcerpt: ${field("excerpt")}${redacted ? `\nredacted: ${redacted}` : ""}\n---\n\n${content.value.trim()}\n`;
+      const file = new Blob([markdown], { type: "text/markdown;charset=utf-8" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(file);
+      link.download = `${id}.${$("language").value}.md`;
+      link.click();
+      URL.revokeObjectURL(link.href);
+    });
+  </script>
+</body>
+</html>
