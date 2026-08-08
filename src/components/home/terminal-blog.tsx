@@ -4,7 +4,7 @@ import type { FormEvent, ReactNode } from "react";
 import Image from "next/image";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { getPortfolio, getTerminalCommands, ui } from "@/data/site-content";
-import type { Article, Language, TerminalCommand } from "@/types/portfolio";
+import type { Article, Language, Project, TerminalCommand } from "@/types/portfolio";
 import { TechBadge } from "./tech-badge";
 import { MiyabiChatModal } from "./miyabi-chat-modal";
 
@@ -228,10 +228,19 @@ function MarkdownBody({ article }: { article: Article }) {
 
 function formatClock(date: Date, language: Language) {
   const locales: Record<Language, string> = { en: "en-GB", ru: "ru-RU", ko: "ko-KR" };
-  return new Intl.DateTimeFormat(locales[language], { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", second: "2-digit" }).format(date).replace(" г.", "");
+  return new Intl.DateTimeFormat(locales[language], {
+    timeZone: "Asia/Seoul",
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  }).format(date).replace(" г.", "");
 }
 
-export function TerminalBlog({ articlesByLanguage }: { articlesByLanguage: Record<Language, Article[]> }) {
+export function TerminalBlog({ articlesByLanguage, initialProjects = [] }: { articlesByLanguage: Record<Language, Article[]>; initialProjects?: Project[] }) {
   const language = useSyncExternalStore<Language | null>(subscribeToLanguage, readStoredLanguage, (): null => null);
   const activeLanguage = language ?? "en";
   const [booted, setBooted] = useState(false);
@@ -240,19 +249,35 @@ export function TerminalBlog({ articlesByLanguage }: { articlesByLanguage: Recor
   const [activeArticle, setActiveArticle] = useState<string | null>(null);
   const [archiveOpen, setArchiveOpen] = useState(false);
   const [miyabiChatOpen, setMiyabiChatOpen] = useState(false);
+  const [fullscreenTerminalOpen, setFullscreenTerminalOpen] = useState(false);
   const [terminalMode, setTerminalMode] = useState<"shell" | "miyabi">("shell");
   const [clock, setClock] = useState(() => new Date());
   const [miyabiArt, setMiyabiArt] = useState<AnsiChunk[]>([]);
+  const [projects, setProjects] = useState<Project[]>(initialProjects);
   const reader = useRef<HTMLDivElement>(null);
   const terminalInput = useRef<HTMLInputElement>(null);
+  const fullscreenTerminalInput = useRef<HTMLInputElement>(null);
   const artViewport = useRef<HTMLDivElement>(null);
   const artPre = useRef<HTMLPreElement>(null);
   const [artScale, setArtScale] = useState(0);
   const text = ui[activeLanguage];
-  const { hobbies, projects, stackGroups } = getPortfolio(activeLanguage);
+  const { hobbies, stackGroups } = getPortfolio(activeLanguage);
   const terminalCommands = getTerminalCommands(activeLanguage);
   const articles = articlesByLanguage[activeLanguage];
   const selectedArticle = articles.find((article) => article.id === activeArticle);
+
+  useEffect(() => {
+    if (initialProjects && initialProjects.length > 0) return;
+    let alive = true;
+    fetch("/api/projects")
+      .then((res) => res.json())
+      .then((data) => {
+        if (alive && Array.isArray(data) && data.length > 0) setProjects(data);
+      })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, [initialProjects]);
+
 
   useEffect(() => {
     if (language) document.documentElement.lang = language;
@@ -297,15 +322,37 @@ export function TerminalBlog({ articlesByLanguage }: { articlesByLanguage: Recor
   }, [miyabiArt]);
 
   useEffect(() => {
-    const focusTerminal = (event: KeyboardEvent) => {
+    const handleKeyDown = (event: KeyboardEvent) => {
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
         event.preventDefault();
-        terminalInput.current?.focus();
+        setFullscreenTerminalOpen((prev) => !prev);
       }
     };
-    window.addEventListener("keydown", focusTerminal);
-    return () => window.removeEventListener("keydown", focusTerminal);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
+
+  useEffect(() => {
+    if (!fullscreenTerminalOpen) return;
+    document.body.classList.add("reader-open");
+    const escape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setFullscreenTerminalOpen(false);
+      }
+    };
+    window.addEventListener("keydown", escape);
+    return () => {
+      document.body.classList.remove("reader-open");
+      window.removeEventListener("keydown", escape);
+    };
+  }, [fullscreenTerminalOpen]);
+
+  useEffect(() => {
+    if (fullscreenTerminalOpen && terminalMode === "shell") {
+      const timer = setTimeout(() => fullscreenTerminalInput.current?.focus(), 60);
+      return () => clearTimeout(timer);
+    }
+  }, [fullscreenTerminalOpen, terminalMode]);
 
   useEffect(() => {
     if (!activeArticle && !archiveOpen) return;
@@ -380,7 +427,7 @@ export function TerminalBlog({ articlesByLanguage }: { articlesByLanguage: Recor
   return <main>
     <nav className="topbar" aria-label={text.mainNavigation}>
       <a href="#home" className="brand"><span className="brand-mark">&gt;_</span> mikhail_fur</a>
-      <span className="top-status"><Icon name="clock" size={14} /> {formatClock(clock, activeLanguage)} <b>MSK</b></span>
+      <span className="top-status"><Icon name="clock" size={14} /> {formatClock(clock, activeLanguage)} <b>KST</b></span>
       <div className="language-switcher" aria-label={text.language}>{(["en", "ru", "ko"] as Language[]).map((item) => <button key={item} type="button" onClick={() => changeLanguage(item)} aria-pressed={activeLanguage === item}>{item.toUpperCase()}</button>)}</div>
     </nav>
 
@@ -469,7 +516,19 @@ export function TerminalBlog({ articlesByLanguage }: { articlesByLanguage: Recor
                 &gt;_ MIYABI AI CLI
               </button>
             </div>
-            <span>{text.connected}</span>
+            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+              <button
+                type="button"
+                className="terminal-fullscreen-trigger"
+                onClick={() => setFullscreenTerminalOpen(true)}
+                title="Ctrl + K"
+              >
+                <Icon name="command" size={12} />
+                <span>{text.terminalFullscreen || "Fullscreen"}</span>
+                <kbd>Ctrl K</kbd>
+              </button>
+              <span>{text.connected}</span>
+            </div>
           </div>
 
           {terminalMode === "shell" ? (
@@ -524,7 +583,111 @@ export function TerminalBlog({ articlesByLanguage }: { articlesByLanguage: Recor
        {selectedArticle && <div className="article-reader document-reader" ref={reader} role="dialog" aria-modal="true" aria-label={`${text.note}: ${selectedArticle.title}`} onMouseDown={(event) => { if (event.target === event.currentTarget) setActiveArticle(null); }}>
        <button className="reader-close" onClick={() => setActiveArticle(null)}>{text.close} <span>Esc</span></button>
          <article className="reader-sheet document-page"><header><span>{selectedArticle.type}</span><span>{selectedArticle.id}</span></header><p className="reader-path">/archive/{selectedArticle.id}</p><h1>{selectedArticle.title}</h1><p className="reader-lead">{selectedArticle.excerpt}</p><div className="reader-meta"><span>{selectedArticle.date}</span><span>{text.publicNote.toUpperCase()}</span></div><div className="reader-body"><MarkdownBody article={selectedArticle} /></div><footer className="document-footer"><span>mikhailfur | {selectedArticle.id}</span></footer></article>
-     </div>}
+      </div>}
        {miyabiChatOpen && <MiyabiChatModal onClose={() => setMiyabiChatOpen(false)} />}
+       {fullscreenTerminalOpen && (
+         <div
+           className="fullscreen-terminal-overlay"
+           role="dialog"
+           aria-modal="true"
+           aria-label={`${text.terminal} & ${text.miyabiTitle}`}
+           onMouseDown={(e) => {
+             if (e.target === e.currentTarget) setFullscreenTerminalOpen(false);
+           }}
+         >
+           <div className="fullscreen-terminal-window">
+             <header className="fullscreen-terminal-header">
+               <div className="fullscreen-terminal-left">
+                 <span className="terminal-frame-controls" aria-hidden="true">
+                   <i />
+                   <i />
+                   <i />
+                 </span>
+                 <div className="fullscreen-terminal-title">
+                   <span>mikhail_fur :: terminal</span>
+                 </div>
+                 <div className="terminal-tab-group">
+                   <button
+                     type="button"
+                     className={`terminal-tab-btn ${terminalMode === "shell" ? "active" : ""}`}
+                     onClick={() => setTerminalMode("shell")}
+                   >
+                     <i /> SHELL
+                   </button>
+                   <button
+                     type="button"
+                     className={`terminal-tab-btn ${terminalMode === "miyabi" ? "active" : ""}`}
+                     onClick={() => setTerminalMode("miyabi")}
+                   >
+                     &gt;_ MIYABI AI CLI
+                   </button>
+                 </div>
+               </div>
+
+               <div className="fullscreen-terminal-right">
+                 <span className="fullscreen-terminal-kbd">
+                   <kbd>Ctrl</kbd> + <kbd>K</kbd>
+                 </span>
+                 <button
+                   type="button"
+                   className="fullscreen-close-btn"
+                   onClick={() => setFullscreenTerminalOpen(false)}
+                   title="Close (Esc)"
+                 >
+                   {text.close} <span>Esc</span>
+                 </button>
+               </div>
+             </header>
+
+             <div className="fullscreen-terminal-content">
+               {terminalMode === "shell" ? (
+                 <div className="fullscreen-shell-body">
+                   <div className="fullscreen-terminal-log" aria-live="polite">
+                     {lines.map((line, index) => (
+                       <p key={`${line}-${index}`}>{line}</p>
+                     ))}
+                   </div>
+
+                   <form onSubmit={submit} className="fullscreen-terminal-form">
+                     <Prompt>
+                       <input
+                         ref={fullscreenTerminalInput}
+                         value={input}
+                         onChange={(event) => setInput(event.target.value)}
+                         aria-label={text.terminalLabel}
+                         placeholder={text.terminalPlaceholder}
+                         autoComplete="off"
+                       />
+                     </Prompt>
+                   </form>
+
+                   <div className="fullscreen-quick-actions">
+                     {terminalCommands
+                       .filter((command) => command.quick)
+                       .map((command) => (
+                         <button
+                           key={command.name}
+                           type="button"
+                           onClick={() => {
+                             if (command.action === "miyabi") {
+                               setTerminalMode("miyabi");
+                             } else {
+                               setInput(command.name === "message" ? "message " : command.name);
+                               fullscreenTerminalInput.current?.focus();
+                             }
+                           }}
+                         >
+                           {command.name}
+                         </button>
+                       ))}
+                   </div>
+                 </div>
+               ) : (
+                 <MiyabiChatModal embedded />
+               )}
+             </div>
+           </div>
+         </div>
+       )}
   </main>;
 }

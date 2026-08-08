@@ -8,9 +8,9 @@ export const runtime = "nodejs";
 
 const DAY_IN_MS = 24 * 60 * 60 * 1000;
 const HOUR_IN_MS = 60 * 60 * 1000;
-const MAX_REQUESTS_PER_DAY = 3;
-const MAX_REQUESTS_PER_HOUR = 3;
-const MAX_TOKENS_PER_DAY = 500000;
+const MAX_REQUESTS_PER_DAY = 50;
+const MAX_REQUESTS_PER_HOUR = 10;
+const MAX_TOKENS_PER_DAY = 150000;
 
 type UsageLog = {
   requests: number[];
@@ -108,7 +108,7 @@ function clientKey(request: NextRequest): string {
   return "127.0.0.1";
 }
 
-async function checkRedisRateLimit(ip: string): Promise<{ limited: boolean; reason?: string } | null> {
+async function checkRedisRateLimit(ip: string): Promise<{ limited: boolean; reason?: string; code?: string } | null> {
   const url = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
   const token = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
   if (!url || !token) return null;
@@ -141,6 +141,7 @@ async function checkRedisRateLimit(ip: string): Promise<{ limited: boolean; reas
     if (count > MAX_REQUESTS_PER_DAY) {
       return {
         limited: true,
+        code: "DAILY_LIMIT_REACHED",
         reason: `Daily request limit reached (${MAX_REQUESTS_PER_DAY} requests / 24h per IP). Please try again tomorrow.`,
       };
     }
@@ -152,7 +153,7 @@ async function checkRedisRateLimit(ip: string): Promise<{ limited: boolean; reas
   }
 }
 
-async function checkRateLimit(ip: string): Promise<{ limited: boolean; reason?: string }> {
+async function checkRateLimit(ip: string): Promise<{ limited: boolean; reason?: string; code?: string }> {
   // If Upstash Redis / Vercel KV is configured, use centralized global rate limiting across all Vercel containers
   const redisStatus = await checkRedisRateLimit(ip);
   if (redisStatus !== null) {
@@ -176,6 +177,7 @@ async function checkRateLimit(ip: string): Promise<{ limited: boolean; reason?: 
   if (requestsLastHour >= MAX_REQUESTS_PER_HOUR) {
     return {
       limited: true,
+      code: "HOURLY_LIMIT_REACHED",
       reason: `Hourly request limit reached (${MAX_REQUESTS_PER_HOUR} requests / hour per IP). Please wait before sending more messages.`,
     };
   }
@@ -183,6 +185,7 @@ async function checkRateLimit(ip: string): Promise<{ limited: boolean; reason?: 
   if (log.requests.length >= MAX_REQUESTS_PER_DAY) {
     return {
       limited: true,
+      code: "DAILY_LIMIT_REACHED",
       reason: `Daily request limit reached (${MAX_REQUESTS_PER_DAY} requests / 24h per IP). Please try again tomorrow.`,
     };
   }
@@ -191,6 +194,7 @@ async function checkRateLimit(ip: string): Promise<{ limited: boolean; reason?: 
   if (totalTokensToday >= MAX_TOKENS_PER_DAY) {
     return {
       limited: true,
+      code: "TOKEN_LIMIT_REACHED",
       reason: `Daily token limit reached (${MAX_TOKENS_PER_DAY.toLocaleString()} tokens / 24h per IP). Please try again tomorrow.`,
     };
   }
@@ -326,7 +330,7 @@ export async function POST(request: NextRequest) {
   const ip = clientKey(request);
   const limitStatus = await checkRateLimit(ip);
   if (limitStatus.limited) {
-    return NextResponse.json({ error: limitStatus.reason }, { status: 429 });
+    return NextResponse.json({ error: limitStatus.reason, code: limitStatus.code }, { status: 429 });
   }
 
   let body: { messages?: ChatMessage[] };

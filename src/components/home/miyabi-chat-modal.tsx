@@ -7,11 +7,14 @@ import { ui } from "@/data/site-content";
 import type { Language } from "@/types/portfolio";
 
 type Message = {
-  role: "user" | "assistant";
+  role: "user" | "assistant" | "system";
   content: string;
   image?: string;
   audioUrl?: string;
   timestamp: string;
+  isError?: boolean;
+  errorCode?: string;
+  isClearNotice?: boolean;
 };
 
 const languageStorageKey = "terminal-blog.language";
@@ -97,7 +100,7 @@ function TerminalPrompt() {
     <span className="cli-prompt-tag">
       <span className="cli-user">miyabi</span>
       <span className="cli-at">@</span>
-      <span className="cli-host">section6</span>
+      <span className="cli-host">lab</span>
       <span className="cli-colon">:</span>
       <span className="cli-path">~</span>
       <span className="cli-dollar">$</span>
@@ -330,8 +333,9 @@ export function MiyabiTerminalChat({
       setSelectedImage(null);
       handleClearHistory();
       const clearNotice: Message = {
-        role: "assistant",
+        role: "system",
         content: t.miyabiCleared || "*fox ears twitch* History and chat context cleared.",
+        isClearNotice: true,
         timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
       };
       setMessages([clearNotice]);
@@ -360,11 +364,14 @@ export function MiyabiTerminalChat({
     setLoading(true);
 
     try {
-      const payloadMessages = newMessages.map((m) => ({
-        role: m.role,
-        content: m.content,
-        image: m.image,
-      }));
+      // Send only user and assistant messages to API payload
+      const payloadMessages = newMessages
+        .filter((m) => m.role === "user" || m.role === "assistant")
+        .map((m) => ({
+          role: m.role,
+          content: m.content,
+          image: m.image,
+        }));
 
       const res = await fetch("/api/miyabi", {
         method: "POST",
@@ -376,7 +383,28 @@ export function MiyabiTerminalChat({
 
       if (!res.ok) {
         const errData = await res.json().catch(() => ({}));
-        throw new Error(errData.error || `HTTP ${res.status}`);
+        let displayError = errData.error || `HTTP ${res.status}`;
+        const code = errData.code;
+
+        if (code === "DAILY_LIMIT_REACHED" || displayError.includes("Daily request limit reached")) {
+          displayError = t.miyabiLimitDaily || displayError;
+        } else if (code === "HOURLY_LIMIT_REACHED" || displayError.includes("Hourly request limit reached")) {
+          displayError = t.miyabiLimitHourly || displayError;
+        } else if (code === "TOKEN_LIMIT_REACHED" || displayError.includes("Daily token limit reached")) {
+          displayError = t.miyabiLimitToken || displayError;
+        }
+
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: "system",
+            content: displayError,
+            isError: true,
+            errorCode: code,
+            timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+          },
+        ]);
+        return;
       }
 
       const data = await res.json();
@@ -390,12 +418,23 @@ export function MiyabiTerminalChat({
         },
       ]);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Error connecting to AI API.";
+      const rawMessage = err instanceof Error ? err.message : "Error connecting to AI API.";
+      let displayError = `${t.miyabiErrorGeneric || "*fox ears twitch* Connection error:"} ${rawMessage}`;
+
+      if (rawMessage.includes("Daily request limit reached")) {
+        displayError = t.miyabiLimitDaily || displayError;
+      } else if (rawMessage.includes("Hourly request limit reached")) {
+        displayError = t.miyabiLimitHourly || displayError;
+      } else if (rawMessage.includes("Daily token limit reached")) {
+        displayError = t.miyabiLimitToken || displayError;
+      }
+
       setMessages((prev) => [
         ...prev,
         {
-          role: "assistant",
-          content: `*fox ears twitch* Error: ${message}`,
+          role: "system",
+          content: displayError,
+          isError: true,
           timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
         },
       ]);
@@ -421,14 +460,14 @@ export function MiyabiTerminalChat({
           </div>
           <div className="cli-header-titles">
             <span className="cli-title">{t.miyabiTitle}</span>
-            <span className="cli-badge">CLI AI Agent</span>
+            <span className="cli-badge">AI</span>
           </div>
         </div>
 
         <div className="cli-header-right">
-          <div className="cli-model-indicator" title="Gemma 4 Multimodal Vision active">
+          <div className="cli-model-indicator" title="MiyabiAI">
             <span className="cli-pulse-dot" />
-            <span className="cli-model-name">Gemma 4 Vision</span>
+            <span className="cli-model-name">miyabi.mikhailfur.ru</span>
           </div>
 
           {!embedded && onClose && (
@@ -452,43 +491,57 @@ export function MiyabiTerminalChat({
           </div>
         )}
 
-        {messages.map((m, idx) => (
-          <div key={idx} className={`cli-msg-block ${m.role}`}>
-            {m.role === "user" ? (
-              <div className="cli-user-line">
-                <TerminalPrompt />
-                <span className="cli-user-text">{m.content}</span>
-                {m.image && (
-                  <div className="cli-attached-img-box">
-                    <span className="cli-img-tag">[Photo Attached]</span>
-                    <img src={m.image} alt="User attachment" className="cli-msg-image" />
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="cli-assistant-block">
-                <div className="cli-assistant-head">
-                  <div className="cli-assistant-avatar">
-                    <Image
-                      src="/avatar.png"
-                      alt="Miyabi"
-                      width={20}
-                      height={20}
-                      className="cli-avatar-mini"
-                      unoptimized
-                    />
-                  </div>
-                  <span className="cli-assistant-name">Miyabi AI</span>
-                  <small className="cli-msg-time">{m.timestamp}</small>
+        {messages.map((m, idx) => {
+          let textContent = m.content;
+          if (m.errorCode === "DAILY_LIMIT_REACHED") textContent = t.miyabiLimitDaily || m.content;
+          else if (m.errorCode === "HOURLY_LIMIT_REACHED") textContent = t.miyabiLimitHourly || m.content;
+          else if (m.errorCode === "TOKEN_LIMIT_REACHED") textContent = t.miyabiLimitToken || m.content;
+          else if (m.isClearNotice) textContent = t.miyabiCleared || m.content;
+
+          return (
+            <div key={idx} className={`cli-msg-block ${m.role}`}>
+              {m.role === "system" ? (
+                <div className={`cli-system-banner ${m.isError ? "is-error" : ""}`}>
+                  <p className="cli-welcome-line">
+                    <span className="brand-mark">&gt;_</span> {textContent}
+                  </p>
                 </div>
+              ) : m.role === "user" ? (
+                <div className="cli-user-line">
+                  <TerminalPrompt />
+                  <span className="cli-user-text">{m.content}</span>
+                  {m.image && (
+                    <div className="cli-attached-img-box">
+                      <span className="cli-img-tag">[Photo Attached]</span>
+                      <img src={m.image} alt="User attachment" className="cli-msg-image" />
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="cli-assistant-block">
+                  <div className="cli-assistant-head">
+                    <div className="cli-assistant-avatar">
+                      <Image
+                        src="/avatar.png"
+                        alt="Miyabi"
+                        width={20}
+                        height={20}
+                        className="cli-avatar-mini"
+                        unoptimized
+                      />
+                    </div>
+                    <span className="cli-assistant-name">Miyabi AI</span>
+                    <small className="cli-msg-time">{m.timestamp}</small>
+                  </div>
 
-                <div className="cli-assistant-body">{m.content}</div>
+                  <div className="cli-assistant-body">{m.content}</div>
 
-                {m.audioUrl && <TerminalVoicePlayer audioUrl={m.audioUrl} />}
-              </div>
-            )}
-          </div>
-        ))}
+                  {m.audioUrl && <TerminalVoicePlayer audioUrl={m.audioUrl} />}
+                </div>
+              )}
+            </div>
+          );
+        })}
 
         {loading && (
           <div className="cli-msg-block assistant is-loading">
