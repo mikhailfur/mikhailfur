@@ -2,10 +2,14 @@ import fs from "fs";
 import path from "path";
 import { NextRequest, NextResponse } from "next/server";
 
+import os from "os";
+
 export const runtime = "nodejs";
 
 const DAY_IN_MS = 24 * 60 * 60 * 1000;
+const HOUR_IN_MS = 60 * 60 * 1000;
 const MAX_REQUESTS_PER_DAY = 3;
+const MAX_REQUESTS_PER_HOUR = 3;
 const MAX_TOKENS_PER_DAY = 500000;
 
 type UsageLog = {
@@ -13,9 +17,71 @@ type UsageLog = {
   tokenLogs: { timestamp: number; count: number }[];
 };
 
-const clientUsageMap = new Map<string, UsageLog>();
+let clientUsageMap = new Map<string, UsageLog>();
+let isUsageLoaded = false;
+
+function getStoragePath(): string {
+  try {
+    const dataDir = path.join(process.cwd(), ".data");
+    if (!fs.existsSync(dataDir)) {
+      fs.mkdirSync(dataDir, { recursive: true });
+    }
+    return path.join(dataDir, "miyabi_usage.json");
+  } catch {
+    return path.join(os.tmpdir(), "mikhailfur_miyabi_usage.json");
+  }
+}
+
+function loadUsageLogs(): Map<string, UsageLog> {
+  const filePath = getStoragePath();
+  try {
+    if (fs.existsSync(filePath)) {
+      const raw = fs.readFileSync(filePath, "utf-8");
+      const parsed = JSON.parse(raw);
+      const map = new Map<string, UsageLog>();
+      for (const [key, val] of Object.entries(parsed)) {
+        if (val && typeof val === "object") {
+          map.set(key, val as UsageLog);
+        }
+      }
+      return map;
+    }
+  } catch (err) {
+    console.error("Failed to load usage logs from disk:", err);
+  }
+  return new Map<string, UsageLog>();
+}
+
+function saveUsageLogs() {
+  const filePath = getStoragePath();
+  try {
+    const obj: Record<string, UsageLog> = {};
+    for (const [key, val] of clientUsageMap.entries()) {
+      obj[key] = val;
+    }
+    fs.writeFileSync(filePath, JSON.stringify(obj, null, 2), "utf-8");
+  } catch (err) {
+    console.error("Failed to save usage logs to disk:", err);
+  }
+}
+
+function getUsageMap(): Map<string, UsageLog> {
+  if (!isUsageLoaded) {
+    clientUsageMap = loadUsageLogs();
+    isUsageLoaded = true;
+  }
+  return clientUsageMap;
+}
 
 function clientKey(request: NextRequest): string {
+  const reqIp = (request as unknown as { ip?: string }).ip;
+  if (reqIp) {
+    return reqIp.trim();
+  }
+  const cfIp = request.headers.get("cf-connecting-ip");
+  if (cfIp) {
+    return cfIp.trim();
+  }
   const forwarded = request.headers.get("x-forwarded-for");
   if (forwarded) {
     return forwarded.split(",")[0].trim();
@@ -24,25 +90,38 @@ function clientKey(request: NextRequest): string {
   if (realIp) {
     return realIp.trim();
   }
-  return "unknown";
+  const clientIp = request.headers.get("x-client-ip");
+  if (clientIp) {
+    return clientIp.trim();
+  }
+  return "127.0.0.1";
 }
 
 function checkRateLimit(key: string): { limited: boolean; reason?: string } {
   const now = Date.now();
-  let log = clientUsageMap.get(key);
+  const usageMap = getUsageMap();
+  let log = usageMap.get(key);
   if (!log) {
     log = { requests: [], tokenLogs: [] };
-    clientUsageMap.set(key, log);
+    usageMap.set(key, log);
   }
 
   // Clean entries older than 24 hours
   log.requests = log.requests.filter((t) => now - t < DAY_IN_MS);
   log.tokenLogs = log.tokenLogs.filter((entry) => now - entry.timestamp < DAY_IN_MS);
 
+  const requestsLastHour = log.requests.filter((t) => now - t < HOUR_IN_MS).length;
+  if (requestsLastHour >= MAX_REQUESTS_PER_HOUR) {
+    return {
+      limited: true,
+      reason: `Hourly request limit reached (${MAX_REQUESTS_PER_HOUR} requests / hour per IP). Please wait before sending more messages.`,
+    };
+  }
+
   if (log.requests.length >= MAX_REQUESTS_PER_DAY) {
     return {
       limited: true,
-      reason: `Daily request limit reached (${MAX_REQUESTS_PER_DAY} requests / 24h per IP). Please try again later.`,
+      reason: `Daily request limit reached (${MAX_REQUESTS_PER_DAY} requests / 24h per IP). Please try again tomorrow.`,
     };
   }
 
@@ -50,19 +129,29 @@ function checkRateLimit(key: string): { limited: boolean; reason?: string } {
   if (totalTokensToday >= MAX_TOKENS_PER_DAY) {
     return {
       limited: true,
-      reason: `Daily token limit reached (${MAX_TOKENS_PER_DAY.toLocaleString()} tokens / 24h per IP). Please try again later.`,
+      reason: `Daily token limit reached (${MAX_TOKENS_PER_DAY.toLocaleString()} tokens / 24h per IP). Please try again tomorrow.`,
     };
   }
 
   return { limited: false };
 }
 
-function recordUsage(key: string, tokensUsed: number) {
+function recordRequestStart(key: string) {
   const now = Date.now();
-  const log = clientUsageMap.get(key) ?? { requests: [], tokenLogs: [] };
+  const usageMap = getUsageMap();
+  const log = usageMap.get(key) ?? { requests: [], tokenLogs: [] };
   log.requests.push(now);
+  usageMap.set(key, log);
+  saveUsageLogs();
+}
+
+function recordTokensUsed(key: string, tokensUsed: number) {
+  const now = Date.now();
+  const usageMap = getUsageMap();
+  const log = usageMap.get(key) ?? { requests: [], tokenLogs: [] };
   log.tokenLogs.push({ timestamp: now, count: tokensUsed });
-  clientUsageMap.set(key, log);
+  usageMap.set(key, log);
+  saveUsageLogs();
 }
 
 function loadSoulAndPreset() {
@@ -241,6 +330,9 @@ export async function POST(request: NextRequest) {
   ];
 
   try {
+    // Record request timestamp immediately before dispatching to OpenRouter
+    recordRequestStart(ip);
+
     const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -272,8 +364,8 @@ export async function POST(request: NextRequest) {
     const data = await response.json();
     const totalTokens = data.usage?.total_tokens ?? Math.ceil(JSON.stringify(payloadMessages).length / 4);
 
-    // Record rate limit usage
-    recordUsage(ip, totalTokens);
+    // Record token usage for the request
+    recordTokensUsed(ip, totalTokens);
 
     let rawReply = data.choices?.[0]?.message?.content || "";
     const cleanReply = stripReasoning(rawReply);
