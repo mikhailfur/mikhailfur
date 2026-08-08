@@ -85,6 +85,17 @@ export function CommandPalette({
       },
     },
     {
+      id: "gallery",
+      category: "Navigation",
+      title: "Civitai Works Gallery (AI Artworks)",
+      subtitle: "#gallery",
+      icon: "🎨",
+      action: () => {
+        onNavigate("gallery");
+        onClose();
+      },
+    },
+    {
       id: "profile",
       category: "Navigation",
       title: "About Mikhail & Profile Context",

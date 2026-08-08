@@ -10,6 +10,7 @@ import { MiyabiChatModal } from "./miyabi-chat-modal";
 import { StoreModal, AdminModal } from "@/components/store";
 import { CyberMatrixBackground } from "./cyber-matrix-background";
 import { CommandPalette } from "./command-palette";
+import { GallerySection } from "./gallery-section";
 import { isSoundEnabled, playBeepSound, playKeyClickSound, playSuccessSound, toggleSound } from "@/utils/sfx";
 
 type IconName = "archive" | "arrow" | "box" | "clock" | "code" | "command" | "discord" | "file" | "github" | "kakao" | "layers" | "shield" | "store" | "telegram" | "twitch" | "user" | "vk" | "xbox";
@@ -546,7 +547,7 @@ export function TerminalBlog({ articlesByLanguage, initialProjects = [] }: { art
     }
     const target = definition.action === "hobbies" ? "about" : definition.action;
     go(target);
-    const messages: Partial<Record<TerminalCommand["action"], string>> = { about: text.openedProfile, hobbies: text.openedHobbies, projects: text.openedProjects, stack: text.openedStack };
+    const messages: Partial<Record<TerminalCommand["action"], string>> = { about: text.openedProfile, hobbies: text.openedHobbies, projects: text.openedProjects, stack: text.openedStack, gallery: text.openedGallery };
     setLines((old) => [...old, `> ${command}`, messages[definition.action] ?? text.openedProfile]);
   };
 
@@ -631,7 +632,7 @@ export function TerminalBlog({ articlesByLanguage, initialProjects = [] }: { art
     </nav>
 
     <section id="home" className="shell hero">
-      <TerminalFrame title="mikhail_fur" actions={<nav className="window-nav" aria-label={text.sectionNavigation}><a href="#projects">{text.projects}</a><a href="#stack">{text.stack}</a><a href="#about">{text.profile}</a></nav>}>
+      <TerminalFrame title="mikhail_fur" actions={<nav className="window-nav" aria-label={text.sectionNavigation}><a href="#projects">{text.projects}</a><a href="#gallery">{text.gallery}</a><a href="#stack">{text.stack}</a><a href="#about">{text.profile}</a></nav>}>
         <div className="hero-grid">
           <div>
             <p className="command-line"><Prompt>whoami</Prompt></p>
@@ -743,6 +744,8 @@ export function TerminalBlog({ articlesByLanguage, initialProjects = [] }: { art
         <a className="all-link" href="https://github.com/mikhailfur?tab=repositories" target="_blank" rel="noreferrer">{text.allRepositories} <Icon name="arrow" size={15} /></a>
       </TerminalFrame>
     </section>
+
+    <GallerySection language={activeLanguage} />
 
     <section id="stack" className="shell">
       <TerminalFrame title={text.stack}>

@@ -15,7 +15,7 @@ export type TerminalCommand = {
   name: string;
   aliases?: string[];
   description: string;
-  action: "about" | "admin" | "archive" | "clear" | "github" | "help" | "hobbies" | "message" | "miyabi" | "projects" | "stack" | "store";
+  action: "about" | "admin" | "archive" | "clear" | "gallery" | "github" | "help" | "hobbies" | "message" | "miyabi" | "projects" | "stack" | "store";
   quick?: boolean;
 };
 
