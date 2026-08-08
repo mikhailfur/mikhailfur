@@ -11,7 +11,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Product ID and valid customer email are required." }, { status: 400 });
     }
 
-    const product = getProductById(productId);
+    const product = await getProductById(productId);
     if (!product) {
       return NextResponse.json({ error: "Product not found." }, { status: 404 });
     }
@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
       createdAt: new Date().toISOString(),
     };
 
-    saveOrder(newOrder);
+    await saveOrder(newOrder);
 
     // Notify Telegram Admin Bot
     const msg = [

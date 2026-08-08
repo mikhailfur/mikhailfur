@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import { Redis } from "@upstash/redis";
 
 export interface StoreProduct {
   id: string;
@@ -38,7 +39,7 @@ export interface AdminAuthSession {
   code: string; // 8-character verification code e.g. "83F1A92B"
   ip: string;
   userAgent: string;
-  geo: string; // e.g. "Seoul, Korea"
+  geo: string;
   status: "pending" | "approved" | "rejected";
   createdAt: number;
   approvedAt?: number;
@@ -55,6 +56,18 @@ export interface StoreDatabase {
 const DATA_DIR = path.join(process.cwd(), ".data");
 const DB_FILE = path.join(DATA_DIR, "store_db.json");
 
+// Upstash Redis Client Initializer
+const redisUrl = process.env.UPSTASH_REDIS_REST_URL;
+const redisToken = process.env.UPSTASH_REDIS_REST_TOKEN;
+
+export const redis =
+  redisUrl && redisToken
+    ? new Redis({
+        url: redisUrl,
+        token: redisToken,
+      })
+    : null;
+
 const defaultProducts: StoreProduct[] = [
   {
     id: "prod-miyabi-pro",
@@ -65,7 +78,6 @@ const defaultProducts: StoreProduct[] = [
     badge: "POPULAR",
     category: "digital",
     stockStatus: "in_stock",
-    itemContent: "PASS-KEY-MIYABI-PRO-88192-X99",
     createdAt: new Date().toISOString(),
   },
   {
@@ -77,7 +89,6 @@ const defaultProducts: StoreProduct[] = [
     badge: "NEW",
     category: "config",
     stockStatus: "in_stock",
-    itemContent: "https://mikhailfur.lab/configs/preset-cyberpunk-v2.json",
     createdAt: new Date().toISOString(),
   },
   {
@@ -88,14 +99,14 @@ const defaultProducts: StoreProduct[] = [
     currency: "USD",
     category: "key",
     stockStatus: "in_stock",
-    itemContent: "sk-or-v1-981240182490124890128490",
     createdAt: new Date().toISOString(),
   },
 ];
 
-function ensureDbFile(): StoreDatabase {
+// Local disk fallback helper
+function ensureLocalDbFile(): StoreDatabase {
   if (!fs.existsSync(DATA_DIR)) {
-    fs.mkdirSync(DATA_DIR, { recursive: true });
+    try { fs.mkdirSync(DATA_DIR, { recursive: true }); } catch {}
   }
 
   if (!fs.existsSync(DB_FILE)) {
@@ -105,7 +116,7 @@ function ensureDbFile(): StoreDatabase {
       authSessions: [],
       adminTokens: [],
     };
-    fs.writeFileSync(DB_FILE, JSON.stringify(initialDb, null, 2), "utf-8");
+    try { fs.writeFileSync(DB_FILE, JSON.stringify(initialDb, null, 2), "utf-8"); } catch {}
     return initialDb;
   }
 
@@ -119,122 +130,234 @@ function ensureDbFile(): StoreDatabase {
       adminTokens: data.adminTokens || [],
     };
   } catch {
-    const fallbackDb: StoreDatabase = {
+    return {
       products: defaultProducts,
       orders: [],
       authSessions: [],
       adminTokens: [],
     };
-    fs.writeFileSync(DB_FILE, JSON.stringify(fallbackDb, null, 2), "utf-8");
-    return fallbackDb;
   }
 }
 
-export function readStoreDb(): StoreDatabase {
-  return ensureDbFile();
+// ----------------------------------------------------
+// Upstash Redis Persistent Database Operations
+// ----------------------------------------------------
+
+export async function getProducts(): Promise<StoreProduct[]> {
+  if (redis) {
+    try {
+      const data = await redis.get<StoreProduct[]>("store:products");
+      if (data && Array.isArray(data) && data.length > 0) {
+        return data;
+      }
+      // Seed default products if empty
+      await redis.set("store:products", defaultProducts);
+      return defaultProducts;
+    } catch (err) {
+      console.warn("Upstash Redis getProducts error, falling back to disk/memory:", err);
+    }
+  }
+  return ensureLocalDbFile().products;
 }
 
-export function writeStoreDb(db: StoreDatabase): void {
-  ensureDbFile();
-  fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2), "utf-8");
+export async function getProductById(id: string): Promise<StoreProduct | undefined> {
+  const products = await getProducts();
+  return products.find((p) => p.id === id);
 }
 
-export function getProducts(): StoreProduct[] {
-  const db = readStoreDb();
-  return db.products;
-}
-
-export function getProductById(id: string): StoreProduct | undefined {
-  const db = readStoreDb();
-  return db.products.find((p) => p.id === id);
-}
-
-export function saveProduct(product: StoreProduct): void {
-  const db = readStoreDb();
-  const index = db.products.findIndex((p) => p.id === product.id);
+export async function saveProduct(product: StoreProduct): Promise<void> {
+  const products = await getProducts();
+  const index = products.findIndex((p) => p.id === product.id);
   if (index >= 0) {
-    db.products[index] = product;
+    products[index] = product;
   } else {
-    db.products.push(product);
+    products.push(product);
   }
-  writeStoreDb(db);
+
+  if (redis) {
+    try {
+      await redis.set("store:products", products);
+    } catch (err) {
+      console.warn("Upstash Redis saveProduct error:", err);
+    }
+  }
+
+  // Update local file backup
+  const db = ensureLocalDbFile();
+  db.products = products;
+  try { fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2), "utf-8"); } catch {}
 }
 
-export function deleteProduct(id: string): void {
-  const db = readStoreDb();
-  db.products = db.products.filter((p) => p.id !== id);
-  writeStoreDb(db);
+export async function deleteProduct(id: string): Promise<void> {
+  let products = await getProducts();
+  products = products.filter((p) => p.id !== id);
+
+  if (redis) {
+    try {
+      await redis.set("store:products", products);
+    } catch (err) {
+      console.warn("Upstash Redis deleteProduct error:", err);
+    }
+  }
+
+  const db = ensureLocalDbFile();
+  db.products = products;
+  try { fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2), "utf-8"); } catch {}
 }
 
-export function getOrders(): StoreOrder[] {
-  const db = readStoreDb();
-  return db.orders;
+export async function getOrders(): Promise<StoreOrder[]> {
+  if (redis) {
+    try {
+      const data = await redis.get<StoreOrder[]>("store:orders");
+      if (data && Array.isArray(data)) {
+        return data;
+      }
+      return [];
+    } catch (err) {
+      console.warn("Upstash Redis getOrders error, falling back to disk/memory:", err);
+    }
+  }
+  return ensureLocalDbFile().orders;
 }
 
-export function getOrderById(orderId: string): StoreOrder | undefined {
-  const db = readStoreDb();
-  return db.orders.find((o) => o.orderId === orderId);
+export async function getOrderById(orderId: string): Promise<StoreOrder | undefined> {
+  const orders = await getOrders();
+  return orders.find((o) => o.orderId === orderId);
 }
 
-export function saveOrder(order: StoreOrder): void {
-  const db = readStoreDb();
-  const index = db.orders.findIndex((o) => o.orderId === order.orderId);
+export async function saveOrder(order: StoreOrder): Promise<void> {
+  const orders = await getOrders();
+  const index = orders.findIndex((o) => o.orderId === order.orderId);
   if (index >= 0) {
-    db.orders[index] = order;
+    orders[index] = order;
   } else {
-    db.orders.unshift(order);
+    orders.unshift(order);
   }
-  writeStoreDb(db);
+
+  if (redis) {
+    try {
+      await redis.set("store:orders", orders);
+    } catch (err) {
+      console.warn("Upstash Redis saveOrder error:", err);
+    }
+  }
+
+  const db = ensureLocalDbFile();
+  db.orders = orders;
+  try { fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2), "utf-8"); } catch {}
 }
 
-export function createAuthSession(session: AdminAuthSession): void {
-  const db = readStoreDb();
-  const now = Date.now();
-  db.authSessions = db.authSessions.filter((s) => now - s.createdAt < 2 * 60 * 60 * 1000);
-  db.authSessions.push(session);
-  writeStoreDb(db);
+export async function getAuthSessions(): Promise<AdminAuthSession[]> {
+  if (redis) {
+    try {
+      const data = await redis.get<AdminAuthSession[]>("store:auth_sessions");
+      if (data && Array.isArray(data)) {
+        const now = Date.now();
+        // 2 hours TTL cleanup
+        return data.filter((s) => now - s.createdAt < 2 * 60 * 60 * 1000);
+      }
+      return [];
+    } catch (err) {
+      console.warn("Upstash Redis getAuthSessions error:", err);
+    }
+  }
+  return ensureLocalDbFile().authSessions;
 }
 
-export function getRecentPendingAuthSession(ip: string): AdminAuthSession | undefined {
-  const db = readStoreDb();
+export async function saveAuthSessions(sessions: AdminAuthSession[]): Promise<void> {
+  if (redis) {
+    try {
+      // Set in Redis with 2-hour TTL auto-expiration
+      await redis.set("store:auth_sessions", sessions, { ex: 7200 });
+    } catch (err) {
+      console.warn("Upstash Redis saveAuthSessions error:", err);
+    }
+  }
+
+  const db = ensureLocalDbFile();
+  db.authSessions = sessions;
+  try { fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2), "utf-8"); } catch {}
+}
+
+export async function createAuthSession(session: AdminAuthSession): Promise<void> {
+  const sessions = await getAuthSessions();
   const now = Date.now();
-  return db.authSessions.find(
+  const filtered = sessions.filter((s) => now - s.createdAt < 2 * 60 * 60 * 1000);
+  filtered.push(session);
+  await saveAuthSessions(filtered);
+}
+
+export async function getRecentPendingAuthSession(ip: string): Promise<AdminAuthSession | undefined> {
+  const sessions = await getAuthSessions();
+  const now = Date.now();
+  return sessions.find(
     (s) => s.ip === ip && s.status === "pending" && now - s.createdAt < 60 * 1000
   );
 }
 
-export function getAuthSession(sessionId: string): AdminAuthSession | undefined {
-  const db = readStoreDb();
-  return db.authSessions.find((s) => s.sessionId === sessionId);
+export async function getAuthSession(sessionId: string): Promise<AdminAuthSession | undefined> {
+  const sessions = await getAuthSessions();
+  return sessions.find((s) => s.sessionId === sessionId);
 }
 
-export function getAuthSessionByCode(code: string): AdminAuthSession | undefined {
-  const db = readStoreDb();
+export async function getAuthSessionByCode(code: string): Promise<AdminAuthSession | undefined> {
+  const sessions = await getAuthSessions();
   const cleanCode = code.replace(/[^A-Za-z0-9]/g, "").toUpperCase();
-  return db.authSessions.find((s) => s.code.replace(/[^A-Za-z0-9]/g, "").toUpperCase() === cleanCode);
+  return sessions.find((s) => s.code.replace(/[^A-Za-z0-9]/g, "").toUpperCase() === cleanCode);
 }
 
-export function approveAuthSessionByCode(code: string, token: string): AdminAuthSession | null {
-  const db = readStoreDb();
+export async function approveAuthSessionByCode(code: string, token: string): Promise<AdminAuthSession | null> {
+  const sessions = await getAuthSessions();
   const cleanCode = code.replace(/[^A-Za-z0-9]/g, "").toUpperCase();
-  const session = db.authSessions.find(
+  const session = sessions.find(
     (s) => s.code.replace(/[^A-Za-z0-9]/g, "").toUpperCase() === cleanCode
   );
+
   if (session) {
     session.status = "approved";
     session.approvedAt = Date.now();
     session.token = token;
-    if (!db.adminTokens.includes(token)) {
-      db.adminTokens.push(token);
-    }
-    writeStoreDb(db);
+
+    await saveAuthSessions(sessions);
+    await saveAdminToken(token);
     return session;
   }
   return null;
 }
 
-export function isValidAdminToken(token: string): boolean {
+export async function getAdminTokens(): Promise<string[]> {
+  if (redis) {
+    try {
+      const tokens = await redis.get<string[]>("store:admin_tokens");
+      if (tokens && Array.isArray(tokens)) return tokens;
+    } catch (err) {
+      console.warn("Upstash Redis getAdminTokens error:", err);
+    }
+  }
+  return ensureLocalDbFile().adminTokens;
+}
+
+export async function saveAdminToken(token: string): Promise<void> {
+  const tokens = await getAdminTokens();
+  if (!tokens.includes(token)) {
+    tokens.push(token);
+  }
+
+  if (redis) {
+    try {
+      await redis.set("store:admin_tokens", tokens);
+    } catch (err) {
+      console.warn("Upstash Redis saveAdminToken error:", err);
+    }
+  }
+
+  const db = ensureLocalDbFile();
+  db.adminTokens = tokens;
+  try { fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2), "utf-8"); } catch {}
+}
+
+export async function isValidAdminToken(token: string): Promise<boolean> {
   if (!token) return false;
-  const db = readStoreDb();
-  return db.adminTokens.includes(token);
+  const tokens = await getAdminTokens();
+  return tokens.includes(token);
 }

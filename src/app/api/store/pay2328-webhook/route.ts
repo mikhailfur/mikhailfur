@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Missing order_id" }, { status: 400 });
     }
 
-    const order = getOrderById(order_id);
+    const order = await getOrderById(order_id);
     if (!order) {
       return NextResponse.json({ error: "Order not found" }, { status: 404 });
     }
@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
     if (payment_status === "paid" || payment_status === "overpaid") {
       order.paymentStatus = "paid";
       if (uuid) order.pay2328Uuid = uuid;
-      saveOrder(order);
+      await saveOrder(order);
 
       // Send Telegram notification to admin for manual fulfillment!
       const telegramText = [
@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
       void sendTelegramMessage(telegramText);
     } else if (payment_status === "fail" || payment_status === "expired") {
       order.paymentStatus = "cancelled";
-      saveOrder(order);
+      await saveOrder(order);
     }
 
     return NextResponse.json({ success: true });

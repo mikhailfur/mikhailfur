@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
     const geo = await fetchGeoIp(ip);
 
     // Reuse recent pending session if created in last 60 seconds (prevents double Telegram alerts)
-    const existingSession = getRecentPendingAuthSession(ip);
+    const existingSession = await getRecentPendingAuthSession(ip);
     if (existingSession) {
       return NextResponse.json({
         success: true,
@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
     const code = generateVerificationCode(); // e.g. 83F1-A92B
     const sessionId = `sess_${Math.random().toString(36).substring(2, 10)}`;
 
-    createAuthSession({
+    await createAuthSession({
       sessionId,
       code,
       ip,

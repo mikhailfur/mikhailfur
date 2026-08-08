@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
     if (data.startsWith("auth_approve_")) {
       const code = data.replace("auth_approve_", "");
       const adminToken = `adm_${Math.random().toString(36).substring(2, 14)}_${Date.now().toString(36)}`;
-      const session = approveAuthSessionByCode(code, adminToken);
+      const session = await approveAuthSessionByCode(code, adminToken);
 
       if (session) {
         void sendTelegramMessage(
@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
       }
     } else if (data.startsWith("auth_reject_")) {
       const code = data.replace("auth_reject_", "");
-      const session = getAuthSessionByCode(code);
+      const session = await getAuthSessionByCode(code);
       if (session) {
         session.status = "rejected";
       }

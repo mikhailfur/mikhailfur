@@ -5,7 +5,7 @@ export const runtime = "nodejs";
 
 export async function POST(request: NextRequest) {
   const token = request.headers.get("x-admin-token") || request.cookies.get("admin_token")?.value;
-  if (!token || !isValidAdminToken(token)) {
+  if (!token || !(await isValidAdminToken(token))) {
     return NextResponse.json({ error: "Unauthorized admin access." }, { status: 401 });
   }
 
@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Order ID and item content are required." }, { status: 400 });
     }
 
-    const order = getOrderById(orderId);
+    const order = await getOrderById(orderId);
     if (!order) {
       return NextResponse.json({ error: "Order not found." }, { status: 404 });
     }
@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
     order.deliveryNotes = itemContent + (customNote ? `\n\nNote: ${customNote}` : "");
     if (resendResult.id) order.resendEmailId = resendResult.id;
 
-    saveOrder(order);
+    await saveOrder(order);
 
     // Notify Telegram Admin Bot
     const msg = [

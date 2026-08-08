@@ -4,13 +4,13 @@ import { deleteProduct, getProducts, isValidAdminToken, saveProduct, StoreProduc
 export const runtime = "nodejs";
 
 export async function GET() {
-  const products = getProducts();
+  const products = await getProducts();
   return NextResponse.json({ products }, { headers: { "Cache-Control": "no-store" } });
 }
 
 export async function POST(request: NextRequest) {
   const token = request.headers.get("x-admin-token") || request.cookies.get("admin_token")?.value;
-  if (!token || !isValidAdminToken(token)) {
+  if (!token || !(await isValidAdminToken(token))) {
     return NextResponse.json({ error: "Unauthorized admin access." }, { status: 401 });
   }
 
@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
       createdAt: new Date().toISOString(),
     };
 
-    saveProduct(newProduct);
+    await saveProduct(newProduct);
     return NextResponse.json({ success: true, product: newProduct });
   } catch (err: any) {
     return NextResponse.json({ error: err.message || "Failed to save product." }, { status: 500 });
@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   const token = request.headers.get("x-admin-token") || request.cookies.get("admin_token")?.value;
-  if (!token || !isValidAdminToken(token)) {
+  if (!token || !(await isValidAdminToken(token))) {
     return NextResponse.json({ error: "Unauthorized admin access." }, { status: 401 });
   }
 
@@ -52,6 +52,6 @@ export async function DELETE(request: NextRequest) {
   const id = searchParams.get("id");
   if (!id) return NextResponse.json({ error: "Missing product ID." }, { status: 400 });
 
-  deleteProduct(id);
+  await deleteProduct(id);
   return NextResponse.json({ success: true });
 }

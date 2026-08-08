@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Payment receipt attachment (PNG/JPG/JPEG/PDF) is required." }, { status: 400 });
     }
 
-    const product = getProductById(productId);
+    const product = await getProductById(productId);
     if (!product) {
       return NextResponse.json({ error: "Product not found." }, { status: 404 });
     }
@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
       createdAt: new Date().toISOString(),
     };
 
-    saveOrder(newOrder);
+    await saveOrder(newOrder);
 
     const methodNameText = paymentMethod === "korean_bank"
       ? "🇰🇷 Korean Bank Account Transfer (한국 계좌 이체)"

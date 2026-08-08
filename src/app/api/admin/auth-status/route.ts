@@ -32,7 +32,7 @@ async function checkTelegramUpdatesForApproval(code: string): Promise<string | n
             }).catch(() => {});
 
             const adminToken = `adm_${Math.random().toString(36).substring(2, 14)}_${Date.now().toString(36)}`;
-            const session = approveAuthSessionByCode(code, adminToken);
+            const session = await approveAuthSessionByCode(code, adminToken);
             if (session) {
               return adminToken;
             }
@@ -53,7 +53,7 @@ export async function GET(request: NextRequest) {
 
   // Check if existing session token in cookie/header is already valid
   const currentToken = request.headers.get("x-admin-token") || request.cookies.get("admin_token")?.value;
-  if (currentToken && isValidAdminToken(currentToken)) {
+  if (currentToken && (await isValidAdminToken(currentToken))) {
     return NextResponse.json({ approved: true, token: currentToken });
   }
 
@@ -61,7 +61,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ approved: false, error: "Session ID or code is required." }, { status: 400 });
   }
 
-  const session = sessionId ? getAuthSession(sessionId) : getAuthSessionByCode(code!);
+  const session = sessionId ? await getAuthSession(sessionId) : await getAuthSessionByCode(code!);
   if (!session) {
     return NextResponse.json({ approved: false, error: "Session not found." }, { status: 404 });
   }
@@ -104,7 +104,7 @@ export async function POST(request: NextRequest) {
     }
 
     const token = `adm_${Math.random().toString(36).substring(2, 14)}_${Date.now().toString(36)}`;
-    const session = approveAuthSessionByCode(code, token);
+    const session = await approveAuthSessionByCode(code, token);
 
     if (!session) {
       return NextResponse.json({ error: "Invalid verification code." }, { status: 401 });
