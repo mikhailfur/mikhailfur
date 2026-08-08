@@ -1,163 +1,101 @@
-# MKH_LOG
+<div align="center">
 
-Персональное портфолио Михаила: проекты, полевые заметки и рабочий контекст в интерфейсе, вдохновлённом терминалом.
+  <!-- Header Typing SVG -->
+  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=600&size=26&pause=1000&color=6366F1&center=true&vCenter=true&width=600&height=60&lines=Привет!+Я+Михаил+(MikhailFur)+👋;AI+%26+Web+Developer+🤖;Open+Source+Explorer+🚀" alt="Typing SVG" />
 
-Сайт создан не как обычный лендинг, а как небольшая личная лаборатория. В нём собраны открытые репозитории, заметки об AI и разработке, используемый стек, контакты и интерактивная CLI-строка для навигации.
+  <p align="center">
+    <b>Разработчик • AI-исследователь • Создатель открытых инструментов</b>
+  </p>
 
-## О проекте
+  <!-- Quick Badges -->
+  <p align="center">
+    <a href="https://mikhailfur.ru">
+      <img src="https://img.shields.io/badge/Website-mikhailfur.ru-6366F1?style=for-the-badge&logo=google-chrome&logoColor=white" alt="Website" />
+    </a>
+    <a href="mailto:me@mikhailfur.ru">
+      <img src="https://img.shields.io/badge/Email-me%40mikhailfur.ru-EA4335?style=for-the-badge&logo=gmail&logoColor=white" alt="Email" />
+    </a>
+    <a href="https://github.com/mikhailfur">
+      <img src="https://img.shields.io/badge/GitHub-mikhailfur-181717?style=for-the-badge&logo=github&logoColor=white" alt="GitHub" />
+    </a>
+  </p>
 
-Я работаю с веб-разработкой, локальными AI-инструментами и автоматизацией. Мне интересны понятные системы: от интерфейса и документации до связки локальной LLM, генерации изображений и инфраструктуры.
+</div>
 
-В портфолио сейчас представлены:
-
-- [`sd-webui-ai-wdywfm`](https://github.com/mikhailfur/sd-webui-ai-wdywfm) - AI-помощник, превращающий идею в аккуратный prompt для Stable Diffusion WebUI Forge Neo.
-- `terminal-blog` - это портфолио: Next.js-сайт с терминальным интерфейсом, Markdown-заметками и настраиваемой навигацией.
-
-Больше репозиториев: [github.com/mikhailfur](https://github.com/mikhailfur).
-
-## Что есть на сайте
-
-- Терминальный интерфейс `MKH_LOG` с разделами проектов, стека, профиля и заметок.
-- Настраиваемые команды, алиасы и быстрые действия.
-- Архив статей в Markdown: на главной видны три последние заметки, полный список открывается в отдельном окне.
-- Полная локализация: English (по умолчанию), русский и 한국어.
-- Рендеринг Markdown с абзацами, заголовками, списками, блоками кода, ссылками и выделением текста.
-- Контакты из переменных окружения, без захардкоженных ссылок в интерфейсе.
-- Опциональный статус текущего трека из Яндекс Музыки. Токен обрабатывается только на сервере.
-- Команда `message <текст>` для отправки посетителем сообщения в личный чат Telegram.
-- Цветной ANSI-арт в главном терминальном окне.
-
-## Стек
-
-- Next.js 16 и React 19
-- TypeScript
-- Tailwind CSS и собственные глобальные стили
-- Node.js API route для серверной интеграции с Ynison
-
-## Запуск
-
-Требуется Node.js `>= 22.13.0`.
-
-```bash
-npm install
-npm run dev
-```
-
-После запуска открой адрес из вывода Next.js. Для production-сборки:
-
-```bash
-npm run build
-npm run start
-```
-
-## Проверки
-
-```bash
-npm run typecheck
-npm run lint
-npm run build
-```
-
-## Настройка контента
-
-Большая часть данных находится в `src/data`.
-
-| Что изменить | Где находится |
-| --- | --- |
-| Проекты, интересы, стек, команды и строки интерфейса | `src/data/site-content.ts` |
-| Заметки | `src/data/articles/*.md` |
-| Контактные ссылки и токен Яндекс Музыки | `.env` по шаблону `.env.example` |
-
-### Добавление заметки
-
-Открой локально `tools/article-editor/index.html`: редактор не запускает сервер, не загружается на сайт и скачивает готовый файл `case-id.language.md`. Справа доступен live preview на листе A4 в оформлении окна чтения на сайте. Перемести скачанный файл в `src/data/articles`.
-
-Формат файла, например `case-004.ru.md`:
-
-```md
----
-id: case-004
-type: FIELD NOTE
-title: Название заметки
-date: 06 AUG 2026
-excerpt: Короткое описание для списка заметок.
-redacted: фрагмент для скрытия|ещё один фрагмент
 ---
 
-Первый абзац заметки.
+### 👋 Обо мне / About Me
 
-## Подзаголовок
+Привет! Я **Михаил** — студент, разработчик и исследователь практических инструментов на стыке **Web-разработки**, **локального AI** и **автоматизации**.
 
-- Пункт списка
-- **Жирный текст** и [ссылка](https://example.com)
-```
+- 🤖 **AI & Local LLM**: Изучаю интеграцию локальных моделей (Ollama, LM Studio), prompt engineering, генерацию изображений (SDXL) и AI-агентов.
+- 💻 **Web Development**: Создаю современные интерфейсы и веб-сервисы на Next.js, React и TypeScript.
+- 🛠️ **Dev & Automation**: Настраиваю self-hosted сервисы (Docker, Dokploy), автоматизирую процессы и развиваю открытый код.
+- 📓 **mikhail_fur**: Веду личную публичную лабораторию и полевые заметки о технологиях, экспериментах и решениях.
 
-Все Markdown-файлы загружаются автоматически и сортируются по полю `date` от новых к старым. Поле `redacted` необязательно; перечисленные в нём фрагменты будут скрыты в окне заметки.
+---
 
-### Перевод статей
+### 🛠️ Технологический стек / Tech Stack
 
-Добавь `OPENROUTER_API_KEY` в `.env`, затем запусти:
+<p align="left">
+  <strong>Web & Frontend</strong><br />
+  <img src="https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=nextdotjs&logoColor=white" alt="Next.js" />
+  <img src="https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" alt="React" />
+  <img src="https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" />
+  <img src="https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black" alt="JavaScript" />
+  <img src="https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="Tailwind CSS" />
+  <img src="https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white" alt="HTML5" />
+</p>
 
-```bash
-npm run article:translate
-```
+<p align="left">
+  <strong>Backend & Infrastructure</strong><br />
+  <img src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python" />
+  <img src="https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white" alt="Node.js" />
+  <img src="https://img.shields.io/badge/NestJS-E0234E?style=for-the-badge&logo=nestjs&logoColor=white" alt="NestJS" />
+  <img src="https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker" />
+  <img src="https://img.shields.io/badge/Linux-FCC624?style=for-the-badge&logo=linux&logoColor=black" alt="Linux" />
+  <img src="https://img.shields.io/badge/Git-F05032?style=for-the-badge&logo=git&logoColor=white" alt="Git" />
+</p>
 
-Команда берёт каждый `*.ru.md` исходник и создаёт отсутствующие соседние `*.en.md` и `*.ko.md` переводы через `google/gemma-4-31b-it` в OpenRouter. Уже существующие переводы пропускаются. Ключ не попадает в браузер и не должен иметь префикс `NEXT_PUBLIC_`. Если для аккаунта нужен другой идентификатор модели, задай `OPENROUTER_MODEL`.
+<p align="left">
+  <strong>AI Lab & Tools</strong><br />
+  <img src="https://img.shields.io/badge/Ollama-000000?style=for-the-badge&logo=ollama&logoColor=white" alt="Ollama" />
+  <img src="https://img.shields.io/badge/LM_Studio-6366F1?style=for-the-badge&logo=cpu&logoColor=white" alt="LM Studio" />
+  <img src="https://img.shields.io/badge/SDXL-8B5CF6?style=for-the-badge&logo=generative-ai&logoColor=white" alt="SDXL" />
+  <img src="https://img.shields.io/badge/Gradio-FF5500?style=for-the-badge&logo=gradio&logoColor=white" alt="Gradio" />
+  <img src="https://img.shields.io/badge/OpenRouter-0052CC?style=for-the-badge&logo=openai&logoColor=white" alt="OpenRouter" />
+</p>
 
-### Добавление команды
+---
 
-Измени функцию `getTerminalCommands` в `src/data/site-content.ts`:
+### 🚀 Избранные проекты / Featured Projects
 
-```ts
-{ name: "projects", description: "open projects", action: "projects", quick: true }
-```
+| Проект | Описание | Стек |
+| :--- | :--- | :--- |
+| 😻 **[morganai](https://github.com/mikhailfur/morganai)** | LLM NSFW ИИ-чат бот платформа | `Next.js` `TypeScript` `OpenRouter` `MiniMax TTS` |
+| 🦄 **[alyabot](https://github.com/mikhailfur/alyabot)** | ИИ ассистент Аля из аниме Аля кокетничает со мной по-русски | `telegraf` `TypeScript` `Google AI` `MiniMax TTS` |
+| 🤖 **[sd-webui-ai-wdywfm](https://github.com/mikhailfur/sd-webui-ai-wdywfm)** | AI-помощник, превращающий идею в аккуратный prompt для Stable Diffusion WebUI. | `Python` `Gradio` `LM Studio` `SDXL` |
+| 🖥️ **[mikhailfur](https://github.com/mikhailfur/mikhailfur)** | Личная публичная лаборатория и портфолио с интерактивным терминалом. | `Next.js` `TypeScript` `Tailwind` |
 
-`name` - команда, `aliases` - дополнительные названия, `description` - строка в `help`, `quick` - кнопка под терминалом. Поле `action` использует существующее действие: `about`, `archive`, `clear`, `github`, `help`, `hobbies`, `message`, `projects` или `stack`.
+---
 
-### Сообщения из терминала
+### 📊 Статистика GitHub / GitHub Stats
 
-Команда `message <текст>` отправляет текст в Telegram через серверный маршрут. Добавь в `.env` приватные значения:
+<div align="center">
+  <img height="180em" src="https://github-profile-summary-cards.vercel.app/api/cards/profile-details?username=mikhailfur&theme=gruvbox&animation=draw&name=mikhailfur" alt="GitHub Stats" />
+  <img height="180em" src="https://github-profile-summary-cards.vercel.app/api/cards/repos-per-language?username=mikhailfur&theme=gruvbox&animation=draw" alt="Top Languages" />
+</div>
 
-```env
-TELEGRAM_BOT_TOKEN=123456:bot-token-from-botfather
-TELEGRAM_CHAT_ID=123456789
-```
+---
 
-Создай бота в [@BotFather](https://t.me/BotFather), напиши ему `/start` со своего аккаунта, затем открой `https://api.telegram.org/bot<TELEGRAM_BOT_TOKEN>/getUpdates` и возьми `message.chat.id` из ответа. Не публикуй эти значения и не используй для них префикс `NEXT_PUBLIC_`. Маршрут принимает до 2 000 символов и ограничивает отправку до пяти сообщений с одного IP за десять минут.
+### 📬 Связаться со мной / Connect with me
 
-## Переменные окружения
+<p align="center">
+  🌐 <b>Website:</b> <a href="https://mikhailfur.ru">mikhailfur.ru</a> &nbsp;|&nbsp;
+  📧 <b>Email:</b> <a href="mailto:me@mikhailfur.ru">me@mikhailfur.ru</a> &nbsp;|&nbsp;
+  💻 <b>GitHub:</b> <a href="https://github.com/mikhailfur">@mikhailfur</a>
+</p>
 
-Скопируй `.env.example` в `.env` и заполни нужные значения:
-
-```env
-NEXT_PUBLIC_GITHUB_URL=https://github.com/mikhailfur
-NEXT_PUBLIC_TELEGRAM_URL=
-YANDEX_MUSIC_TOKEN=
-TELEGRAM_BOT_TOKEN=
-TELEGRAM_CHAT_ID=
-OPENROUTER_API_KEY=
-```
-
-Все `NEXT_PUBLIC_*` переменные доступны в браузере, поэтому в них должны быть только публичные ссылки. `YANDEX_MUSIC_TOKEN`, `TELEGRAM_BOT_TOKEN` и `TELEGRAM_CHAT_ID` не нужно публиковать, добавлять в git или переименовывать с префиксом `NEXT_PUBLIC_`.
-
-## Структура
-
-```text
-src/
-  app/                    # Страницы, API и глобальные стили
-  components/home/         # Основной интерфейс MKH_LOG
-  data/
-    articles/              # Архив: *.ru.md, *.en.md, *.ko.md
-    articles.ts             # Загрузка и проверка frontmatter
-    site-content.ts         # Локализованные UI, команды и портфолио
-  types/                   # Общие TypeScript-типы
-tools/article-editor/      # Автономный локальный редактор Markdown (не входит в сборку)
-```
-
-## Контакты
-
-- GitHub: [@mikhailfur](https://github.com/mikhailfur)
-- Email: [me@mikhailfur.ru](mailto:me@mikhailfur.ru)
-- Taplink: [tap.mikhailfur.ru](https://tap.mikhailfur.ru)
-
-© 2026 MikhailFur
+<div align="center">
+  <sub>© MikhailFur • Built with passion for open source and AI</sub>
+</div>
