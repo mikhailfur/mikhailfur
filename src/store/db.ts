@@ -1,6 +1,13 @@
 import fs from "node:fs";
 import path from "node:path";
 import { Redis } from "@upstash/redis";
+import {
+  deleteMysqlProduct,
+  getMysqlOrders,
+  getMysqlProducts,
+  saveMysqlOrder,
+  saveMysqlProduct,
+} from "./mysql";
 
 export interface StoreProduct {
   id: string;
@@ -11,7 +18,7 @@ export interface StoreProduct {
   badge?: string;
   category: "digital" | "service" | "config" | "key";
   stockStatus: "in_stock" | "out_of_stock";
-  itemContent?: string; // optional pre-filled content template
+  itemContent?: string;
   createdAt: string;
 }
 
@@ -56,7 +63,7 @@ export interface StoreDatabase {
 const DATA_DIR = path.join(process.cwd(), ".data");
 const DB_FILE = path.join(DATA_DIR, "store_db.json");
 
-// Upstash Redis Client Initializer
+// Upstash Redis Client Initializer (USED ONLY FOR SESSIONS & RATE LIMITING)
 const redisUrl = process.env.UPSTASH_REDIS_REST_URL;
 const redisToken = process.env.UPSTASH_REDIS_REST_TOKEN;
 
@@ -140,23 +147,25 @@ function ensureLocalDbFile(): StoreDatabase {
 }
 
 // ----------------------------------------------------
-// Upstash Redis Persistent Database Operations
+// 1. PRODUCTS & ORDERS -> STORED IN MYSQL (WITH LOCAL FALLBACK)
 // ----------------------------------------------------
 
 export async function getProducts(): Promise<StoreProduct[]> {
-  if (redis) {
-    try {
-      const data = await redis.get<StoreProduct[]>("store:products");
-      if (data && Array.isArray(data) && data.length > 0) {
-        return data;
-      }
-      // Seed default products if empty
-      await redis.set("store:products", defaultProducts);
-      return defaultProducts;
-    } catch (err) {
-      console.warn("Upstash Redis getProducts error, falling back to disk/memory:", err);
-    }
+  // 1. Try MySQL Database
+  const mysqlProds = await getMysqlProducts();
+  if (mysqlProds && mysqlProds.length > 0) {
+    return mysqlProds;
   }
+
+  // 2. If MySQL table is empty, seed defaults
+  if (mysqlProds && mysqlProds.length === 0) {
+    for (const prod of defaultProducts) {
+      await saveMysqlProduct(prod);
+    }
+    return defaultProducts;
+  }
+
+  // 3. Fallback to local file / memory
   return ensureLocalDbFile().products;
 }
 
@@ -166,56 +175,30 @@ export async function getProductById(id: string): Promise<StoreProduct | undefin
 }
 
 export async function saveProduct(product: StoreProduct): Promise<void> {
-  const products = await getProducts();
-  const index = products.findIndex((p) => p.id === product.id);
-  if (index >= 0) {
-    products[index] = product;
-  } else {
-    products.push(product);
+  const savedMysql = await saveMysqlProduct(product);
+  if (!savedMysql) {
+    // Update local file backup if MySQL is offline
+    const db = ensureLocalDbFile();
+    const index = db.products.findIndex((p) => p.id === product.id);
+    if (index >= 0) db.products[index] = product;
+    else db.products.push(product);
+    try { fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2), "utf-8"); } catch {}
   }
-
-  if (redis) {
-    try {
-      await redis.set("store:products", products);
-    } catch (err) {
-      console.warn("Upstash Redis saveProduct error:", err);
-    }
-  }
-
-  // Update local file backup
-  const db = ensureLocalDbFile();
-  db.products = products;
-  try { fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2), "utf-8"); } catch {}
 }
 
 export async function deleteProduct(id: string): Promise<void> {
-  let products = await getProducts();
-  products = products.filter((p) => p.id !== id);
-
-  if (redis) {
-    try {
-      await redis.set("store:products", products);
-    } catch (err) {
-      console.warn("Upstash Redis deleteProduct error:", err);
-    }
+  const deletedMysql = await deleteMysqlProduct(id);
+  if (!deletedMysql) {
+    const db = ensureLocalDbFile();
+    db.products = db.products.filter((p) => p.id !== id);
+    try { fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2), "utf-8"); } catch {}
   }
-
-  const db = ensureLocalDbFile();
-  db.products = products;
-  try { fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2), "utf-8"); } catch {}
 }
 
 export async function getOrders(): Promise<StoreOrder[]> {
-  if (redis) {
-    try {
-      const data = await redis.get<StoreOrder[]>("store:orders");
-      if (data && Array.isArray(data)) {
-        return data;
-      }
-      return [];
-    } catch (err) {
-      console.warn("Upstash Redis getOrders error, falling back to disk/memory:", err);
-    }
+  const mysqlOrders = await getMysqlOrders();
+  if (mysqlOrders !== null) {
+    return mysqlOrders;
   }
   return ensureLocalDbFile().orders;
 }
@@ -226,26 +209,19 @@ export async function getOrderById(orderId: string): Promise<StoreOrder | undefi
 }
 
 export async function saveOrder(order: StoreOrder): Promise<void> {
-  const orders = await getOrders();
-  const index = orders.findIndex((o) => o.orderId === order.orderId);
-  if (index >= 0) {
-    orders[index] = order;
-  } else {
-    orders.unshift(order);
+  const savedMysql = await saveMysqlOrder(order);
+  if (!savedMysql) {
+    const db = ensureLocalDbFile();
+    const index = db.orders.findIndex((o) => o.orderId === order.orderId);
+    if (index >= 0) db.orders[index] = order;
+    else db.orders.unshift(order);
+    try { fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2), "utf-8"); } catch {}
   }
-
-  if (redis) {
-    try {
-      await redis.set("store:orders", orders);
-    } catch (err) {
-      console.warn("Upstash Redis saveOrder error:", err);
-    }
-  }
-
-  const db = ensureLocalDbFile();
-  db.orders = orders;
-  try { fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2), "utf-8"); } catch {}
 }
+
+// ----------------------------------------------------
+// 2. SESSIONS & ADMIN TOKENS -> STORED ONLY IN UPSTASH REDIS (WITH 2H TTL)
+// ----------------------------------------------------
 
 export async function getAuthSessions(): Promise<AdminAuthSession[]> {
   if (redis) {
@@ -267,7 +243,7 @@ export async function getAuthSessions(): Promise<AdminAuthSession[]> {
 export async function saveAuthSessions(sessions: AdminAuthSession[]): Promise<void> {
   if (redis) {
     try {
-      // Set in Redis with 2-hour TTL auto-expiration
+      // Set in Redis with 2-hour TTL auto-expiration for zero memory waste
       await redis.set("store:auth_sessions", sessions, { ex: 7200 });
     } catch (err) {
       console.warn("Upstash Redis saveAuthSessions error:", err);
