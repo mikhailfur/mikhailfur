@@ -174,7 +174,6 @@ function MusicStatus({ text }: { text: Record<string, string> }) {
   }, [presence.state]);
 
   if (presence.state !== "playing" && presence.state !== "paused") return null;
-  if (presence.state === "paused" && !presence.progressMs && !presence.durationMs) return null;
   const durationMs = Number(presence.durationMs) || 0;
   const progressMs = Number(presence.progressMs) || 0;
   const elapsed = Math.min(durationMs || Infinity, progressMs + (presence.state === "playing" ? now - (presence.receivedAt ?? now) : 0));
