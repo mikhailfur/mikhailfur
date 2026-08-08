@@ -7,8 +7,9 @@ import { getPortfolio, getTerminalCommands, ui } from "@/data/site-content";
 import type { Article, Language, Project, TerminalCommand } from "@/types/portfolio";
 import { TechBadge } from "./tech-badge";
 import { MiyabiChatModal } from "./miyabi-chat-modal";
+import { StoreModal, AdminModal } from "@/components/store";
 
-type IconName = "archive" | "arrow" | "box" | "clock" | "code" | "command" | "discord" | "file" | "github" | "kakao" | "layers" | "telegram" | "twitch" | "user" | "vk" | "xbox";
+type IconName = "archive" | "arrow" | "box" | "clock" | "code" | "command" | "discord" | "file" | "github" | "kakao" | "layers" | "shield" | "store" | "telegram" | "twitch" | "user" | "vk" | "xbox";
 type AnsiChunk = { color?: string; text: string };
 type MusicPresence = { artist?: string; coverUrl?: string; durationMs?: number; progressMs?: number; receivedAt?: number; state: "idle" | "paused" | "playing" | "unavailable" | "unconfigured"; title?: string; url?: string };
 
@@ -117,6 +118,8 @@ function Icon({ name, size = 16 }: { name: IconName; size?: number }) {
     github: <><path d="M9 19c-5 1.5-5-2.5-7-3m14 5v-3.9c0-1.1.1-1.6-.5-2.2 2.2-.2 4.5-1.1 4.5-5a3.9 3.9 0 0 0-1-2.7A3.6 3.6 0 0 0 19 4.5S18.2 4.3 16 5.8a10.5 10.5 0 0 0-8 0C5.8 4.3 5 4.5 5 4.5a3.6 3.6 0 0 0-.1 2.7A3.9 3.9 0 0 0 4 10c0 3.9 2.3 4.8 4.5 5-.5.5-.5 1.2-.5 2.2V21" /></>,
     kakao: <path fill="currentColor" stroke="none" d="M12 3C6.5 3 2 6.5 2 10.8c0 2.8 1.8 5.2 4.6 6.6L6 21l3.9-2.6c.7.1 1.4.2 2.1.2 5.5 0 10-3.5 10-7.8S17.5 3 12 3Zm-3.3 7.9c-.8 0-1.4-.7-1.4-1.5S7.9 8 8.7 8s1.4.7 1.4 1.4-.6 1.5-1.4 1.5Zm6.6 0c-.8 0-1.4-.7-1.4-1.5S14.5 8 15.3 8s1.4.7 1.4 1.4-.6 1.5-1.4 1.5Z" />,
     layers: <><path d="m12 3 9 5-9 5-9-5z" /><path d="m3 12 9 5 9-5M3 16l9 5 9-5" /></>,
+    shield: <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />,
+    store: <><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" /><line x1="3" y1="6" x2="21" y2="6" /><path d="M16 10a4 4 0 0 1-8 0" /></>,
     telegram: <path fill="currentColor" stroke="none" d="M21.5 3.3 2.8 10.5c-1.3.5-1.3 1.3-.2 1.7l4.8 1.5 1.9 5.7c.2.6.1.8.8.8.5 0 .7-.2 1-.5l2.3-2.2 4.8 3.5c.9.5 1.5.3 1.7-.8l3.2-15c.3-1.3-.5-1.9-1.6-1.5ZM8.2 13.3l10.9-6.9c.5-.3 1-.1.6.3l-8.8 7.9-.3 3.4-2.4-4.7Z" />,
     twitch: <path fill="currentColor" stroke="none" d="M4 3h17v11.5L16.5 19H12l-2.4 2.4H6.8V19H4V3Zm2 2v12h2.8v2.2L11 17h4.7l3.3-3.3V5H6Zm4 2.4h2v5h-2v-5Zm4.6 0h2v5h-2v-5Z" />,
     user: <><circle cx="12" cy="8" r="3" /><path d="M5 21c.7-3.4 2.9-5 7-5s6.3 1.6 7 5" /></>,
@@ -250,7 +253,7 @@ export function TerminalBlog({ articlesByLanguage, initialProjects = [] }: { art
   const [archiveOpen, setArchiveOpen] = useState(false);
   const [miyabiChatOpen, setMiyabiChatOpen] = useState(false);
   const [fullscreenTerminalOpen, setFullscreenTerminalOpen] = useState(false);
-  const [terminalMode, setTerminalMode] = useState<"shell" | "miyabi">("shell");
+  const [terminalMode, setTerminalMode] = useState<"shell" | "miyabi" | "store" | "admin">("shell");
   const [clock, setClock] = useState(() => new Date());
   const [miyabiArt, setMiyabiArt] = useState<AnsiChunk[]>([]);
   const [projects, setProjects] = useState<Project[]>(initialProjects);
@@ -391,6 +394,18 @@ export function TerminalBlog({ articlesByLanguage, initialProjects = [] }: { art
       go("terminal");
       return;
     }
+    if (definition.action === "store") {
+      setTerminalMode("store");
+      setLines((old) => [...old, `> ${command}`, "[OK] Switched to store catalog."]);
+      go("terminal");
+      return;
+    }
+    if (definition.action === "admin") {
+      setTerminalMode("admin");
+      setLines((old) => [...old, `> ${command}`, "[OK] Switched to Admin Panel (Telegram Auth)."]);
+      go("terminal");
+      return;
+    }
     if (definition.action === "message") {
       if (!argument) { setLines((old) => [...old, `> ${command}`, text.messageUsage]); return; }
       setLines((old) => [...old, `> ${input}`, text.messageSending]);
@@ -515,6 +530,22 @@ export function TerminalBlog({ articlesByLanguage, initialProjects = [] }: { art
               >
                 &gt;_ MIYABI AI CLI
               </button>
+              <button
+                type="button"
+                className={`terminal-tab-btn ${terminalMode === "store" ? "active" : ""}`}
+                onClick={() => setTerminalMode("store")}
+              >
+                <Icon name="store" size={13} /> STORE
+              </button>
+              {terminalMode === "admin" && (
+                <button
+                  type="button"
+                  className="terminal-tab-btn active"
+                  onClick={() => setTerminalMode("admin")}
+                >
+                  <Icon name="shield" size={13} /> ADMIN
+                </button>
+              )}
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
               <button
@@ -556,6 +587,10 @@ export function TerminalBlog({ articlesByLanguage, initialProjects = [] }: { art
                     onClick={() => {
                       if (command.action === "miyabi") {
                         setTerminalMode("miyabi");
+                      } else if (command.action === "store") {
+                        setTerminalMode("store");
+                      } else if (command.action === "admin") {
+                        setTerminalMode("admin");
                       } else {
                         setInput(command.name === "message" ? "message " : command.name);
                         terminalInput.current?.focus();
@@ -567,8 +602,12 @@ export function TerminalBlog({ articlesByLanguage, initialProjects = [] }: { art
                 ))}
               </div>
             </>
-          ) : (
+          ) : terminalMode === "miyabi" ? (
             <MiyabiChatModal embedded />
+          ) : terminalMode === "store" ? (
+            <StoreModal embedded />
+          ) : (
+            <AdminModal embedded />
           )}
         </div>
       </TerminalFrame>
@@ -605,22 +644,38 @@ export function TerminalBlog({ articlesByLanguage, initialProjects = [] }: { art
                  </span>
                  <div className="fullscreen-terminal-title">
                    <span>mikhail_fur :: terminal</span>
-                 </div>
-                 <div className="terminal-tab-group">
-                   <button
-                     type="button"
-                     className={`terminal-tab-btn ${terminalMode === "shell" ? "active" : ""}`}
-                     onClick={() => setTerminalMode("shell")}
-                   >
-                     <i /> SHELL
-                   </button>
-                   <button
-                     type="button"
-                     className={`terminal-tab-btn ${terminalMode === "miyabi" ? "active" : ""}`}
-                     onClick={() => setTerminalMode("miyabi")}
-                   >
-                     &gt;_ MIYABI AI CLI
-                   </button>
+                   <div className="terminal-tab-group">
+                     <button
+                       type="button"
+                       className={`terminal-tab-btn ${terminalMode === "shell" ? "active" : ""}`}
+                       onClick={() => setTerminalMode("shell")}
+                     >
+                       <i /> SHELL
+                     </button>
+                     <button
+                       type="button"
+                       className={`terminal-tab-btn ${terminalMode === "miyabi" ? "active" : ""}`}
+                       onClick={() => setTerminalMode("miyabi")}
+                     >
+                       &gt;_ MIYABI AI CLI
+                     </button>
+                     <button
+                        type="button"
+                        className={`terminal-tab-btn ${terminalMode === "store" ? "active" : ""}`}
+                        onClick={() => setTerminalMode("store")}
+                      >
+                        <Icon name="store" size={13} /> STORE
+                      </button>
+                      {terminalMode === "admin" && (
+                        <button
+                          type="button"
+                          className="terminal-tab-btn active"
+                          onClick={() => setTerminalMode("admin")}
+                        >
+                          <Icon name="shield" size={13} /> ADMIN
+                        </button>
+                      )}
+                   </div>
                  </div>
                </div>
 
@@ -671,6 +726,10 @@ export function TerminalBlog({ articlesByLanguage, initialProjects = [] }: { art
                            onClick={() => {
                              if (command.action === "miyabi") {
                                setTerminalMode("miyabi");
+                             } else if (command.action === "store") {
+                               setTerminalMode("store");
+                             } else if (command.action === "admin") {
+                               setTerminalMode("admin");
                              } else {
                                setInput(command.name === "message" ? "message " : command.name);
                                fullscreenTerminalInput.current?.focus();
@@ -682,8 +741,12 @@ export function TerminalBlog({ articlesByLanguage, initialProjects = [] }: { art
                        ))}
                    </div>
                  </div>
-               ) : (
+               ) : terminalMode === "miyabi" ? (
                  <MiyabiChatModal embedded />
+               ) : terminalMode === "store" ? (
+                 <StoreModal embedded />
+               ) : (
+                 <AdminModal embedded />
                )}
              </div>
            </div>

@@ -8,8 +8,8 @@ export const runtime = "nodejs";
 
 const DAY_IN_MS = 24 * 60 * 60 * 1000;
 const HOUR_IN_MS = 60 * 60 * 1000;
-const MAX_REQUESTS_PER_DAY = 50;
-const MAX_REQUESTS_PER_HOUR = 10;
+const MAX_REQUESTS_PER_DAY = 1;
+const MAX_REQUESTS_PER_HOUR = 1;
 const MAX_TOKENS_PER_DAY = 150000;
 
 type UsageLog = {

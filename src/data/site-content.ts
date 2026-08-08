@@ -391,6 +391,8 @@ export function getTerminalCommands(language: Language): TerminalCommand[] {
       "open GitHub",
       "send a message: message <text>",
       "chat with Hoshimi Miyabi (AI waifu)",
+      "open digital store / catalog",
+      "open admin panel (Telegram auth)",
       "clear history",
     ],
     ru: [
@@ -403,6 +405,8 @@ export function getTerminalCommands(language: Language): TerminalCommand[] {
       "открыть GitHub",
       "отправить сообщение: message <текст>",
       "чат с Хосими Мияби (AI вайфу)",
+      "открыть магазин цифровых товаров",
+      "панель администратора (авторизация в Telegram)",
       "очистить историю",
     ],
     ko: [
@@ -415,6 +419,8 @@ export function getTerminalCommands(language: Language): TerminalCommand[] {
       "GitHub 열기",
       "메시지 보내기: message <내용>",
       "호시미 미야비 AI 와이푸 대화",
+      "디지털 상점 / 편의점 열기",
+      "관리자 패널 (텔레그램 인증)",
       "기록 지우기",
     ],
   };
@@ -428,6 +434,8 @@ export function getTerminalCommands(language: Language): TerminalCommand[] {
     github,
     message,
     miyabi,
+    store,
+    admin,
     clear,
   ] = descriptions[language];
   return [
@@ -456,6 +464,20 @@ export function getTerminalCommands(language: Language): TerminalCommand[] {
       description: miyabi,
       action: "miyabi",
       quick: true,
+    },
+    {
+      name: "/store",
+      aliases: ["store", "магазин", "편의점", "shop"],
+      description: store,
+      action: "store",
+      quick: true,
+    },
+    {
+      name: "/admin",
+      aliases: ["admin", "админ", "관리자"],
+      description: admin,
+      action: "admin",
+      quick: false,
     },
     { name: "clear", description: clear, action: "clear" },
   ];
