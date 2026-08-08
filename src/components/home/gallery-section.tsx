@@ -132,7 +132,7 @@ export function GallerySection({ language }: GallerySectionProps) {
   // Filtered & Searched list
   const filteredImages = images.filter((item) => {
     const isCensored = isRatingCensored(item);
-    
+
     // 19+ adult artworks (X/XXX) ONLY appear under the "nsfw" (19+) tab
     if (ratingFilter === "all" && isCensored) return false;
     if (ratingFilter === "sfw" && isCensored) return false;
@@ -493,7 +493,7 @@ export function GallerySection({ language }: GallerySectionProps) {
 
             <p className="reader-path">/gallery/all</p>
             <h1>{t.galleryTitle || "Civitai Works Gallery"}</h1>
-            <p>{t.fullGallerySubtitle || "Complete collection of AI artworks fetched via civitai.red API"}</p>
+            <p>{t.fullGallerySubtitle || "Complete collection of AI artworks from Civitai"}</p>
 
             <div className="gallery-grid" style={{ marginTop: "28px" }}>
               {filteredImages.map(renderCard)}
