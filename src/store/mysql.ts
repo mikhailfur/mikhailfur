@@ -109,7 +109,7 @@ export async function getMysqlProducts(): Promise<StoreProduct[] | null> {
 
   try {
     await initMysqlTables();
-    const [rows] = await p.query<any[]>("SELECT * FROM products ORDER BY created_at DESC");
+    const [rows] = await p.query<mysql.RowDataPacket[]>("SELECT * FROM products ORDER BY created_at DESC");
     return rows.map((row) => ({
       id: row.id,
       title: row.title,
@@ -186,7 +186,7 @@ export async function getMysqlOrders(): Promise<StoreOrder[] | null> {
 
   try {
     await initMysqlTables();
-    const [rows] = await p.query<any[]>("SELECT * FROM orders ORDER BY created_at DESC");
+    const [rows] = await p.query<mysql.RowDataPacket[]>("SELECT * FROM orders ORDER BY created_at DESC");
     return rows.map((row) => ({
       orderId: row.order_id,
       productId: row.product_id,

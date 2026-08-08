@@ -433,7 +433,7 @@ export async function POST(request: NextRequest) {
     // Record token usage for the request
     recordTokensUsed(ip, totalTokens);
 
-    let rawReply = data.choices?.[0]?.message?.content || "";
+    const rawReply = data.choices?.[0]?.message?.content || "";
     const cleanReply = stripReasoning(rawReply);
 
     // Check for voice tags or user voice request

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { StoreProduct } from "@/store/db";
 import { storeI18n, useStoreLanguage } from "@/store/i18n";
 
@@ -70,21 +70,7 @@ export function StoreModal({ embedded = false, onClose }: StoreModalProps) {
     KZT: 475,
   });
 
-  useEffect(() => {
-    fetchProducts();
-    fetch("/api/store/exchange-rates", { cache: "no-store" })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data?.rates?.KRW && data?.rates?.KZT) {
-          setExchangeRates({ KRW: data.rates.KRW, KZT: data.rates.KZT });
-        }
-      })
-      .catch(() => {
-        // Fallback default rates
-      });
-  }, []);
-
-  const fetchProducts = async () => {
+  const fetchProducts = useCallback(async () => {
     setLoading(true);
     try {
       const res = await fetch("/api/store/products", { cache: "no-store" });
@@ -97,7 +83,26 @@ export function StoreModal({ embedded = false, onClose }: StoreModalProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+    const load = async () => {
+      await fetchProducts();
+    };
+    void load();
+    fetch("/api/store/exchange-rates", { cache: "no-store" })
+      .then((res) => res.json())
+      .then((data) => {
+        if (isMounted && data?.rates?.KRW && data?.rates?.KZT) {
+          setExchangeRates({ KRW: data.rates.KRW, KZT: data.rates.KZT });
+        }
+      })
+      .catch(() => {
+        // Fallback default rates
+      });
+    return () => { isMounted = false; };
+  }, [fetchProducts]);
 
   // Step 1: Open Detailed Product Modal
   const handleOpenProductDetails = (product: StoreProduct) => {
@@ -178,8 +183,9 @@ export function StoreModal({ embedded = false, onClose }: StoreModalProps) {
           setCheckoutError(data.error || "Manual payment submission failed.");
         }
       }
-    } catch (err: any) {
-      setCheckoutError(err.message || "Network error occurred.");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Network error occurred.";
+      setCheckoutError(message);
     } finally {
       setSubmitting(false);
     }

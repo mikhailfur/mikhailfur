@@ -241,7 +241,19 @@ export function MiyabiTerminalChat({
   const activeLanguage = language ?? "en";
   const t = ui[activeLanguage];
 
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<Message[]>(() => {
+    if (typeof window === "undefined") return [];
+    try {
+      const saved = localStorage.getItem(chatStorageKey);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {
+      console.error("Failed to load Miyabi chat history:", e);
+    }
+    return [];
+  });
   const [input, setInput] = useState("");
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -249,21 +261,6 @@ export function MiyabiTerminalChat({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  // Load chat history from localStorage on mount
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem(chatStorageKey);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          setMessages(parsed);
-        }
-      }
-    } catch (e) {
-      console.error("Failed to load Miyabi chat history:", e);
-    }
-  }, []);
 
   // Save chat history to localStorage on message updates
   useEffect(() => {

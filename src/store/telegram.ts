@@ -1,6 +1,12 @@
+export type TelegramInlineKeyboardButton = {
+  text: string;
+  url?: string;
+  callback_data?: string;
+};
+
 export async function sendTelegramMessage(
   text: string,
-  replyMarkupKeyboard?: any[]
+  replyMarkupKeyboard?: TelegramInlineKeyboardButton[][]
 ): Promise<boolean> {
   const token = process.env.TELEGRAM_BOT_TOKEN;
   const chatId = process.env.TELEGRAM_CHAT_ID;
@@ -11,7 +17,12 @@ export async function sendTelegramMessage(
   }
 
   try {
-    const payload: any = {
+    const payload: {
+      chat_id: string;
+      text: string;
+      parse_mode: string;
+      reply_markup?: { inline_keyboard: TelegramInlineKeyboardButton[][] };
+    } = {
       chat_id: chatId,
       text,
       parse_mode: "HTML",
@@ -47,7 +58,7 @@ export async function sendTelegramFile(
   fileBuffer: Buffer | Uint8Array,
   filename: string,
   caption?: string,
-  replyMarkupKeyboard?: any[]
+  replyMarkupKeyboard?: TelegramInlineKeyboardButton[][]
 ): Promise<boolean> {
   const token = process.env.TELEGRAM_BOT_TOKEN;
   const chatId = process.env.TELEGRAM_CHAT_ID;

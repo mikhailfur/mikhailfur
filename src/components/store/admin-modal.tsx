@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { StoreOrder, StoreProduct } from "@/store/db";
 import { storeI18n, useStoreLanguage } from "@/store/i18n";
 
@@ -56,74 +56,7 @@ export function AdminModal({ embedded = false, onClose }: AdminModalProps) {
   const [newProdContent, setNewProdContent] = useState("");
   const [savingProd, setSavingProd] = useState(false);
 
-  // 1. Initial Auth Check & Session Request
-  useEffect(() => {
-    if (initRef.current) return;
-    initRef.current = true;
-    checkInitialAuth();
-  }, []);
-
-  const checkInitialAuth = async () => {
-    setCheckingAuth(true);
-    try {
-      const res = await fetch("/api/admin/auth-status", { cache: "no-store" });
-      if (res.ok) {
-        const data = await res.json();
-        if (data.approved && data.token) {
-          setAuthorized(true);
-          setAdminToken(data.token);
-          fetchAdminData(data.token);
-          setCheckingAuth(false);
-          return;
-        }
-      }
-
-      // Request new 8-character verification code & Telegram alert
-      const reqRes = await fetch("/api/admin/request-auth", { method: "POST" });
-      if (reqRes.ok) {
-        const reqData = await reqRes.json();
-        setAuthSession({
-          sessionId: reqData.sessionId,
-          code: reqData.code,
-          ip: reqData.ip,
-          userAgent: reqData.userAgent,
-          geo: reqData.geo,
-        });
-      }
-    } catch {
-      // Auth request error handling
-    } finally {
-      setCheckingAuth(false);
-    }
-  };
-
-  // 2. Poll status if waiting for Telegram approval
-  useEffect(() => {
-    if (authorized || !authSession) return;
-
-    const interval = setInterval(async () => {
-      try {
-        const res = await fetch(`/api/admin/auth-status?sessionId=${authSession.sessionId}`, {
-          cache: "no-store",
-        });
-        if (res.ok) {
-          const data = await res.json();
-          if (data.approved && data.token) {
-            setAuthorized(true);
-            setAdminToken(data.token);
-            fetchAdminData(data.token);
-            clearInterval(interval);
-          }
-        }
-      } catch {
-        // Continue polling
-      }
-    }, 2000);
-
-    return () => clearInterval(interval);
-  }, [authorized, authSession]);
-
-  const fetchAdminData = async (token?: string) => {
+  const fetchAdminData = useCallback(async (token?: string) => {
     setLoadingData(true);
     const headers = { "x-admin-token": token || adminToken || "" };
     try {
@@ -144,7 +77,66 @@ export function AdminModal({ embedded = false, onClose }: AdminModalProps) {
     } finally {
       setLoadingData(false);
     }
-  };
+  }, [adminToken]);
+
+  const checkInitialAuth = useCallback(async () => {
+    setCheckingAuth(true);
+    try {
+      const res = await fetch("/api/admin/auth-status", { cache: "no-store" });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.approved && data.token) {
+          setAuthorized(true);
+          setAdminToken(data.token);
+          fetchAdminData(data.token);
+          setCheckingAuth(false);
+          return;
+        }
+      }
+
+      // Request new 8-character verification code & Telegram alert
+      const reqRes = await fetch("/api/admin/request-auth", { method: "POST" });
+      if (reqRes.ok) {
+        const reqData = await reqRes.json();
+        setAuthSession(reqData);
+      }
+    } catch {
+      // Error
+    } finally {
+      setCheckingAuth(false);
+    }
+  }, [fetchAdminData]);
+
+  // 1. Initial Auth Check & Session Request
+  useEffect(() => {
+    if (initRef.current) return;
+    initRef.current = true;
+    checkInitialAuth();
+  }, [checkInitialAuth]);
+
+  useEffect(() => {
+    if (authorized || !authSession) return;
+
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/admin/auth-status?sessionId=${authSession.sessionId}`, { cache: "no-store" });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.approved && data.token) {
+            setAuthorized(true);
+            setAdminToken(data.token);
+            localStorage.setItem("mikhail_admin_token", data.token);
+            fetchAdminData(data.token);
+            clearInterval(interval);
+          }
+        }
+      } catch {
+        // Continue polling
+      }
+    }, 2000);
+
+    return () => clearInterval(interval);
+  }, [authorized, authSession, fetchAdminData]);
 
   const handleOpenFulfill = (order: StoreOrder) => {
     setSelectedOrder(order);
@@ -183,8 +175,9 @@ export function AdminModal({ embedded = false, onClose }: AdminModalProps) {
       } else {
         setFulfillMessage(`❌ Error: ${data.error || "Fulfillment failed"}`);
       }
-    } catch (err: any) {
-      setFulfillMessage(`❌ Error: ${err.message || "Network error"}`);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Network error";
+      setFulfillMessage(`❌ Error: ${message}`);
     } finally {
       setFulfilling(false);
     }
@@ -482,7 +475,7 @@ export function AdminModal({ embedded = false, onClose }: AdminModalProps) {
                         <label>{t.prodCategoryLabel}</label>
                         <select
                           value={newProdCategory}
-                          onChange={(e) => setNewProdCategory(e.target.value as any)}
+                          onChange={(e) => setNewProdCategory(e.target.value as StoreProduct["category"])}
                         >
                           <option value="digital">digital</option>
                           <option value="service">service</option>

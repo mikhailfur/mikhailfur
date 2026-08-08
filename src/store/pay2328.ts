@@ -75,11 +75,12 @@ export async function create2328Payment(
       success: false,
       error: data.message || "Failed to create 2328.io payment invoice",
     };
-  } catch (err: any) {
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Network error connecting to 2328.io API";
     console.error("2328.io API Invoice Creation Error:", err);
     return {
       success: false,
-      error: err.message || "Network error connecting to 2328.io API",
+      error: message,
     };
   }
 }

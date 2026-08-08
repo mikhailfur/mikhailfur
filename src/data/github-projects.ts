@@ -59,7 +59,7 @@ const TOPIC_MAP: Record<string, string> = {
 export function extractDescriptionFromReadme(readme: string): string | null {
   if (!readme) return null;
 
-  let text = readme
+  const text = readme
     .replace(/<!--[\s\S]*?-->/g, "")
     .replace(/```[\s\S]*?```/g, "")
     .replace(/<[^>]+>/g, "")

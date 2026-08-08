@@ -8,6 +8,9 @@ import type { Article, Language, Project, TerminalCommand } from "@/types/portfo
 import { TechBadge } from "./tech-badge";
 import { MiyabiChatModal } from "./miyabi-chat-modal";
 import { StoreModal, AdminModal } from "@/components/store";
+import { CyberMatrixBackground } from "./cyber-matrix-background";
+import { CommandPalette } from "./command-palette";
+import { isSoundEnabled, playBeepSound, playKeyClickSound, playSuccessSound, toggleSound } from "@/utils/sfx";
 
 type IconName = "archive" | "arrow" | "box" | "clock" | "code" | "command" | "discord" | "file" | "github" | "kakao" | "layers" | "shield" | "store" | "telegram" | "twitch" | "user" | "vk" | "xbox";
 type AnsiChunk = { color?: string; text: string };
@@ -253,6 +256,15 @@ export function TerminalBlog({ articlesByLanguage, initialProjects = [] }: { art
   const [archiveOpen, setArchiveOpen] = useState(false);
   const [miyabiChatOpen, setMiyabiChatOpen] = useState(false);
   const [fullscreenTerminalOpen, setFullscreenTerminalOpen] = useState(false);
+  const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
+  const [matrixActive, setMatrixActive] = useState(false);
+  const [sfxActive, setSfxActive] = useState(() => isSoundEnabled());
+  const [projectFilter, setProjectFilter] = useState<"all" | "ai" | "web" | "python" | "ts">("all");
+  const [projectSearch, setProjectSearch] = useState("");
+  const [selectedTechFilter, setSelectedTechFilter] = useState<string | null>(null);
+  const [cmdHistory, setCmdHistory] = useState<string[]>([]);
+  const [historyIndex, setHistoryIndex] = useState(-1);
+  const [readingProgress, setReadingProgress] = useState(0);
   const [terminalMode, setTerminalMode] = useState<"shell" | "miyabi" | "store" | "admin">("shell");
   const [clock, setClock] = useState(() => new Date());
   const [miyabiArt, setMiyabiArt] = useState<AnsiChunk[]>([]);
@@ -326,7 +338,10 @@ export function TerminalBlog({ articlesByLanguage, initialProjects = [] }: { art
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+      if ((event.metaKey || event.ctrlKey) && (event.key === "/" || event.code === "Slash")) {
+        event.preventDefault();
+        setCommandPaletteOpen((prev) => !prev);
+      } else if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
         event.preventDefault();
         setFullscreenTerminalOpen((prev) => !prev);
       }
@@ -361,31 +376,142 @@ export function TerminalBlog({ articlesByLanguage, initialProjects = [] }: { art
     if (!activeArticle && !archiveOpen) return;
     document.body.classList.add("reader-open");
     reader.current?.scrollTo({ top: 0 });
+
+    const handleScroll = () => {
+      const el = reader.current;
+      if (!el) return;
+      const total = el.scrollHeight - el.clientHeight;
+      if (total > 0) {
+        setReadingProgress(Math.min(100, (el.scrollTop / total) * 100));
+      }
+    };
+
+    const readerEl = reader.current;
+    readerEl?.addEventListener("scroll", handleScroll);
+
     const escape = (event: KeyboardEvent) => {
       if (event.key !== "Escape") return;
       if (activeArticle) setActiveArticle(null);
       else setArchiveOpen(false);
     };
     window.addEventListener("keydown", escape);
-    return () => { document.body.classList.remove("reader-open"); window.removeEventListener("keydown", escape); };
+    return () => {
+      document.body.classList.remove("reader-open");
+      readerEl?.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("keydown", escape);
+    };
   }, [activeArticle, archiveOpen]);
 
   const go = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
-  const openArticle = (id: string) => setActiveArticle(id);
+  const openArticle = (id: string) => {
+    playSuccessSound();
+    setActiveArticle(id);
+  };
   const changeLanguage = (nextLanguage: Language) => {
+    playBeepSound(700, 0.04);
     saveLanguage(nextLanguage);
     setLines([ui[nextLanguage].sessionReady]);
   };
+
+  const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    playKeyClickSound();
+    if (e.key === "ArrowUp") {
+      e.preventDefault();
+      if (cmdHistory.length === 0) return;
+      const nextIdx = historyIndex < cmdHistory.length - 1 ? historyIndex + 1 : historyIndex;
+      setHistoryIndex(nextIdx);
+      setInput(cmdHistory[cmdHistory.length - 1 - nextIdx] || "");
+    } else if (e.key === "ArrowDown") {
+      e.preventDefault();
+      if (historyIndex > 0) {
+        const nextIdx = historyIndex - 1;
+        setHistoryIndex(nextIdx);
+        setInput(cmdHistory[cmdHistory.length - 1 - nextIdx] || "");
+      } else if (historyIndex === 0) {
+        setHistoryIndex(-1);
+        setInput("");
+      }
+    } else if (e.key === "Tab") {
+      e.preventDefault();
+      const current = input.trim().toLowerCase();
+      if (!current) return;
+      const match = terminalCommands.find(
+        (c) => c.name.startsWith(current) || c.aliases?.some((a) => a.startsWith(current))
+      );
+      if (match) {
+        setInput(match.name);
+        playBeepSound(650, 0.04);
+      }
+    }
+  };
+
   const execute = async (raw: string) => {
-    const input = raw.trim();
-    const [commandName = ""] = input.split(/\s+/, 1);
+    const inputStr = raw.trim();
+    const [commandName = ""] = inputStr.split(/\s+/, 1);
     const command = commandName.toLowerCase();
-    const argument = input.slice(commandName.length).trim();
+    const argument = inputStr.slice(commandName.length).trim();
     if (!command) return;
+
+    if (command === "matrix") {
+      setMatrixActive((prev) => !prev);
+      playSuccessSound();
+      setLines((old) => [...old, `> ${command}`, "[OK] Matrix Digital Rain background toggled."]);
+      return;
+    }
+    if (command === "sfx" || command === "sound") {
+      const next = toggleSound();
+      setSfxActive(next);
+      setLines((old) => [...old, `> ${command}`, `[OK] Audio SFX engine ${next ? "enabled" : "disabled"}.`]);
+      return;
+    }
+    if (command === "quote" || command === "motto") {
+      const quotes = [
+        '"Talk is cheap. Show me the code." — Linus Torvalds',
+        '"Simplicity is prerequisite for reliability." — Edsger W. Dijkstra',
+        '"The secret of getting ahead is getting started." — Mark Twain',
+        '"Make it work, make it right, make it fast." — Kent Beck',
+      ];
+      const q = quotes[Math.floor(Math.random() * quotes.length)];
+      setLines((old) => [...old, `> ${command}`, q]);
+      playBeepSound(720, 0.05);
+      return;
+    }
+    if (command === "stats") {
+      setLines((old) => [
+        ...old,
+        `> ${command}`,
+        "--- MKH_LOG LAB STATUS ---",
+        "OS: Web/Linux Self-Hosted",
+        "Stack: Next.js 16 · React 19 · TypeScript 5.9",
+        "Local AI Engine: Ollama / LM Studio / MiniMax / OpenRouter",
+        "Uptime: 99.98% · Status: Active",
+      ]);
+      playBeepSound(800, 0.05);
+      return;
+    }
+
     const definition = terminalCommands.find((item) => item.name === command || item.aliases?.includes(command));
-    if (!definition) { setLines((old) => [...old, `> ${command}`, text.commandNotFound]); return; }
+    if (!definition) {
+      setLines((old) => [...old, `> ${command}`, text.commandNotFound]);
+      playBeepSound(300, 0.08);
+      return;
+    }
+
+    playSuccessSound();
+
     if (definition.action === "clear") { setLines([]); return; }
-    if (definition.action === "help") { setLines((old) => [...old, `> ${command}`, ...terminalCommands.map(({ name, description }) => `${name.padEnd(10, " ")} ${description}`)]); return; }
+    if (definition.action === "help") {
+      setLines((old) => [
+        ...old,
+        `> ${command}`,
+        ...terminalCommands.map(({ name, description }) => `${name.padEnd(12, " ")} ${description}`),
+        "matrix       toggle digital rain overlay",
+        "sfx          toggle sound effects",
+        "quote        random lab developer quote",
+        "stats        show system & lab status",
+      ]);
+      return;
+    }
     if (definition.action === "github") { window.open("https://github.com/mikhailfur", "_blank", "noopener,noreferrer"); setLines((old) => [...old, `> ${command}`, text.openingGithub]); return; }
     if (definition.action === "archive") { setArchiveOpen(true); setLines((old) => [...old, `> ${command}`, text.openedArchive]); return; }
     if (definition.action === "miyabi") {
@@ -408,7 +534,7 @@ export function TerminalBlog({ articlesByLanguage, initialProjects = [] }: { art
     }
     if (definition.action === "message") {
       if (!argument) { setLines((old) => [...old, `> ${command}`, text.messageUsage]); return; }
-      setLines((old) => [...old, `> ${input}`, text.messageSending]);
+      setLines((old) => [...old, `> ${inputStr}`, text.messageSending]);
       try {
         const response = await fetch("/api/message", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ message: argument }) });
         if (!response.ok) throw new Error("Message delivery failed.");
@@ -423,7 +549,16 @@ export function TerminalBlog({ articlesByLanguage, initialProjects = [] }: { art
     const messages: Partial<Record<TerminalCommand["action"], string>> = { about: text.openedProfile, hobbies: text.openedHobbies, projects: text.openedProjects, stack: text.openedStack };
     setLines((old) => [...old, `> ${command}`, messages[definition.action] ?? text.openedProfile]);
   };
-  const submit = (event: FormEvent) => { event.preventDefault(); void execute(input); setInput(""); };
+
+  const submit = (event: FormEvent) => {
+    event.preventDefault();
+    if (input.trim()) {
+      setCmdHistory((prev) => [...prev, input.trim()]);
+      setHistoryIndex(-1);
+    }
+    void execute(input);
+    setInput("");
+  };
 
   const preloader = <div className="boot-loader" role="status" aria-label="Loading portfolio">
       <div className="boot-terminal">
@@ -439,7 +574,38 @@ export function TerminalBlog({ articlesByLanguage, initialProjects = [] }: { art
 
   if (!booted) return <main>{preloader}</main>;
 
-  return <main>
+  const filteredProjects = projects.filter((project) => {
+    const matchesSearch =
+      !projectSearch ||
+      project.name.toLowerCase().includes(projectSearch.toLowerCase()) ||
+      project.description.toLowerCase().includes(projectSearch.toLowerCase()) ||
+      project.stack.some((s) => s.toLowerCase().includes(projectSearch.toLowerCase()));
+
+    const matchesTech =
+      !selectedTechFilter ||
+      project.stack.some((s) => s.toLowerCase() === selectedTechFilter.toLowerCase());
+
+    let matchesCategory = true;
+    if (projectFilter === "ai") {
+      matchesCategory = project.stack.some((s) =>
+        ["ai", "sdxl", "llm", "lm studio", "openrouter", "ollama", "minimax"].includes(s.toLowerCase())
+      );
+    } else if (projectFilter === "web") {
+      matchesCategory = project.stack.some((s) =>
+        ["next.js", "react", "typescript", "javascript", "tailwind", "html5"].includes(s.toLowerCase())
+      );
+    } else if (projectFilter === "python") {
+      matchesCategory = project.stack.some((s) => s.toLowerCase() === "python");
+    } else if (projectFilter === "ts") {
+      matchesCategory = project.stack.some((s) => s.toLowerCase() === "typescript");
+    }
+
+    return matchesSearch && matchesTech && matchesCategory;
+  });
+
+  return <main style={{ position: "relative" }}>
+    <CyberMatrixBackground matrixActive={matrixActive} />
+
     <nav className="topbar" aria-label={text.mainNavigation}>
       <a href="#home" className="brand"><span className="brand-mark">&gt;_</span> mikhail_fur</a>
       <span className="top-status">
@@ -448,7 +614,20 @@ export function TerminalBlog({ articlesByLanguage, initialProjects = [] }: { art
         <span className="mobile-clock">{clock.toLocaleTimeString([], { timeZone: "Asia/Seoul", hour: "2-digit", minute: "2-digit", hour12: false })}</span>
         <b>KST</b>
       </span>
-      <div className="language-switcher" aria-label={text.language}>{(["en", "ru", "ko"] as Language[]).map((item) => <button key={item} type="button" onClick={() => changeLanguage(item)} aria-pressed={activeLanguage === item}>{item.toUpperCase()}</button>)}</div>
+      <div className="topbar-right">
+        <button
+          type="button"
+          className="cmd-trigger-btn"
+          onClick={() => {
+            playBeepSound(750, 0.04);
+            setCommandPaletteOpen(true);
+          }}
+          title="Command Palette (Ctrl + /)"
+        >
+          <span>Ctrl /</span> Palette
+        </button>
+        <div className="language-switcher" aria-label={text.language}>{(["en", "ru", "ko"] as Language[]).map((item) => <button key={item} type="button" onClick={() => changeLanguage(item)} aria-pressed={activeLanguage === item}>{item.toUpperCase()}</button>)}</div>
+      </div>
     </nav>
 
     <section id="home" className="shell hero">
@@ -459,8 +638,8 @@ export function TerminalBlog({ articlesByLanguage, initialProjects = [] }: { art
             <h1 dangerouslySetInnerHTML={{ __html: text.whoamiTitle }} />
             <p className="hero-copy">{text.heroCopy}</p>
             <div className="hero-actions">
-              <a href="#projects" className="button button-primary"><Icon name="arrow" size={15} /> {text.viewProjects}</a>
-              <a href="https://github.com/mikhailfur" target="_blank" rel="noreferrer" className="button"><Icon name="github" size={15} /> GitHub</a>
+              <a href="#projects" className="button button-primary" onClick={() => playBeepSound()}><Icon name="arrow" size={15} /> {text.viewProjects}</a>
+              <a href="https://github.com/mikhailfur" target="_blank" rel="noreferrer" className="button" onClick={() => playBeepSound()}><Icon name="github" size={15} /> GitHub</a>
             </div>
           </div>
           <figure className="miyabi-art" ref={artViewport} aria-label={text.miyabiArt}><pre ref={artPre} style={{ opacity: miyabiArt.length ? 1 : 0, transform: `translate(-5%, -12%) scale(${artScale || 1})` }}>{miyabiArt.map((chunk, index) => <span key={index} style={chunk.color ? { color: chunk.color } : undefined}>{chunk.text}</span>)}</pre></figure>
@@ -468,7 +647,7 @@ export function TerminalBlog({ articlesByLanguage, initialProjects = [] }: { art
         <div className="hero-utility">
           <div className="hero-contacts">
             <span className="utility-label">{text.contacts}</span>
-            <div className="contact-list">{contacts.map((contact) => contact.value ? <a href={contact.value} target="_blank" rel="noreferrer" key={contact.label}><span><Icon name={contactIcons[contact.label]} size={13} /></span>{contact.label}<Icon name="arrow" size={14} /></a> : <span key={contact.label} className="contact-offline"><span><Icon name={contactIcons[contact.label]} size={13} /></span>{contact.label}<small>{text.offline}</small></span>)}</div>
+            <div className="contact-list">{contacts.map((contact) => contact.value ? <a href={contact.value} target="_blank" rel="noreferrer" key={contact.label} onClick={() => playKeyClickSound()}><span><Icon name={contactIcons[contact.label]} size={13} /></span>{contact.label}<Icon name="arrow" size={14} /></a> : <span key={contact.label} className="contact-offline"><span><Icon name={contactIcons[contact.label]} size={13} /></span>{contact.label}<small>{text.offline}</small></span>)}</div>
           </div>
           <MusicStatus text={text} />
         </div>
@@ -477,13 +656,89 @@ export function TerminalBlog({ articlesByLanguage, initialProjects = [] }: { art
 
     <section id="projects" className="shell">
       <TerminalFrame title={text.projects}>
-        <header className="section-head"><div><span className="section-icon"><Icon name="box" /></span><h2>{text.projects}</h2></div><p>{text.projectsDescription}</p></header>
+        <header className="section-head">
+          <div><span className="section-icon"><Icon name="box" /></span><h2>{text.projects}</h2></div>
+          <p>{text.projectsDescription}</p>
+        </header>
+
+        <div className="project-toolbar">
+          <div className="project-search-box">
+            <Icon name="command" size={12} />
+            <input
+              type="text"
+              value={projectSearch}
+              onChange={(e) => setProjectSearch(e.target.value)}
+              placeholder="Search projects or tech..."
+            />
+            {projectSearch && (
+              <button
+                type="button"
+                style={{ background: "none", border: 0, color: "var(--muted)", cursor: "pointer", fontSize: "10px" }}
+                onClick={() => setProjectSearch("")}
+              >
+                ✕
+              </button>
+            )}
+          </div>
+
+          <div className="project-filter-pills">
+            {(["all", "ai", "web", "python", "ts"] as const).map((cat) => (
+              <button
+                key={cat}
+                type="button"
+                className={`project-pill ${projectFilter === cat && !selectedTechFilter ? "active" : ""}`}
+                onClick={() => {
+                  playBeepSound(600, 0.03);
+                  setSelectedTechFilter(null);
+                  setProjectFilter(cat);
+                }}
+              >
+                {cat === "all" ? "ALL" : cat === "ai" ? "AI & LLM" : cat === "web" ? "WEB" : cat.toUpperCase()}
+              </button>
+            ))}
+            {selectedTechFilter && (
+              <button
+                type="button"
+                className="project-pill active"
+                onClick={() => setSelectedTechFilter(null)}
+                title="Clear tech filter"
+              >
+                🏷️ {selectedTechFilter} ✕
+              </button>
+            )}
+          </div>
+        </div>
+
         <div className="project-list">
-          {projects.map((project, index) => <a className="project-row" href={project.url} target="_blank" rel="noreferrer" key={project.name}>
-            <span className="project-index">{String(index + 1).padStart(2, "0")}</span>
-            <div><h3>{project.name}</h3><p>{project.description}</p><div className="tag-list">{project.stack.map((tag) => <small key={tag}>{tag}</small>)}</div></div>
-            <span className={`status ${project.status}`}>{project.status}</span><Icon name="arrow" />
-          </a>)}
+          {filteredProjects.length === 0 ? (
+            <div style={{ padding: "32px 0", textAlign: "center", color: "var(--muted)", fontSize: "12px" }}>
+              No projects found matching filter criteria.
+            </div>
+          ) : (
+            filteredProjects.map((project, index) => (
+              <a
+                className="project-row"
+                href={project.url}
+                target="_blank"
+                rel="noreferrer"
+                key={project.name}
+                onMouseEnter={() => playKeyClickSound()}
+              >
+                <span className="project-index">{String(index + 1).padStart(2, "0")}</span>
+                <div>
+                  <h3>{project.name}</h3>
+                  <p>{project.description}</p>
+                  <div className="tag-list">
+                    {project.stack.map((tag) => (
+                      <small key={tag}>{tag}</small>
+                    ))}
+                  </div>
+                </div>
+                <span className={`status ${project.status}`}>{project.status}</span>
+                <Icon name="arrow" />
+              </a>
+            ))
+          )}
         </div>
         <a className="all-link" href="https://github.com/mikhailfur?tab=repositories" target="_blank" rel="noreferrer">{text.allRepositories} <Icon name="arrow" size={15} /></a>
       </TerminalFrame>
@@ -492,7 +747,30 @@ export function TerminalBlog({ articlesByLanguage, initialProjects = [] }: { art
     <section id="stack" className="shell">
       <TerminalFrame title={text.stack}>
         <header className="section-head"><div><span className="section-icon"><Icon name="layers" /></span><h2>{text.stack}</h2></div><p>{text.stackDescription}</p></header>
-        <div className="stack-list">{stackGroups.map((group) => <div className="stack-row" key={group.name}><h3>{group.name}</h3><div className="stack-items">{group.items.map((item) => <TechBadge key={item} name={item} />)}</div></div>)}</div>
+        <div className="stack-list">
+          {stackGroups.map((group) => (
+            <div className="stack-row" key={group.name}>
+              <h3>{group.name}</h3>
+              <div className="stack-items">
+                {group.items.map((item) => (
+                  <div
+                    key={item}
+                    onClick={() => {
+                      playBeepSound(700, 0.04);
+                      setSelectedTechFilter(item);
+                      setProjectFilter("all");
+                      go("projects");
+                    }}
+                    style={{ cursor: "pointer" }}
+                    title={`Click to filter projects by ${item}`}
+                  >
+                    <TechBadge name={item} />
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
       </TerminalFrame>
     </section>
 
@@ -500,7 +778,7 @@ export function TerminalBlog({ articlesByLanguage, initialProjects = [] }: { art
       <TerminalFrame title={text.notes}>
         <header className="section-head"><div><span className="section-icon"><Icon name="archive" /></span><h2>{text.notes}</h2></div><p>{text.notesDescription}</p></header>
         <div className="notes-list">{articles.slice(0, 3).map((article) => <button className="note-row" key={article.id} onClick={() => openArticle(article.id)}><span>{article.id}</span><div><small>{article.type} · {article.date}</small><h3>{article.title}</h3><p>{article.excerpt}</p></div><Icon name="arrow" /></button>)}</div>
-        {articles.length > 0 && <button type="button" className="all-link archive-link" onClick={() => setArchiveOpen(true)}>{text.allNotes} <Icon name="arrow" size={15} /></button>}
+        {articles.length > 0 && <button type="button" className="all-link archive-link" onClick={() => { playBeepSound(); setArchiveOpen(true); }}>{text.allNotes} <Icon name="arrow" size={15} /></button>}
       </TerminalFrame>
     </section>
 
@@ -524,21 +802,21 @@ export function TerminalBlog({ articlesByLanguage, initialProjects = [] }: { art
               <button
                 type="button"
                 className={`terminal-tab-btn ${terminalMode === "shell" ? "active" : ""}`}
-                onClick={() => setTerminalMode("shell")}
+                onClick={() => { playBeepSound(); setTerminalMode("shell"); }}
               >
                 <i /> SHELL
               </button>
               <button
                 type="button"
                 className={`terminal-tab-btn ${terminalMode === "miyabi" ? "active" : ""}`}
-                onClick={() => setTerminalMode("miyabi")}
+                onClick={() => { playBeepSound(); setTerminalMode("miyabi"); }}
               >
                 &gt;_ MIYABI AI CLI
               </button>
               <button
                 type="button"
                 className={`terminal-tab-btn ${terminalMode === "store" ? "active" : ""}`}
-                onClick={() => setTerminalMode("store")}
+                onClick={() => { playBeepSound(); setTerminalMode("store"); }}
               >
                 <Icon name="store" size={13} /> STORE
               </button>
@@ -556,7 +834,7 @@ export function TerminalBlog({ articlesByLanguage, initialProjects = [] }: { art
               <button
                 type="button"
                 className="terminal-fullscreen-trigger"
-                onClick={() => setFullscreenTerminalOpen(true)}
+                onClick={() => { playBeepSound(); setFullscreenTerminalOpen(true); }}
                 title="Ctrl + K"
               >
                 <Icon name="command" size={12} />
@@ -578,6 +856,7 @@ export function TerminalBlog({ articlesByLanguage, initialProjects = [] }: { art
                     ref={terminalInput}
                     value={input}
                     onChange={(event) => setInput(event.target.value)}
+                    onKeyDown={handleInputKeyDown}
                     aria-label={text.terminalLabel}
                     placeholder={text.terminalPlaceholder}
                     autoComplete="off"
@@ -590,6 +869,7 @@ export function TerminalBlog({ articlesByLanguage, initialProjects = [] }: { art
                     key={command.name}
                     type="button"
                     onClick={() => {
+                      playBeepSound();
                       if (command.action === "miyabi") {
                         setTerminalMode("miyabi");
                       } else if (command.action === "store") {
@@ -618,13 +898,15 @@ export function TerminalBlog({ articlesByLanguage, initialProjects = [] }: { art
       </TerminalFrame>
     </section>
 
-    <footer className="site-footer"><span><span className="brand-mark">&gt;_</span> mikhail_fur</span><span>Next.js · TypeScript · {text.footer}</span><a href="#home">{text.backToTop}</a></footer>
+    <footer className="site-footer"><span><span className="brand-mark">&gt;_</span> mikhail_fur</span><span>Next.js · TypeScript · {text.footer}</span><a href="#home" onClick={() => playBeepSound()}>{text.backToTop}</a></footer>
 
       {archiveOpen && <div className="article-reader" ref={reader} role="dialog" aria-modal="true" aria-label={text.notesArchive} onMouseDown={(event) => { if (event.target === event.currentTarget) setArchiveOpen(false); }}>
+        <div className="reading-progress-bar" style={{ width: `${readingProgress}%` }} />
         <button className="reader-close" onClick={() => setArchiveOpen(false)}>{text.close} <span>Esc</span></button>
         <section className="archive-sheet"><header><span>{text.archive.toUpperCase()}</span><span>{articles.length} {text.files.toUpperCase()}</span></header><p className="reader-path">/archive</p><h1>{text.allNotesTitle}</h1><p>{text.archiveDescription}</p><div className="notes-list">{articles.map((article) => <button className="note-row" key={article.id} onClick={() => { setArchiveOpen(false); openArticle(article.id); }}><span>{article.id}</span><div><small>{article.type} · {article.date}</small><h3>{article.title}</h3><p>{article.excerpt}</p></div><Icon name="arrow" /></button>)}</div></section>
       </div>}
        {selectedArticle && <div className="article-reader document-reader" ref={reader} role="dialog" aria-modal="true" aria-label={`${text.note}: ${selectedArticle.title}`} onMouseDown={(event) => { if (event.target === event.currentTarget) setActiveArticle(null); }}>
+       <div className="reading-progress-bar" style={{ width: `${readingProgress}%` }} />
        <button className="reader-close" onClick={() => setActiveArticle(null)}>{text.close} <span>Esc</span></button>
          <article className="reader-sheet document-page"><header><span>{selectedArticle.type}</span><span>{selectedArticle.id}</span></header><p className="reader-path">/archive/{selectedArticle.id}</p><h1>{selectedArticle.title}</h1><p className="reader-lead">{selectedArticle.excerpt}</p><div className="reader-meta"><span>{selectedArticle.date}</span><span>{text.publicNote.toUpperCase()}</span></div><div className="reader-body"><MarkdownBody article={selectedArticle} /></div><footer className="document-footer"><span>mikhailfur | {selectedArticle.id}</span></footer></article>
       </div>}
@@ -656,21 +938,21 @@ export function TerminalBlog({ articlesByLanguage, initialProjects = [] }: { art
                  <button
                    type="button"
                    className={`terminal-tab-btn ${terminalMode === "shell" ? "active" : ""}`}
-                   onClick={() => setTerminalMode("shell")}
+                   onClick={() => { playBeepSound(); setTerminalMode("shell"); }}
                  >
                    <i /> SHELL
                  </button>
                  <button
                    type="button"
                    className={`terminal-tab-btn ${terminalMode === "miyabi" ? "active" : ""}`}
-                   onClick={() => setTerminalMode("miyabi")}
+                   onClick={() => { playBeepSound(); setTerminalMode("miyabi"); }}
                  >
                    &gt;_ MIYABI AI CLI
                  </button>
                  <button
                    type="button"
                    className={`terminal-tab-btn ${terminalMode === "store" ? "active" : ""}`}
-                   onClick={() => setTerminalMode("store")}
+                   onClick={() => { playBeepSound(); setTerminalMode("store"); }}
                  >
                    <Icon name="store" size={13} /> STORE
                  </button>
@@ -687,8 +969,8 @@ export function TerminalBlog({ articlesByLanguage, initialProjects = [] }: { art
 
                <div className="fullscreen-terminal-right">
                  <span className="fullscreen-terminal-kbd">
-                   <kbd>Ctrl</kbd> + <kbd>K</kbd>
-                 </span>
+                  <kbd>Ctrl</kbd> + <kbd>K</kbd>
+                </span>
                  <button
                    type="button"
                    className="fullscreen-close-btn"
@@ -715,6 +997,7 @@ export function TerminalBlog({ articlesByLanguage, initialProjects = [] }: { art
                          ref={fullscreenTerminalInput}
                          value={input}
                          onChange={(event) => setInput(event.target.value)}
+                         onKeyDown={handleInputKeyDown}
                          aria-label={text.terminalLabel}
                          placeholder={text.terminalPlaceholder}
                          autoComplete="off"
@@ -730,6 +1013,7 @@ export function TerminalBlog({ articlesByLanguage, initialProjects = [] }: { art
                            key={command.name}
                            type="button"
                            onClick={() => {
+                             playBeepSound();
                              if (command.action === "miyabi") {
                                setTerminalMode("miyabi");
                              } else if (command.action === "store") {
@@ -758,5 +1042,20 @@ export function TerminalBlog({ articlesByLanguage, initialProjects = [] }: { art
            </div>
          </div>
        )}
+
+    <CommandPalette
+      isOpen={commandPaletteOpen}
+      onClose={() => setCommandPaletteOpen(false)}
+      onNavigate={go}
+      onToggleMatrix={() => setMatrixActive((prev) => !prev)}
+      onToggleSfx={() => {
+        const next = toggleSound();
+        setSfxActive(next);
+      }}
+      sfxActive={sfxActive}
+      matrixActive={matrixActive}
+      onSwitchTerminalMode={(mode) => setTerminalMode(mode)}
+      onOpenArchive={() => setArchiveOpen(true)}
+    />
   </main>;
 }

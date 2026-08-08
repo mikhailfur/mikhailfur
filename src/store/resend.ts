@@ -163,9 +163,10 @@ export async function sendDeliveryEmail({
     }
 
     return { success: true, id: data.id };
-  } catch (err: any) {
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Failed to connect to Resend API";
     console.error("Resend email delivery exception:", err);
-    return { success: false, error: err.message || "Failed to connect to Resend API" };
+    return { success: false, error: message };
   }
 }
 

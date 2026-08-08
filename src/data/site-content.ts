@@ -1,6 +1,5 @@
 import type {
   Language,
-  Project,
   StackGroup,
   TerminalCommand,
 } from "@/types/portfolio";
