@@ -442,7 +442,12 @@ export function TerminalBlog({ articlesByLanguage, initialProjects = [] }: { art
   return <main>
     <nav className="topbar" aria-label={text.mainNavigation}>
       <a href="#home" className="brand"><span className="brand-mark">&gt;_</span> mikhail_fur</a>
-      <span className="top-status"><Icon name="clock" size={14} /> {formatClock(clock, activeLanguage)} <b>KST</b></span>
+      <span className="top-status">
+        <Icon name="clock" size={14} /> 
+        <span className="full-clock">{formatClock(clock, activeLanguage)}</span>
+        <span className="mobile-clock">{clock.toLocaleTimeString([], { timeZone: "Asia/Seoul", hour: "2-digit", minute: "2-digit", hour12: false })}</span>
+        <b>KST</b>
+      </span>
       <div className="language-switcher" aria-label={text.language}>{(["en", "ru", "ko"] as Language[]).map((item) => <button key={item} type="button" onClick={() => changeLanguage(item)} aria-pressed={activeLanguage === item}>{item.toUpperCase()}</button>)}</div>
     </nav>
 
@@ -547,7 +552,7 @@ export function TerminalBlog({ articlesByLanguage, initialProjects = [] }: { art
                 </button>
               )}
             </div>
-            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <div className="panel-head-actions">
               <button
                 type="button"
                 className="terminal-fullscreen-trigger"
@@ -558,7 +563,7 @@ export function TerminalBlog({ articlesByLanguage, initialProjects = [] }: { art
                 <span>{text.terminalFullscreen || "Fullscreen"}</span>
                 <kbd>Ctrl K</kbd>
               </button>
-              <span>{text.connected}</span>
+              <span className="terminal-status-tag">{text.connected}</span>
             </div>
           </div>
 
@@ -644,39 +649,40 @@ export function TerminalBlog({ articlesByLanguage, initialProjects = [] }: { art
                  </span>
                  <div className="fullscreen-terminal-title">
                    <span>mikhail_fur :: terminal</span>
-                   <div className="terminal-tab-group">
-                     <button
-                       type="button"
-                       className={`terminal-tab-btn ${terminalMode === "shell" ? "active" : ""}`}
-                       onClick={() => setTerminalMode("shell")}
-                     >
-                       <i /> SHELL
-                     </button>
-                     <button
-                       type="button"
-                       className={`terminal-tab-btn ${terminalMode === "miyabi" ? "active" : ""}`}
-                       onClick={() => setTerminalMode("miyabi")}
-                     >
-                       &gt;_ MIYABI AI CLI
-                     </button>
-                     <button
-                        type="button"
-                        className={`terminal-tab-btn ${terminalMode === "store" ? "active" : ""}`}
-                        onClick={() => setTerminalMode("store")}
-                      >
-                        <Icon name="store" size={13} /> STORE
-                      </button>
-                      {terminalMode === "admin" && (
-                        <button
-                          type="button"
-                          className="terminal-tab-btn active"
-                          onClick={() => setTerminalMode("admin")}
-                        >
-                          <Icon name="shield" size={13} /> ADMIN
-                        </button>
-                      )}
-                   </div>
                  </div>
+               </div>
+
+               <div className="terminal-tab-group">
+                 <button
+                   type="button"
+                   className={`terminal-tab-btn ${terminalMode === "shell" ? "active" : ""}`}
+                   onClick={() => setTerminalMode("shell")}
+                 >
+                   <i /> SHELL
+                 </button>
+                 <button
+                   type="button"
+                   className={`terminal-tab-btn ${terminalMode === "miyabi" ? "active" : ""}`}
+                   onClick={() => setTerminalMode("miyabi")}
+                 >
+                   &gt;_ MIYABI AI CLI
+                 </button>
+                 <button
+                   type="button"
+                   className={`terminal-tab-btn ${terminalMode === "store" ? "active" : ""}`}
+                   onClick={() => setTerminalMode("store")}
+                 >
+                   <Icon name="store" size={13} /> STORE
+                 </button>
+                 {terminalMode === "admin" && (
+                   <button
+                     type="button"
+                     className="terminal-tab-btn active"
+                     onClick={() => setTerminalMode("admin")}
+                   >
+                     <Icon name="shield" size={13} /> ADMIN
+                   </button>
+                 )}
                </div>
 
                <div className="fullscreen-terminal-right">
