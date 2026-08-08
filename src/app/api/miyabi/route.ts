@@ -5,7 +5,7 @@ import { NextRequest, NextResponse } from "next/server";
 export const runtime = "nodejs";
 
 const DAY_IN_MS = 24 * 60 * 60 * 1000;
-const MAX_REQUESTS_PER_DAY = 30;
+const MAX_REQUESTS_PER_DAY = 3;
 const MAX_TOKENS_PER_DAY = 500000;
 
 type UsageLog = {
@@ -309,4 +309,3 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Failed to connect to OpenRouter API." }, { status: 500 });
   }
 }
-
