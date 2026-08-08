@@ -1,7 +1,7 @@
 <div align="center">
 
   <!-- Header Typing SVG -->
-  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=600&size=26&pause=1000&color=6366F1&center=true&vCenter=true&width=600&height=60&lines=Привет!+Я+Михаил+(MikhailFur)+👋;AI+%26+Web+Developer+🤖;Open+Source+Explorer+🚀" alt="Typing SVG" />
+  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=600&size=26&pause=1000&color=6366F1&center=true&vCenter=true&width=600&height=60&lines=%D0%9F%D1%80%D0%B8%D0%B2%D0%B5%D1%82!+%D0%AF+%D0%9C%D0%B8%D1%85%D0%B0%D0%B8%D0%BB+(MikhailFur)+%F0%9F%90%8B;AI+%26+Web+Developer+%F0%9F%A4%96;Open+Source+Explorer+%F0%9F%9A%80" alt="Typing SVG" />
 
   <p align="center">
     <b>Разработчик • AI-исследователь • Создатель открытых инструментов</b>
