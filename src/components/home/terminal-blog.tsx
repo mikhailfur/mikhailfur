@@ -174,12 +174,13 @@ function MusicStatus({ text }: { text: Record<string, string> }) {
   }, [presence.state]);
 
   if (presence.state !== "playing" && presence.state !== "paused") return null;
+  if (presence.state === "paused" && !presence.progressMs && !presence.durationMs) return null;
   const durationMs = Number(presence.durationMs) || 0;
   const progressMs = Number(presence.progressMs) || 0;
   const elapsed = Math.min(durationMs || Infinity, progressMs + (presence.state === "playing" ? now - (presence.receivedAt ?? now) : 0));
   const formatDuration = (value?: number) => {
     const seconds = Math.floor((value ?? 0) / 1_000);
-    return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
+    return `${Math.floor(seconds / 60)}\u2236${String(seconds % 60).padStart(2, "0")}`;
   };
   const progress = durationMs ? Math.min(100, elapsed / durationMs * 100) : 0;
   const details = <><strong>{presence.title}</strong><span>{presence.artist}</span></>;

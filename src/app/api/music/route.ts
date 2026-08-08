@@ -14,6 +14,8 @@ let firstState: Promise<void> | undefined;
 let resolveFirstState: (() => void) | undefined;
 let watcherStatus = "not started";
 let stateRevision = 0;
+let pausedSince: number | null = null;
+const PAUSED_TIMEOUT_MS = 5 * 60 * 1_000; // hide widget after 5 min of continuous pause
 const trackRequests = new Map<string, Promise<YandexTrack | undefined>>();
 
 const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
@@ -122,7 +124,7 @@ async function updatePresence(token: string, state?: PlayerState | null) {
   const revision = ++stateRevision;
   resolveFirstState?.();
   resolveFirstState = undefined;
-  if (!state?.trackId) { presence = { state: "idle" }; return; }
+  if (!state?.trackId) { presence = { state: "idle" }; pausedSince = null; return; }
 
   let request = trackRequests.get(state.trackId);
   if (!request) {
@@ -138,6 +140,13 @@ async function updatePresence(token: string, state?: PlayerState | null) {
   if (revision !== stateRevision) return;
   const artist = track.artists?.map(({ name }) => name).filter(Boolean).join(", ") ?? "Unknown artist";
   const albumId = track.album?.id;
+  if (!state.paused) {
+    // Music is actively playing — reset the pause timer.
+    pausedSince = null;
+  } else if (pausedSince === null) {
+    // First moment we notice a pause — start the timer.
+    pausedSince = Date.now();
+  }
   presence = { state: state.paused ? "paused" : "playing", title: track.title, artist, coverUrl: coverUrl(track.coverUri ?? track.album?.coverUri), url: albumId && track.id ? `https://music.yandex.ru/album/${albumId}/track/${track.id}` : undefined, progressMs: state.progressMs, durationMs: track.durationMs };
 }
 
@@ -181,7 +190,7 @@ function startWatcher(token: string) {
   firstState = new Promise<void>((resolve) => { resolveFirstState = resolve; });
   void (async () => {
     while (true) {
-      try { await watchYnison(token); } catch (error) { presence = { state: "idle" }; watcherStatus = `connection failed: ${error instanceof Error ? error.message : "unknown error"}`; resolveFirstState?.(); resolveFirstState = undefined; }
+      try { await watchYnison(token); } catch (error) { presence = { state: "idle" }; pausedSince = null; watcherStatus = `connection failed: ${error instanceof Error ? error.message : "unknown error"}`; resolveFirstState?.(); resolveFirstState = undefined; }
       await wait(2_000);
     }
   })();
@@ -192,5 +201,9 @@ export async function GET() {
   if (!token) return NextResponse.json({ state: "unconfigured" });
   startWatcher(token);
   if (firstState) await Promise.race([firstState, wait(2_500)]);
-  return NextResponse.json(process.env.NODE_ENV === "production" ? presence : { ...presence, diagnostic: watcherStatus }, { headers: { "Cache-Control": "no-store" } });
+  // If paused for longer than the timeout, treat as idle so the widget hides.
+  const effectivePresence = presence.state === "paused" && pausedSince !== null && Date.now() - pausedSince > PAUSED_TIMEOUT_MS
+    ? { state: "idle" as const }
+    : presence;
+  return NextResponse.json(process.env.NODE_ENV === "production" ? effectivePresence : { ...effectivePresence, diagnostic: watcherStatus, pausedSince }, { headers: { "Cache-Control": "no-store" } });
 }
