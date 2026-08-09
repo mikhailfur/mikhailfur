@@ -14,6 +14,9 @@ let firstState: Promise<void> | undefined;
 let resolveFirstState: (() => void) | undefined;
 let watcherStatus = "not started";
 let stateRevision = 0;
+let missingTrackSince: number | undefined;
+
+const PRESENCE_GRACE_MS = 45_000;
 
 const trackRequests = new Map<string, Promise<YandexTrack | undefined>>();
 
@@ -120,17 +123,33 @@ function coverUrl(uri?: string) {
 }
 
 async function updatePresence(token: string, state?: PlayerState | null) {
+  if (!state?.trackId) {
+    // Ynison can briefly publish an empty queue while it synchronizes a real player.
+    // Keep the last confirmed track until the empty state has persisted long enough.
+    missingTrackSince ??= Date.now();
+    if (presence.state === "idle") {
+      resolveFirstState?.();
+      resolveFirstState = undefined;
+    }
+    return;
+  }
+
   const revision = ++stateRevision;
+  missingTrackSince = undefined;
   resolveFirstState?.();
   resolveFirstState = undefined;
-  if (!state?.trackId) { presence = { state: "idle" }; return; }
 
   let request = trackRequests.get(state.trackId);
   if (!request) {
-    request = fetch(`https://api.music.yandex.net/tracks/${state.trackId}`, { headers: { Authorization: `OAuth ${token}` }, cache: "no-store" }).then(async (response) => {
-      if (!response.ok) throw new Error("Could not load track details.");
-      return (await response.json()).result?.[0] as YandexTrack | undefined;
-    });
+    request = fetch(`https://api.music.yandex.net/tracks/${state.trackId}`, { headers: { Authorization: `OAuth ${token}` }, cache: "no-store" })
+      .then(async (response) => {
+        if (!response.ok) throw new Error("Could not load track details.");
+        return (await response.json()).result?.[0] as YandexTrack | undefined;
+      })
+      .catch((error: unknown) => {
+        trackRequests.delete(state.trackId!);
+        throw error;
+      });
     trackRequests.set(state.trackId, request);
   }
   const track = await request;
@@ -164,7 +183,7 @@ async function watchYnison(token: string) {
             const state = playerState(JSON.parse(data));
             if (state !== undefined) {
               watcherStatus = state?.trackId ? "received player track" : "received idle player state";
-              void updatePresence(token, state).catch(() => { presence = { state: "idle" }; watcherStatus = "could not load track metadata"; });
+              void updatePresence(token, state).catch(() => { watcherStatus = "could not load track metadata"; });
             }
           } catch { /* Ignore malformed or non-state messages from the stream. */ }
           });
@@ -182,7 +201,7 @@ function startWatcher(token: string) {
   firstState = new Promise<void>((resolve) => { resolveFirstState = resolve; });
   void (async () => {
     while (true) {
-      try { await watchYnison(token); } catch (error) { presence = { state: "idle" }; watcherStatus = `connection failed: ${error instanceof Error ? error.message : "unknown error"}`; resolveFirstState?.(); resolveFirstState = undefined; }
+      try { await watchYnison(token); } catch (error) { watcherStatus = `connection failed: ${error instanceof Error ? error.message : "unknown error"}`; resolveFirstState?.(); resolveFirstState = undefined; }
       await wait(2_000);
     }
   })();
@@ -193,5 +212,8 @@ export async function GET() {
   if (!token) return NextResponse.json({ state: "unconfigured" });
   startWatcher(token);
   if (firstState) await Promise.race([firstState, wait(2_500)]);
-  return NextResponse.json(process.env.NODE_ENV === "production" ? presence : { ...presence, diagnostic: watcherStatus }, { headers: { "Cache-Control": "no-store" } });
+  const effectivePresence = missingTrackSince && Date.now() - missingTrackSince > PRESENCE_GRACE_MS
+    ? { state: "idle" as const }
+    : presence;
+  return NextResponse.json(process.env.NODE_ENV === "production" ? effectivePresence : { ...effectivePresence, diagnostic: watcherStatus }, { headers: { "Cache-Control": "no-store" } });
 }

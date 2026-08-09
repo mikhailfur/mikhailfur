@@ -186,8 +186,8 @@ function MusicStatus({ text }: { text: Record<string, string> }) {
   return <aside className="music-presence" aria-live="polite">
     <div className="music-head"><span><i /> YANDEX MUSIC</span><span className={`music-state ${presence.state}`}>{presence.state === "playing" ? text.playing : text.paused}</span></div>
     <div className="music-track">
-      {presence.coverUrl ? <Image src={presence.coverUrl} alt="" width={92} height={92} unoptimized /> : <span className="music-cover">Y</span>}
-       <div>{presence.url ? <a href={presence.url} target="_blank" rel="noreferrer">{details}</a> : details}<div className="music-progress" aria-label={`${text.progress}: ${formatDuration(elapsed)} / ${formatDuration(durationMs)}`}><i><b style={{ width: `${progress}%` }} /></i><span>{formatDuration(elapsed)} / {formatDuration(durationMs)}</span></div></div>
+      {presence.coverUrl ? <Image className="music-cover" src={presence.coverUrl} alt="" width={92} height={92} unoptimized /> : <span className="music-cover">Y</span>}
+      <div className="music-details">{presence.url ? <a href={presence.url} target="_blank" rel="noreferrer">{details}</a> : details}<div className="music-progress" aria-label={`${text.progress}: ${formatDuration(elapsed)} / ${formatDuration(durationMs)}`}><i><b style={{ width: `${progress}%` }} /></i><span>{formatDuration(elapsed)} / {formatDuration(durationMs)}</span></div></div>
     </div>
   </aside>;
 }
