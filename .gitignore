@@ -45,3 +45,8 @@ next-env.d.ts
 /outputs/
 /work/
 *.tsbuildinfo
+
+# playwright files
+/.playwright
+/.playwright-cli
+/output/playwright
