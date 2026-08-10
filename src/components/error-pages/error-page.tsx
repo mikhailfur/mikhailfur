@@ -5,10 +5,11 @@ type ErrorPageProps = {
   title: string;
   description: string;
   detail: string;
-  primaryHref: string;
-  primaryLabel: string;
+  primaryHref?: string;
+  primaryLabel?: string;
   secondaryHref: string;
   secondaryLabel: string;
+  onRetry?: () => void;
   extra?: React.ReactNode;
 };
 
@@ -16,7 +17,7 @@ function Prompt({ children }: { children: React.ReactNode }) {
   return <span className="error-prompt"><b>mikhailfur@lab</b><i>:</i><em>~</em><i>$</i> {children}</span>;
 }
 
-export function ErrorPage({ code, title, description, detail, primaryHref, primaryLabel, secondaryHref, secondaryLabel, extra }: ErrorPageProps) {
+export function ErrorPage({ code, title, description, detail, primaryHref, primaryLabel, secondaryHref, secondaryLabel, onRetry, extra }: ErrorPageProps) {
   return (
     <main className="error-shell">
       <header className="error-topbar">
@@ -47,7 +48,7 @@ export function ErrorPage({ code, title, description, detail, primaryHref, prima
                 <p className="error-description">{description}</p>
                 <div className="error-detail"><span>;</span> {detail}</div>
                 <div className="error-actions">
-                  <Link className="button button-primary" href={primaryHref}>{primaryLabel} <span aria-hidden="true">-&gt;</span></Link>
+                  {onRetry ? <button className="button button-primary" type="button" onClick={onRetry}>{primaryLabel} <span aria-hidden="true">-&gt;</span></button> : <Link className="button button-primary" href={primaryHref ?? "/"}>{primaryLabel} <span aria-hidden="true">-&gt;</span></Link>}
                   <Link className="button" href={secondaryHref}>{secondaryLabel}</Link>
                 </div>
               </div>

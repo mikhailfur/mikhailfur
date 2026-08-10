@@ -32,15 +32,6 @@ const nextConfig: NextConfig = {
       },
     ];
   },
-  async rewrites() {
-    return [
-      { source: "/404", destination: "/error-pages/404" },
-      { source: "/500", destination: "/error-pages/500" },
-      { source: "/501", destination: "/error-pages/501" },
-      { source: "/502", destination: "/error-pages/502" },
-      { source: "/503", destination: "/error-pages/503" },
-    ];
-  },
 };
 
 export default nextConfig;
