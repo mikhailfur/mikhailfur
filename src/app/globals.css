@@ -93,6 +93,32 @@ button { cursor: pointer; }
 
 .site-footer { display: flex; justify-content: space-between; width: min(100% - 48px, 1120px); margin: auto; padding: 24px 0 32px; border-top: 1px solid var(--line); color: var(--muted); font-size: 10px; }.site-footer a { color: var(--orange); }
 
+/* Shared terminal treatment for HTTP status pages. */
+.error-shell { min-height: 100svh; background: var(--bg); }
+.error-topbar { display: flex; align-items: center; justify-content: space-between; width: min(100% - 48px, 1300px); height: 72px; margin: auto; border-bottom: 1px solid var(--line); }
+.error-topbar .top-status { color: var(--muted); }
+.error-topbar .top-status b { color: var(--orange); font-size: 9px; }
+.error-wrap { width: min(100% - 48px, 1120px); margin: auto; padding-top: clamp(70px, 13vh, 150px); }
+.error-frame { box-shadow: 0 22px 48px rgba(0, 0, 0, .34); }
+.error-frame .terminal-frame-actions { color: var(--muted); font-size: 9px; letter-spacing: .08em; }
+.error-content { padding: clamp(28px, 5vw, 62px); }
+.error-command { margin-bottom: clamp(38px, 7vw, 84px); color: var(--muted); font-size: 12px; }
+.error-prompt b { color: var(--orange); font-weight: 400; }.error-prompt i { color: var(--muted); font-style: normal; }.error-prompt em { color: var(--orange-soft); font-style: normal; }
+.error-grid { display: grid; grid-template-columns: .8fr 1.2fr; gap: clamp(30px, 7vw, 100px); align-items: center; }
+.error-code-block { display: flex; flex-direction: column; align-items: flex-start; }
+.error-code { color: var(--orange-soft); font: 500 clamp(82px, 14vw, 180px) / .85 var(--display); letter-spacing: -.09em; }
+.error-code-rule { width: min(100%, 250px); height: 1px; margin: 25px 0 11px; background: var(--orange); }
+.error-code-label { color: var(--muted); font-size: 9px; letter-spacing: .12em; }
+.error-copy .terminal-label { margin-bottom: 17px; }.error-copy h1 { max-width: 620px; margin: 0; font: 500 clamp(30px, 4.6vw, 57px) / 1.08 var(--display); letter-spacing: -.055em; }.error-description { max-width: 48ch; margin: 22px 0 0; color: var(--muted); font: 15px / 1.7 var(--body); }.error-detail { margin-top: 20px; color: var(--orange-soft); font-size: 11px; line-height: 1.6; }.error-detail span { color: var(--orange); }.error-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 31px; }
+.error-log { display: grid; gap: 7px; margin-top: clamp(48px, 8vw, 92px); padding-top: 17px; border-top: 1px solid var(--line-strong); color: var(--muted); font-size: 10px; line-height: 1.5; }.error-log b { color: var(--orange); font-weight: 500; }.error-cursor { display: inline-block; width: 6px; height: 12px; margin-left: 6px; background: var(--orange); vertical-align: -2px; animation: boot-cursor 600ms step-end infinite; }
+.error-footer { display: flex; justify-content: space-between; padding: 24px 0 32px; color: var(--muted); font-size: 10px; }.error-footer .brand-mark { color: var(--orange); }
+.maintenance-terminal { margin-top: 42px; border: 1px solid var(--line-strong); background: #0a0806; box-shadow: 0 16px 38px rgba(0, 0, 0, .24); }
+.maintenance-head { display: flex; align-items: center; justify-content: space-between; padding: 11px 14px; border-bottom: 1px solid var(--line); color: var(--orange-soft); font-size: 9px; letter-spacing: .08em; }.maintenance-head > div { display: inline-flex; align-items: center; gap: 8px; }.maintenance-head button { border: 0; background: transparent; color: var(--muted); font: inherit; letter-spacing: inherit; }.maintenance-head button:hover, .maintenance-head button:focus-visible { color: var(--orange); outline: 0; }.maintenance-pulse { width: 7px; height: 7px; border-radius: 50%; background: var(--orange); box-shadow: 0 0 0 4px rgba(242, 154, 71, .08); animation: maintenance-pulse 1.8s ease-in-out infinite; }
+.maintenance-signal { display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; width: 100%; padding: 17px 14px; border: 0; border-bottom: 1px solid var(--line); background: rgba(242, 154, 71, .045); color: var(--text); text-align: left; font: 11px var(--terminal); }.maintenance-signal:hover, .maintenance-signal:focus-visible { background: rgba(242, 154, 71, .09); outline: 0; }.maintenance-signal-mark, .maintenance-signal-arrow { color: var(--orange); }.maintenance-signal-arrow { transition: transform 160ms ease; }.maintenance-signal:hover .maintenance-signal-arrow { transform: translateX(4px); }
+.maintenance-tabs { display: flex; gap: 3px; padding: 8px 10px 0; border-bottom: 1px solid var(--line-strong); }.maintenance-tabs button { padding: 8px 11px; border: 1px solid transparent; border-bottom: 0; background: transparent; color: var(--muted); font: 10px var(--terminal); }.maintenance-tabs button:hover, .maintenance-tabs button:focus-visible { color: var(--text); outline: 0; }.maintenance-tabs button.is-active { border-color: var(--line-strong); background: #0e0b08; color: var(--orange-soft); }
+.maintenance-body { min-height: 154px; padding: 15px 14px; }.maintenance-command { margin-bottom: 10px; color: var(--muted); font-size: 10px; }.maintenance-command > span { color: var(--orange); }.maintenance-command a { margin-left: 10px; color: var(--orange-soft); }.maintenance-command a:hover, .maintenance-command a:focus-visible { color: var(--orange); outline: 0; }.commit-entry { border-top: 1px solid rgba(48, 36, 27, .72); }.commit-entry > button { display: grid; grid-template-columns: 58px 1fr auto; gap: 10px; width: 100%; padding: 9px 0; border: 0; background: transparent; color: var(--muted); text-align: left; font: 10px var(--terminal); }.commit-entry > button:hover, .commit-entry > button:focus-visible { color: var(--text); outline: 0; }.commit-entry.is-expanded > button { color: var(--orange-soft); }.commit-sha { color: var(--orange); }.commit-message { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }.commit-entry time { color: #806c5c; }.commit-meta { margin: -2px 0 9px 68px; padding: 8px 10px; border-left: 1px solid var(--orange); color: var(--muted); font-size: 9px; line-height: 1.7; }.commit-meta a { color: var(--orange-soft); }.commit-meta a:hover, .commit-meta a:focus-visible { color: var(--orange); outline: 0; }.maintenance-empty { margin: 24px 0; color: var(--muted); font-size: 10px; }.maintenance-panel { display: grid; gap: 10px; color: var(--muted); font-size: 10px; }.maintenance-panel p { margin: 0; }.maintenance-panel b { display: inline-block; min-width: 75px; color: var(--orange); font-weight: 500; }.maintenance-panel kbd { padding: 2px 5px; border: 1px solid var(--line-strong); color: var(--orange-soft); font: inherit; }
+@keyframes maintenance-pulse { 50% { opacity: .42; transform: scale(.8); } }
+
 /* Keep remote cover art and long track metadata contained within the utility panel. */
 .music-presence { min-width: 0; }
 .music-track { min-width: 0; }
@@ -294,6 +320,24 @@ section[id] { scroll-margin-top: 96px; } body.reader-open { overflow: hidden; }
 @keyframes boot-line { to { clip-path: inset(0 0 0 0); } } @keyframes boot-cursor { 50% { opacity: 0; } }
 @media (max-width: 760px) { .document-reader .reader-sheet { height: auto !important; }.document-reader .reader-body { margin-top: 32px; font: 16px / 1.8 var(--body) !important; } }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; }.project-row, .note-row, .boot-loader { transition: none; }.boot-line, .boot-cursor::after { animation: none; }.boot-line { clip-path: none; } }
+@media (max-width: 760px) {
+  .error-topbar { width: 100%; height: 58px; padding: 0 16px; }
+  .error-topbar .top-status { font-size: 8px; }
+  .error-wrap { width: min(100% - 24px, 1120px); padding-top: 52px; }
+  .error-frame .terminal-frame-bar { min-height: 36px; }
+  .error-frame .terminal-frame-actions { display: none; }
+  .error-content { padding: 24px 16px; }
+  .error-command { margin-bottom: 40px; font-size: 10px; overflow: hidden; white-space: nowrap; }
+  .error-grid { grid-template-columns: 1fr; gap: 38px; }
+  .error-code { font-size: clamp(76px, 25vw, 120px); }
+  .error-code-rule { margin: 17px 0 9px; }
+  .error-copy h1 { font-size: clamp(28px, 9vw, 42px); }
+  .error-description { margin-top: 17px; font-size: 14px; }
+  .error-actions { flex-direction: column; margin-top: 26px; }
+  .error-actions .button { justify-content: center; min-height: 44px; }
+  .error-log { margin-top: 48px; font-size: 9px; }
+  .error-footer { padding-bottom: 24px; }
+}
 @media (max-width: 760px) {
   body {
     overflow-x: hidden;
