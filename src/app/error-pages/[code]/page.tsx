@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { ErrorPage } from "@/components/error-pages/error-page";
 import { MaintenanceTerminal } from "@/components/error-pages/maintenance-terminal";
-import { getLatestGithubCommits, repositoryUrl } from "@/data/github-commits";
+import { repositoryUrl } from "@/data/github-commits";
 
 const errorPages = {
   "404": {
@@ -55,8 +55,7 @@ export default async function ErrorCodePage({ params }: { params: Promise<{ code
   const { code } = await params;
 
   if (code === "503") {
-    const commits = await getLatestGithubCommits();
-    return <ErrorPage code="503" title="Service is offline." description="The site is taking a short maintenance pause." detail="Come back in a moment. The terminal will still be here." primaryHref="/503" primaryLabel="Try again" secondaryHref="/" secondaryLabel="Return home" extra={<MaintenanceTerminal commits={commits} repositoryUrl={repositoryUrl} />} />;
+    return <ErrorPage code="503" title="Service is offline." description="The site is taking a short maintenance pause." detail="Come back in a moment. The terminal will still be here." primaryHref="/503" primaryLabel="Try again" secondaryHref="/" secondaryLabel="Return home" extra={<MaintenanceTerminal commits={[]} repositoryUrl={repositoryUrl} />} />;
   }
 
   const page = errorPages[code as ErrorCode];
