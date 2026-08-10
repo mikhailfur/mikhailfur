@@ -14,10 +14,8 @@
     "article:translate": "node scripts/translate-articles.mjs"
   },
   "dependencies": {
-    "@upstash/redis": "^1.38.2",
     "@vercel/analytics": "^2.0.1",
     "animejs": "^4.5.0",
-    "mysql2": "^3.23.2",
     "next": "16.2.6",
     "react": "19.2.6",
     "react-dom": "19.2.6",

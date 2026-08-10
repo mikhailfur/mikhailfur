@@ -48,15 +48,6 @@ function ImageIcon({ size = 18 }: { size?: number }) {
   );
 }
 
-function VolumeIcon({ size = 14 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-      <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07" />
-    </svg>
-  );
-}
-
 function SendIcon({ size = 14 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -71,17 +62,6 @@ function TrashIcon({ size = 14 }: { size?: number }) {
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
       <polyline points="3 6 5 6 21 6" />
       <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-    </svg>
-  );
-}
-
-function MicIcon({ size = 13 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
-      <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
-      <line x1="12" y1="19" x2="12" y2="23" />
-      <line x1="8" y1="23" x2="16" y2="23" />
     </svg>
   );
 }
@@ -510,7 +490,7 @@ export function MiyabiTerminalChat({
                   {m.image && (
                     <div className="cli-attached-img-box">
                       <span className="cli-img-tag">[Photo Attached]</span>
-                      <img src={m.image} alt="User attachment" className="cli-msg-image" />
+                       <Image src={m.image} alt="User attachment" width={280} height={210} className="cli-msg-image" unoptimized />
                     </div>
                   )}
                 </div>
@@ -570,7 +550,7 @@ export function MiyabiTerminalChat({
       {selectedImage && (
         <div className="cli-image-preview-strip">
           <div className="cli-preview-thumb">
-            <img src={selectedImage} alt="Attachment" />
+             <Image src={selectedImage} alt="Attachment" width={38} height={38} unoptimized />
             <button
               type="button"
               className="cli-remove-thumb"

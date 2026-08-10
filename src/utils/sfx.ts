@@ -19,7 +19,7 @@ function getAudioContext(): AudioContext | null {
 }
 
 export function isSoundEnabled(): boolean {
-  return true;
+  return soundEnabled;
 }
 
 export function setSoundEnabled(enabled: boolean): void {

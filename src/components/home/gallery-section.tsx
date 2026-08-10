@@ -19,7 +19,14 @@ export function GallerySection({ language }: GallerySectionProps) {
   const [error, setError] = useState<string | null>(null);
 
   // Age verification state
-  const [isAgeVerified, setIsAgeVerified] = useState<boolean>(false);
+  const [isAgeVerified, setIsAgeVerified] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    try {
+      return localStorage.getItem("civitai_age_verified_19") === "true";
+    } catch {
+      return false;
+    }
+  });
 
   // Filter & Search states
   const [ratingFilter, setRatingFilter] = useState<"all" | "sfw" | "nsfw">("all");
@@ -33,18 +40,6 @@ export function GallerySection({ language }: GallerySectionProps) {
   const [copiedPrompt, setCopiedPrompt] = useState(false);
 
   const dropdownRef = useRef<HTMLDivElement>(null);
-
-  // Read initial age verification status
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem("civitai_age_verified_19");
-      if (stored === "true") {
-        setIsAgeVerified(true);
-      }
-    } catch {
-      // LocalStorage fallback
-    }
-  }, []);
 
   // Close custom dropdown on click outside
   useEffect(() => {
@@ -122,7 +117,10 @@ export function GallerySection({ language }: GallerySectionProps) {
   }, [sort]);
 
   useEffect(() => {
-    fetchImages(undefined, true);
+    const timer = window.setTimeout(() => {
+      void fetchImages(undefined, true);
+    }, 0);
+    return () => window.clearTimeout(timer);
   }, [fetchImages]);
 
   // Image counts for tabs

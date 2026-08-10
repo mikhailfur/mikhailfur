@@ -1,21 +1,20 @@
 "use client";
 
 import type { FormEvent, ReactNode } from "react";
-import Image from "next/image";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { getPortfolio, getTerminalCommands, ui } from "@/data/site-content";
 import type { Article, Language, Project, TerminalCommand } from "@/types/portfolio";
 import { TechBadge } from "./tech-badge";
 import { MiyabiChatModal } from "./miyabi-chat-modal";
-import { StoreModal, AdminModal } from "@/components/store";
+import { MarkdownBody } from "./article-markdown";
+import { MusicPresence } from "./music-presence";
 import { CyberMatrixBackground } from "./cyber-matrix-background";
 import { CommandPalette } from "./command-palette";
 import { GallerySection } from "./gallery-section";
 import { isSoundEnabled, playBeepSound, playKeyClickSound, playSuccessSound, toggleSound } from "@/utils/sfx";
 
-type IconName = "archive" | "arrow" | "box" | "clock" | "code" | "command" | "discord" | "file" | "github" | "kakao" | "layers" | "shield" | "store" | "telegram" | "twitch" | "user" | "vk" | "xbox";
+type IconName = "archive" | "arrow" | "box" | "clock" | "code" | "command" | "discord" | "file" | "github" | "kakao" | "layers" | "telegram" | "twitch" | "user" | "vk" | "xbox";
 type AnsiChunk = { color?: string; text: string };
-type MusicPresence = { artist?: string; coverUrl?: string; durationMs?: number; progressMs?: number; receivedAt?: number; state: "idle" | "paused" | "playing" | "unavailable" | "unconfigured"; title?: string; url?: string };
 
 const contacts = [
   { label: "Telegram", value: process.env.NEXT_PUBLIC_TELEGRAM_URL },
@@ -122,8 +121,6 @@ function Icon({ name, size = 16 }: { name: IconName; size?: number }) {
     github: <><path d="M9 19c-5 1.5-5-2.5-7-3m14 5v-3.9c0-1.1.1-1.6-.5-2.2 2.2-.2 4.5-1.1 4.5-5a3.9 3.9 0 0 0-1-2.7A3.6 3.6 0 0 0 19 4.5S18.2 4.3 16 5.8a10.5 10.5 0 0 0-8 0C5.8 4.3 5 4.5 5 4.5a3.6 3.6 0 0 0-.1 2.7A3.9 3.9 0 0 0 4 10c0 3.9 2.3 4.8 4.5 5-.5.5-.5 1.2-.5 2.2V21" /></>,
     kakao: <path fill="currentColor" stroke="none" d="M12 3C6.5 3 2 6.5 2 10.8c0 2.8 1.8 5.2 4.6 6.6L6 21l3.9-2.6c.7.1 1.4.2 2.1.2 5.5 0 10-3.5 10-7.8S17.5 3 12 3Zm-3.3 7.9c-.8 0-1.4-.7-1.4-1.5S7.9 8 8.7 8s1.4.7 1.4 1.4-.6 1.5-1.4 1.5Zm6.6 0c-.8 0-1.4-.7-1.4-1.5S14.5 8 15.3 8s1.4.7 1.4 1.4-.6 1.5-1.4 1.5Z" />,
     layers: <><path d="m12 3 9 5-9 5-9-5z" /><path d="m3 12 9 5 9-5M3 16l9 5 9-5" /></>,
-    shield: <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />,
-    store: <><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" /><line x1="3" y1="6" x2="21" y2="6" /><path d="M16 10a4 4 0 0 1-8 0" /></>,
     telegram: <path fill="currentColor" stroke="none" d="M21.5 3.3 2.8 10.5c-1.3.5-1.3 1.3-.2 1.7l4.8 1.5 1.9 5.7c.2.6.1.8.8.8.5 0 .7-.2 1-.5l2.3-2.2 4.8 3.5c.9.5 1.5.3 1.7-.8l3.2-15c.3-1.3-.5-1.9-1.6-1.5ZM8.2 13.3l10.9-6.9c.5-.3 1-.1.6.3l-8.8 7.9-.3 3.4-2.4-4.7Z" />,
     twitch: <path fill="currentColor" stroke="none" d="M4 3h17v11.5L16.5 19H12l-2.4 2.4H6.8V19H4V3Zm2 2v12h2.8v2.2L11 17h4.7l3.3-3.3V5H6Zm4 2.4h2v5h-2v-5Zm4.6 0h2v5h-2v-5Z" />,
     user: <><circle cx="12" cy="8" r="3" /><path d="M5 21c.7-3.4 2.9-5 7-5s6.3 1.6 7 5" /></>,
@@ -146,91 +143,6 @@ function TerminalFrame({ children, title, actions }: { children: ReactNode; titl
     </div>
     <div className="terminal-frame-content">{children}</div>
   </div>;
-}
-
-function MusicStatus({ text }: { text: Record<string, string> }) {
-  const [presence, setPresence] = useState<MusicPresence>({ state: "unconfigured" });
-  const [now, setNow] = useState(() => Date.now());
-
-  useEffect(() => {
-    let alive = true;
-    const load = async () => {
-      try {
-        const response = await fetch("/api/music", { cache: "no-store" });
-        if (response.ok && alive) setPresence({ ...await response.json(), receivedAt: Date.now() });
-      } catch {
-        if (alive) setPresence({ state: "unavailable" });
-      }
-    };
-    void load();
-    const interval = window.setInterval(() => void load(), 15_000);
-    return () => { alive = false; window.clearInterval(interval); };
-  }, []);
-
-  useEffect(() => {
-    if (presence.state !== "playing") return;
-    const interval = window.setInterval(() => setNow(Date.now()), 1_000);
-    return () => window.clearInterval(interval);
-  }, [presence.state]);
-
-  if (presence.state !== "playing" && presence.state !== "paused") return null;
-  const durationMs = Number(presence.durationMs) || 0;
-  const progressMs = Number(presence.progressMs) || 0;
-  const elapsed = Math.min(durationMs || Infinity, progressMs + (presence.state === "playing" ? now - (presence.receivedAt ?? now) : 0));
-  const formatDuration = (value?: number) => {
-    const seconds = Math.floor((value ?? 0) / 1_000);
-    return `${Math.floor(seconds / 60)}\u2236${String(seconds % 60).padStart(2, "0")}`;
-  };
-  const progress = durationMs ? Math.min(100, elapsed / durationMs * 100) : 0;
-  const details = <><strong>{presence.title}</strong><span>{presence.artist}</span></>;
-  return <aside className="music-presence" aria-live="polite">
-    <div className="music-head"><span><i /> YANDEX MUSIC</span><span className={`music-state ${presence.state}`}>{presence.state === "playing" ? text.playing : text.paused}</span></div>
-    <div className="music-track">
-      {presence.coverUrl ? <Image className="music-cover" src={presence.coverUrl} alt="" width={92} height={92} unoptimized /> : <span className="music-cover">Y</span>}
-      <div className="music-details">{presence.url ? <a href={presence.url} target="_blank" rel="noreferrer">{details}</a> : details}<div className="music-progress" aria-label={`${text.progress}: ${formatDuration(elapsed)} / ${formatDuration(durationMs)}`}><i><b style={{ width: `${progress}%` }} /></i><span>{formatDuration(elapsed)} / {formatDuration(durationMs)}</span></div></div>
-    </div>
-  </aside>;
-}
-
-function MarkdownInline({ article, text }: { article: Article; text: string }) {
-  const redacted = article.redacted.map((value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
-  const tokens = [redacted.length ? redacted.join("|") : "(?!)", "!\\[[^\]]*\\]\\([^\s)]+(?:\\s+\\\"[^\"]*\\\")?\\)", "\\[[^\]]+\\]\\([^\s)]+\\)", "\\*\\*[^*]+\\*\\*", "~~[^~]+~~", "(?<!\\*)\\*[^*]+\\*(?!\\*)", "(?<!_)_[^_]+_(?!_)", "`[^`]+`"].join("|");
-  return <>{text.split(new RegExp(`(${tokens})`, "g")).map((part, index) => {
-    const hidden = article.redacted.find((value) => part.includes(value));
-    if (hidden) return <mark key={index}>{hidden}</mark>;
-    const image = part.match(/^!\[([^\]]*)\]\(([^\s)]+)(?:\s+\"[^\"]*\")?\)$/);
-    if (image) return <Image key={index} src={image[2]} alt={image[1]} width={1200} height={675} unoptimized />;
-    const link = part.match(/^\[([^\]]+)\]\(([^\s)]+)\)$/);
-    if (link) return <a key={index} href={link[2]} target="_blank" rel="noreferrer">{link[1]}</a>;
-    if (part.startsWith("**")) return <strong key={index}>{part.slice(2, -2)}</strong>;
-    if (part.startsWith("~~")) return <del key={index}>{part.slice(2, -2)}</del>;
-    if (part.startsWith("*") || part.startsWith("_")) return <em key={index}>{part.slice(1, -1)}</em>;
-    if (part.startsWith("`")) return <code key={index}>{part.slice(1, -1)}</code>;
-    return part;
-  })}</>;
-}
-
-function MarkdownTable({ article, lines }: { article: Article; lines: string[] }) {
-  const cells = (line: string) => line.trim().replace(/^\||\|$/g, "").split("|").map((cell) => cell.trim());
-  const header = cells(lines[0]);
-  const rows = lines.slice(2).map(cells);
-  return <div className="markdown-table-wrap"><table><thead><tr>{header.map((cell, index) => <th key={index}><MarkdownInline article={article} text={cell} /></th>)}</tr></thead><tbody>{rows.map((row, rowIndex) => <tr key={rowIndex}>{row.map((cell, cellIndex) => <td key={cellIndex}><MarkdownInline article={article} text={cell} /></td>)}</tr>)}</tbody></table></div>;
-}
-
-function MarkdownBody({ article }: { article: Article }) {
-  return <>{article.content.split(/\r?\n\s*\r?\n/).map((block, index) => {
-    if (block.startsWith("```")) return <pre key={index}><code>{block.replace(/^```[^\n]*\n?|\n?```$/g, "")}</code></pre>;
-    if (/^---+\s*$/.test(block)) return <hr key={index} />;
-    const heading = block.match(/^(#{1,6})\s+(.+)$/);
-    if (heading) { const Tag = `h${heading[1].length}` as "h1" | "h2" | "h3" | "h4" | "h5" | "h6"; return <Tag key={index}><MarkdownInline article={article} text={heading[2]} /></Tag>; }
-    const list = block.split(/\r?\n/);
-    if (list[0]?.startsWith("> ")) return <blockquote key={index}>{list.map((line, lineIndex) => <p key={lineIndex}><MarkdownInline article={article} text={line.replace(/^>\s?/, "")} /></p>)}</blockquote>;
-    if (list.length > 1 && /^\|.+\|$/.test(list[0]) && /^\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)+\|?$/.test(list[1])) return <MarkdownTable key={index} article={article} lines={list} />;
-    if (list.every((line) => /^[-*]\s+\[[ xX]\]\s+/.test(line))) return <ul className="task-list" key={index}>{list.map((line, lineIndex) => { const task = line.match(/^[-*]\s+\[([ xX])\]\s+(.+)$/); return <li key={`${index}-${lineIndex}`}><input type="checkbox" checked={task?.[1].toLowerCase() === "x"} readOnly /><MarkdownInline article={article} text={task?.[2] ?? line} /></li>; })}</ul>;
-    if (list.every((line) => /^[-*]\s+/.test(line))) return <ul key={index}>{list.map((line, lineIndex) => <li key={`${index}-${lineIndex}`}><MarkdownInline article={article} text={line.replace(/^[-*]\s+/, "")} /></li>)}</ul>;
-    if (list.every((line) => /^\d+\.\s+/.test(line))) return <ol key={index}>{list.map((line, lineIndex) => <li key={`${index}-${lineIndex}`}><MarkdownInline article={article} text={line.replace(/^\d+\.\s+/, "")} /></li>)}</ol>;
-    return <p key={index}><MarkdownInline article={article} text={block.replace(/\r?\n/g, " ")} /></p>;
-  })}</>;
 }
 
 function formatClock(date: Date, language: Language) {
@@ -266,7 +178,7 @@ export function TerminalBlog({ articlesByLanguage, initialProjects = [] }: { art
   const [cmdHistory, setCmdHistory] = useState<string[]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
   const [readingProgress, setReadingProgress] = useState(0);
-  const [terminalMode, setTerminalMode] = useState<"shell" | "miyabi" | "store" | "admin">("shell");
+  const [terminalMode, setTerminalMode] = useState<"shell" | "miyabi">("shell");
   const [clock, setClock] = useState(() => new Date());
   const [miyabiArt, setMiyabiArt] = useState<AnsiChunk[]>([]);
   const [projects, setProjects] = useState<Project[]>(initialProjects);
@@ -521,18 +433,6 @@ export function TerminalBlog({ articlesByLanguage, initialProjects = [] }: { art
       go("terminal");
       return;
     }
-    if (definition.action === "store") {
-      setTerminalMode("store");
-      setLines((old) => [...old, `> ${command}`, "[OK] Switched to store catalog."]);
-      go("terminal");
-      return;
-    }
-    if (definition.action === "admin") {
-      setTerminalMode("admin");
-      setLines((old) => [...old, `> ${command}`, "[OK] Switched to Admin Panel (Telegram Auth)."]);
-      go("terminal");
-      return;
-    }
     if (definition.action === "message") {
       if (!argument) { setLines((old) => [...old, `> ${command}`, text.messageUsage]); return; }
       setLines((old) => [...old, `> ${inputStr}`, text.messageSending]);
@@ -650,7 +550,7 @@ export function TerminalBlog({ articlesByLanguage, initialProjects = [] }: { art
             <span className="utility-label">{text.contacts}</span>
             <div className="contact-list">{contacts.map((contact) => contact.value ? <a href={contact.value} target="_blank" rel="noreferrer" key={contact.label} onClick={() => playKeyClickSound()}><span><Icon name={contactIcons[contact.label]} size={13} /></span>{contact.label}<Icon name="arrow" size={14} /></a> : <span key={contact.label} className="contact-offline"><span><Icon name={contactIcons[contact.label]} size={13} /></span>{contact.label}<small>{text.offline}</small></span>)}</div>
           </div>
-          <MusicStatus text={text} />
+          <MusicPresence text={text} />
         </div>
       </TerminalFrame>
     </section>
@@ -816,22 +716,6 @@ export function TerminalBlog({ articlesByLanguage, initialProjects = [] }: { art
               >
                 &gt;_ MIYABI AI CLI
               </button>
-              <button
-                type="button"
-                className={`terminal-tab-btn ${terminalMode === "store" ? "active" : ""}`}
-                onClick={() => { playBeepSound(); setTerminalMode("store"); }}
-              >
-                <Icon name="store" size={13} /> STORE
-              </button>
-              {terminalMode === "admin" && (
-                <button
-                  type="button"
-                  className="terminal-tab-btn active"
-                  onClick={() => setTerminalMode("admin")}
-                >
-                  <Icon name="shield" size={13} /> ADMIN
-                </button>
-              )}
             </div>
             <div className="panel-head-actions">
               <button
@@ -875,10 +759,6 @@ export function TerminalBlog({ articlesByLanguage, initialProjects = [] }: { art
                       playBeepSound();
                       if (command.action === "miyabi") {
                         setTerminalMode("miyabi");
-                      } else if (command.action === "store") {
-                        setTerminalMode("store");
-                      } else if (command.action === "admin") {
-                        setTerminalMode("admin");
                       } else {
                         setInput(command.name === "message" ? "message " : command.name);
                         terminalInput.current?.focus();
@@ -892,10 +772,8 @@ export function TerminalBlog({ articlesByLanguage, initialProjects = [] }: { art
             </>
           ) : terminalMode === "miyabi" ? (
             <MiyabiChatModal embedded />
-          ) : terminalMode === "store" ? (
-            <StoreModal embedded />
           ) : (
-            <AdminModal embedded />
+            <MiyabiChatModal embedded />
           )}
         </div>
       </TerminalFrame>
@@ -952,22 +830,6 @@ export function TerminalBlog({ articlesByLanguage, initialProjects = [] }: { art
                  >
                    &gt;_ MIYABI AI CLI
                  </button>
-                 <button
-                   type="button"
-                   className={`terminal-tab-btn ${terminalMode === "store" ? "active" : ""}`}
-                   onClick={() => { playBeepSound(); setTerminalMode("store"); }}
-                 >
-                   <Icon name="store" size={13} /> STORE
-                 </button>
-                 {terminalMode === "admin" && (
-                   <button
-                     type="button"
-                     className="terminal-tab-btn active"
-                     onClick={() => setTerminalMode("admin")}
-                   >
-                     <Icon name="shield" size={13} /> ADMIN
-                   </button>
-                 )}
                </div>
 
                <div className="fullscreen-terminal-right">
@@ -1019,11 +881,7 @@ export function TerminalBlog({ articlesByLanguage, initialProjects = [] }: { art
                              playBeepSound();
                              if (command.action === "miyabi") {
                                setTerminalMode("miyabi");
-                             } else if (command.action === "store") {
-                               setTerminalMode("store");
-                             } else if (command.action === "admin") {
-                               setTerminalMode("admin");
-                             } else {
+                              } else {
                                setInput(command.name === "message" ? "message " : command.name);
                                fullscreenTerminalInput.current?.focus();
                              }
@@ -1036,10 +894,8 @@ export function TerminalBlog({ articlesByLanguage, initialProjects = [] }: { art
                  </div>
                ) : terminalMode === "miyabi" ? (
                  <MiyabiChatModal embedded />
-               ) : terminalMode === "store" ? (
-                 <StoreModal embedded />
-               ) : (
-                 <AdminModal embedded />
+                ) : (
+                  <MiyabiChatModal embedded />
                )}
              </div>
            </div>

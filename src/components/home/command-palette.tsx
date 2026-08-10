@@ -20,7 +20,7 @@ interface CommandPaletteProps {
   onToggleSfx: () => void;
   sfxActive: boolean;
   matrixActive: boolean;
-  onSwitchTerminalMode: (mode: "shell" | "miyabi" | "store" | "admin") => void;
+  onSwitchTerminalMode: (mode: "shell" | "miyabi") => void;
   onOpenArchive: () => void;
 }
 
@@ -114,18 +114,6 @@ export function CommandPalette({
       icon: "🦊",
       action: () => {
         onSwitchTerminalMode("miyabi");
-        onNavigate("terminal");
-        onClose();
-      },
-    },
-    {
-      id: "store",
-      category: "Terminal AI",
-      title: "Open Digital Store Catalog",
-      subtitle: "Merch & Digital items",
-      icon: "🛒",
-      action: () => {
-        onSwitchTerminalMode("store");
         onNavigate("terminal");
         onClose();
       },
