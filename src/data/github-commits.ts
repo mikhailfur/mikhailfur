@@ -22,6 +22,7 @@ export async function getLatestGithubCommits(): Promise<GithubCommit[]> {
     const response = await fetch("https://api.github.com/repos/mikhailfur/mikhailfur/commits?per_page=6", {
       headers: { Accept: "application/vnd.github+json" },
       next: { revalidate: 60 },
+      signal: AbortSignal.timeout(2500),
     });
 
     if (!response.ok) return [];
