@@ -4,7 +4,7 @@ type: 객관적
 title: 익명 채팅 룰렛 및 게임
 date: 2026-08-11
 excerpt: 2026-08-11부터 웹사이트 업데이트 적용
-redacted: 2026-08-11|네트워크 웹 터미널|익명 텍스트 교환|IP 주소 기록 없이|정신적 안정성|구역 점령|발견되지 않음|play.|chat.
+redacted: 2026-08-11|네트워크 웹 터미널|익명 텍스트 교환|IP 주소 기록 없이|정신적 안정성|구역 점령|발견되지 않음|play|chat
 ---
 ![I-15 object](/articles/case-002-attachment.png)
 
