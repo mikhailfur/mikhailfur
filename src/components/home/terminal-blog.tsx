@@ -148,7 +148,7 @@ function Prompt({ children }: { children: ReactNode }) {
   return <span className="prompt"><span>mikhailfur@lab</span><b>:</b><em>~</em><b>$</b> {children}</span>;
 }
 
-function TerminalFrame({ children, title, actions }: { children: ReactNode; title: string; actions?: ReactNode }) {
+function TerminalFrame({ children, title, actions }: { children: ReactNode; title?: string; actions?: ReactNode }) {
   return <div className="terminal-frame">
     <div className="terminal-frame-bar">
       <span className="terminal-frame-controls" aria-hidden="true"><i /><i /><i /></span>
@@ -718,17 +718,7 @@ export function TerminalBlog({
     </nav>
 
     <section id="home" className="shell hero">
-      <TerminalFrame title="mikhail_fur" actions={
-        <nav className="window-nav" aria-label={text.sectionNavigation}>
-          <a href="#terminal" onClick={() => { playBeepSound(); setTerminalMode("shell"); setActiveShellSession("arcade"); setArcadeTab("wallz"); }}>ARCADE</a>
-          <a href="#terminal" onClick={() => { playBeepSound(); setTerminalMode("shell"); setActiveShellSession("chat"); }}>CHAT ROULETTE</a>
-          <a href="#terminal" onClick={() => { playBeepSound(); setTerminalMode("shell"); setActiveShellSession("2fa"); }}>2FA TOTP</a>
-          <a href="#projects">{text.projects}</a>
-          <a href="#gallery">{text.gallery}</a>
-          <a href="#stack">{text.stack}</a>
-          <a href="#about">{text.profile}</a>
-        </nav>
-      }>
+      <TerminalFrame title="mikhail_fur">
         <div className="hero-grid">
           <div>
             <p className="command-line"><Prompt>whoami</Prompt></p>
