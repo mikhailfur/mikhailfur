@@ -5,7 +5,7 @@ import { playBeepSound, playSuccessSound } from "@/utils/sfx";
 
 interface PaletteOption {
   id: string;
-  category: "Navigation" | "Terminal AI" | "Settings" | "External";
+  category: "Terminal CLI Command" | "Navigation" | "Settings" | "External";
   title: string;
   subtitle?: string;
   icon?: string;
@@ -20,7 +20,7 @@ interface CommandPaletteProps {
   onToggleSfx: () => void;
   sfxActive: boolean;
   matrixActive: boolean;
-  onSwitchTerminalMode: (mode: "shell" | "miyabi") => void;
+  onSwitchTerminalMode: (mode: "shell" | "miyabi", shellSession?: null | "arcade" | "chat" | "2fa", arcadeTab?: "wallz" | "snake") => void;
   onOpenArchive: () => void;
 }
 
@@ -40,6 +40,78 @@ export function CommandPalette({
   const inputRef = useRef<HTMLInputElement | null>(null);
 
   const options: PaletteOption[] = [
+    {
+      id: "arcade",
+      category: "Terminal CLI Command",
+      title: "Run `arcade` CLI Command",
+      subtitle: "Terminal Arcade Games · Wallz · Snake",
+      icon: "🎮",
+      action: () => {
+        onSwitchTerminalMode("shell", "arcade");
+        onNavigate("terminal");
+        onClose();
+      },
+    },
+    {
+      id: "chat",
+      category: "Terminal CLI Command",
+      title: "Run `chat` CLI Command",
+      subtitle: "Anonymous Stranger Chat Roulette inside terminal",
+      icon: "💬",
+      action: () => {
+        onSwitchTerminalMode("shell", "chat");
+        onNavigate("terminal");
+        onClose();
+      },
+    },
+    {
+      id: "snake",
+      category: "Terminal CLI Command",
+      title: "Run `snake` CLI Command",
+      subtitle: "Classic terminal pixel snake arcade game",
+      icon: "🐍",
+      action: () => {
+        onSwitchTerminalMode("shell", "arcade", "snake");
+        onNavigate("terminal");
+        onClose();
+      },
+    },
+    {
+      id: "wallz",
+      category: "Terminal CLI Command",
+      title: "Run `wallz` CLI Command",
+      subtitle: "Terminal puzzle arcade game",
+      icon: "🧱",
+      action: () => {
+        onSwitchTerminalMode("shell", "arcade", "wallz");
+        onNavigate("terminal");
+        onClose();
+      },
+    },
+    {
+      id: "2fa",
+      category: "Terminal CLI Command",
+      title: "Run `2fa` CLI Command",
+      subtitle: "Browser-local TOTP authenticator & key notebook",
+      icon: "🔐",
+      action: () => {
+        onSwitchTerminalMode("shell", "2fa");
+        onNavigate("terminal");
+        onClose();
+      },
+    },
+    {
+      id: "miyabi",
+      category: "Terminal CLI Command",
+      title: "Run `miyabi` CLI Command",
+      subtitle: "HAND Section 6 Chief AI Agent",
+      icon: "🦊",
+      action: () => {
+        onSwitchTerminalMode("miyabi");
+        onNavigate("terminal");
+        onClose();
+      },
+    },
     {
       id: "projects",
       category: "Navigation",
@@ -103,18 +175,6 @@ export function CommandPalette({
       icon: "👤",
       action: () => {
         onNavigate("about");
-        onClose();
-      },
-    },
-    {
-      id: "miyabi",
-      category: "Terminal AI",
-      title: "Talk to Hoshimi Miyabi AI CLI",
-      subtitle: "HAND Section 6 Chief Agent",
-      icon: "🦊",
-      action: () => {
-        onSwitchTerminalMode("miyabi");
-        onNavigate("terminal");
         onClose();
       },
     },

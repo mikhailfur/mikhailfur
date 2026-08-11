@@ -12,6 +12,9 @@ import { CyberMatrixBackground } from "./cyber-matrix-background";
 import { CommandPalette } from "./command-palette";
 import { GallerySection } from "./gallery-section";
 import { isSoundEnabled, playBeepSound, playKeyClickSound, playSuccessSound, toggleSound } from "@/utils/sfx";
+import { ArcadeTerminal, type ArcadeTab } from "@/components/arcade/arcade-terminal";
+import { StrangerChat } from "@/components/arcade/stranger-chat";
+import { TwoFactorNotebook } from "@/components/twofa/two-factor-notebook";
 
 type IconName = "archive" | "arrow" | "box" | "clock" | "code" | "command" | "discord" | "file" | "github" | "kakao" | "layers" | "telegram" | "twitch" | "user" | "vk" | "xbox";
 type AnsiChunk = { color?: string; text: string };
@@ -29,6 +32,17 @@ const contacts = [
 const languageStorageKey = "terminal-blog.language";
 let storedLanguage: Language = "en";
 const languageListeners = new Set<() => void>();
+
+const labQuotes = [
+  '"Talk is cheap. Show me the code." — Linus Torvalds',
+  '"Simplicity is prerequisite for reliability." — Edsger W. Dijkstra',
+  '"The secret of getting ahead is getting started." — Mark Twain',
+  '"Make it work, make it right, make it fast." — Kent Beck',
+];
+
+function getRandomQuote() {
+  return labQuotes[Math.floor(Math.random() * labQuotes.length)];
+}
 
 function readStoredLanguage(): Language {
   try {
@@ -159,7 +173,21 @@ function formatClock(date: Date, language: Language) {
   }).format(date).replace(" г.", "");
 }
 
-export function TerminalBlog({ articlesByLanguage, initialProjects = [] }: { articlesByLanguage: Record<Language, Article[]>; initialProjects?: Project[] }) {
+export interface TerminalBlogProps {
+  articlesByLanguage: Record<Language, Article[]>;
+  initialProjects?: Project[];
+  initialMode?: "shell" | "miyabi";
+  initialShellSession?: null | "arcade" | "chat" | "2fa";
+  initialArcadeTab?: ArcadeTab;
+}
+
+export function TerminalBlog({
+  articlesByLanguage,
+  initialProjects = [],
+  initialMode = "shell",
+  initialShellSession = null,
+  initialArcadeTab = "wallz",
+}: TerminalBlogProps) {
   const language = useSyncExternalStore<Language | null>(subscribeToLanguage, readStoredLanguage, (): null => null);
   const activeLanguage = language ?? "en";
   const [booted, setBooted] = useState(false);
@@ -178,7 +206,9 @@ export function TerminalBlog({ articlesByLanguage, initialProjects = [] }: { art
   const [cmdHistory, setCmdHistory] = useState<string[]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
   const [readingProgress, setReadingProgress] = useState(0);
-  const [terminalMode, setTerminalMode] = useState<"shell" | "miyabi">("shell");
+  const [terminalMode, setTerminalMode] = useState<"shell" | "miyabi">(initialMode);
+  const [activeShellSession, setActiveShellSession] = useState<null | "arcade" | "chat" | "2fa">(initialShellSession);
+  const [arcadeTab, setArcadeTab] = useState<ArcadeTab>(initialArcadeTab);
   const [clock, setClock] = useState(() => new Date());
   const [miyabiArt, setMiyabiArt] = useState<AnsiChunk[]>([]);
   const [projects, setProjects] = useState<Project[]>(initialProjects);
@@ -195,6 +225,15 @@ export function TerminalBlog({ articlesByLanguage, initialProjects = [] }: { art
   const selectedArticle = articles.find((article) => article.id === activeArticle);
 
   useEffect(() => {
+    if (initialShellSession || initialMode === "miyabi") {
+      const timer = setTimeout(() => {
+        document.getElementById("terminal")?.scrollIntoView({ behavior: "smooth" });
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [initialMode, initialShellSession]);
+
+  useEffect(() => {
     if (initialProjects && initialProjects.length > 0) return;
     let alive = true;
     fetch("/api/projects")
@@ -205,7 +244,6 @@ export function TerminalBlog({ articlesByLanguage, initialProjects = [] }: { art
       .catch(() => {});
     return () => { alive = false; };
   }, [initialProjects]);
-
 
   useEffect(() => {
     if (language) document.documentElement.lang = language;
@@ -279,11 +317,11 @@ export function TerminalBlog({ articlesByLanguage, initialProjects = [] }: { art
   }, [fullscreenTerminalOpen]);
 
   useEffect(() => {
-    if (fullscreenTerminalOpen && terminalMode === "shell") {
+    if (fullscreenTerminalOpen && terminalMode === "shell" && !activeShellSession) {
       const timer = setTimeout(() => fullscreenTerminalInput.current?.focus(), 60);
       return () => clearTimeout(timer);
     }
-  }, [fullscreenTerminalOpen, terminalMode]);
+  }, [fullscreenTerminalOpen, terminalMode, activeShellSession]);
 
   useEffect(() => {
     if (!activeArticle && !archiveOpen) return;
@@ -365,6 +403,12 @@ export function TerminalBlog({ articlesByLanguage, initialProjects = [] }: { art
     const argument = inputStr.slice(commandName.length).trim();
     if (!command) return;
 
+    if (command === "exit" || command === "quit") {
+      setActiveShellSession(null);
+      playSuccessSound();
+      setLines((old) => [...old, `> ${command}`, "[OK] Exited session back to main SHELL prompt."]);
+      return;
+    }
     if (command === "matrix") {
       setMatrixActive((prev) => !prev);
       playSuccessSound();
@@ -378,13 +422,7 @@ export function TerminalBlog({ articlesByLanguage, initialProjects = [] }: { art
       return;
     }
     if (command === "quote" || command === "motto") {
-      const quotes = [
-        '"Talk is cheap. Show me the code." — Linus Torvalds',
-        '"Simplicity is prerequisite for reliability." — Edsger W. Dijkstra',
-        '"The secret of getting ahead is getting started." — Mark Twain',
-        '"Make it work, make it right, make it fast." — Kent Beck',
-      ];
-      const q = quotes[Math.floor(Math.random() * quotes.length)];
+      const q = getRandomQuote();
       setLines((old) => [...old, `> ${command}`, q]);
       playBeepSound(720, 0.05);
       return;
@@ -427,6 +465,43 @@ export function TerminalBlog({ articlesByLanguage, initialProjects = [] }: { art
     }
     if (definition.action === "github") { window.open("https://github.com/mikhailfur", "_blank", "noopener,noreferrer"); setLines((old) => [...old, `> ${command}`, text.openingGithub]); return; }
     if (definition.action === "archive") { setArchiveOpen(true); setLines((old) => [...old, `> ${command}`, text.openedArchive]); return; }
+    if (definition.action === "2fa") {
+      setTerminalMode("shell");
+      setActiveShellSession("2fa");
+      setLines((old) => [...old, `> ${command}`, "[OK] Launched 2FA TOTP Security Vault CLI session."]);
+      go("terminal");
+      return;
+    }
+    if (definition.action === "arcade") {
+      setTerminalMode("shell");
+      setActiveShellSession("arcade");
+      setLines((old) => [...old, `> ${command}`, "[OK] Launched MKH_ARCADE games CLI session."]);
+      go("terminal");
+      return;
+    }
+    if (definition.action === "snake") {
+      setTerminalMode("shell");
+      setActiveShellSession("arcade");
+      setArcadeTab("snake");
+      setLines((old) => [...old, `> ${command}`, "[OK] Launched Snake Game in terminal."]);
+      go("terminal");
+      return;
+    }
+    if (definition.action === "wallz") {
+      setTerminalMode("shell");
+      setActiveShellSession("arcade");
+      setArcadeTab("wallz");
+      setLines((old) => [...old, `> ${command}`, "[OK] Launched Wallz Game in terminal."]);
+      go("terminal");
+      return;
+    }
+    if (definition.action === "chat") {
+      setTerminalMode("shell");
+      setActiveShellSession("chat");
+      setLines((old) => [...old, `> ${command}`, "[OK] Launched Stranger Chat Roulette CLI session."]);
+      go("terminal");
+      return;
+    }
     if (definition.action === "miyabi") {
       setTerminalMode("miyabi");
       setLines((old) => [...old, `> ${command}`, "[OK] Switched to Hoshimi Miyabi Terminal AI session."]);
@@ -504,6 +579,117 @@ export function TerminalBlog({ articlesByLanguage, initialProjects = [] }: { art
     return matchesSearch && matchesTech && matchesCategory;
   });
 
+  const renderShellContent = () => {
+    if (activeShellSession === "2fa") {
+      return (
+        <div>
+          <div className="session-header-bar">
+            <span>SESSION: /dev/2fa (TOTP Vault)</span>
+            <button
+              type="button"
+              className="session-exit-btn"
+              onClick={() => { playBeepSound(); setActiveShellSession(null); }}
+            >
+              ← return to prompt (exit)
+            </button>
+          </div>
+          <TwoFactorNotebook embedded />
+        </div>
+      );
+    }
+    if (activeShellSession === "chat") {
+      return (
+        <div>
+          <div className="session-header-bar">
+            <span>SESSION: /dev/stranger (Stranger Chat Roulette)</span>
+            <button
+              type="button"
+              className="session-exit-btn"
+              onClick={() => { playBeepSound(); setActiveShellSession(null); }}
+            >
+              ← return to prompt (exit)
+            </button>
+          </div>
+          <StrangerChat language={activeLanguage} embedded />
+        </div>
+      );
+    }
+    if (activeShellSession === "arcade") {
+      return (
+        <div>
+          <div className="session-header-bar">
+            <span>SESSION: /dev/arcade (MKH_ARCADE Games)</span>
+            <button
+              type="button"
+              className="session-exit-btn"
+              onClick={() => { playBeepSound(); setActiveShellSession(null); }}
+            >
+              ← return to prompt (exit)
+            </button>
+          </div>
+          <ArcadeTerminal embedded initialTab={arcadeTab} onTabChange={setArcadeTab} />
+        </div>
+      );
+    }
+
+    return (
+      <>
+        <div className="terminal-log" aria-live="polite">
+          {lines.map((line, index) => <p key={`${line}-${index}`}>{line}</p>)}
+        </div>
+        <form onSubmit={submit}>
+          <Prompt>
+            <input
+              ref={terminalInput}
+              value={input}
+              onChange={(event) => setInput(event.target.value)}
+              onKeyDown={handleInputKeyDown}
+              aria-label={text.terminalLabel}
+              placeholder={text.terminalPlaceholder}
+              autoComplete="off"
+            />
+          </Prompt>
+        </form>
+        <div className="quick-actions">
+          {terminalCommands.filter((command) => command.quick).map((command) => (
+            <button
+              key={command.name}
+              type="button"
+              onClick={() => {
+                playBeepSound();
+                if (command.action === "miyabi") {
+                  setTerminalMode("miyabi");
+                } else if (command.action === "arcade") {
+                  setTerminalMode("shell");
+                  setActiveShellSession("arcade");
+                } else if (command.action === "chat") {
+                  setTerminalMode("shell");
+                  setActiveShellSession("chat");
+                } else if (command.action === "2fa") {
+                  setTerminalMode("shell");
+                  setActiveShellSession("2fa");
+                } else if (command.action === "snake") {
+                  setTerminalMode("shell");
+                  setActiveShellSession("arcade");
+                  setArcadeTab("snake");
+                } else if (command.action === "wallz") {
+                  setTerminalMode("shell");
+                  setActiveShellSession("arcade");
+                  setArcadeTab("wallz");
+                } else {
+                  setInput(command.name === "message" ? "message " : command.name);
+                  terminalInput.current?.focus();
+                }
+              }}
+            >
+              {command.name}
+            </button>
+          ))}
+        </div>
+      </>
+    );
+  };
+
   return <main style={{ position: "relative" }}>
     <CyberMatrixBackground matrixActive={matrixActive} />
 
@@ -532,7 +718,17 @@ export function TerminalBlog({ articlesByLanguage, initialProjects = [] }: { art
     </nav>
 
     <section id="home" className="shell hero">
-      <TerminalFrame title="mikhail_fur" actions={<nav className="window-nav" aria-label={text.sectionNavigation}><a href="#projects">{text.projects}</a><a href="#gallery">{text.gallery}</a><a href="#stack">{text.stack}</a><a href="#about">{text.profile}</a></nav>}>
+      <TerminalFrame title="mikhail_fur" actions={
+        <nav className="window-nav" aria-label={text.sectionNavigation}>
+          <a href="#terminal" onClick={() => { playBeepSound(); setTerminalMode("shell"); setActiveShellSession("arcade"); setArcadeTab("wallz"); }}>ARCADE</a>
+          <a href="#terminal" onClick={() => { playBeepSound(); setTerminalMode("shell"); setActiveShellSession("chat"); }}>CHAT ROULETTE</a>
+          <a href="#terminal" onClick={() => { playBeepSound(); setTerminalMode("shell"); setActiveShellSession("2fa"); }}>2FA TOTP</a>
+          <a href="#projects">{text.projects}</a>
+          <a href="#gallery">{text.gallery}</a>
+          <a href="#stack">{text.stack}</a>
+          <a href="#about">{text.profile}</a>
+        </nav>
+      }>
         <div className="hero-grid">
           <div>
             <p className="command-line"><Prompt>whoami</Prompt></p>
@@ -540,6 +736,9 @@ export function TerminalBlog({ articlesByLanguage, initialProjects = [] }: { art
             <p className="hero-copy">{text.heroCopy}</p>
             <div className="hero-actions">
               <a href="#projects" className="button button-primary" onClick={() => playBeepSound()}><Icon name="arrow" size={15} /> {text.viewProjects}</a>
+              <a href="#terminal" className="button" onClick={() => { playBeepSound(); setTerminalMode("shell"); setActiveShellSession("arcade"); }}><Icon name="command" size={15} /> MKH_ARCADE</a>
+              <a href="#terminal" className="button" onClick={() => { playBeepSound(); setTerminalMode("shell"); setActiveShellSession("chat"); }}><Icon name="command" size={15} /> CHAT ROULETTE</a>
+              <a href="#terminal" className="button" onClick={() => { playBeepSound(); setTerminalMode("shell"); setActiveShellSession("2fa"); }}><Icon name="command" size={15} /> 2FA TOTP</a>
               <a href="https://github.com/mikhailfur" target="_blank" rel="noreferrer" className="button" onClick={() => playBeepSound()}><Icon name="github" size={15} /> GitHub</a>
             </div>
           </div>
@@ -733,45 +932,7 @@ export function TerminalBlog({ articlesByLanguage, initialProjects = [] }: { art
           </div>
 
           {terminalMode === "shell" ? (
-            <>
-              <div className="terminal-log" aria-live="polite">
-                {lines.map((line, index) => <p key={`${line}-${index}`}>{line}</p>)}
-              </div>
-              <form onSubmit={submit}>
-                <Prompt>
-                  <input
-                    ref={terminalInput}
-                    value={input}
-                    onChange={(event) => setInput(event.target.value)}
-                    onKeyDown={handleInputKeyDown}
-                    aria-label={text.terminalLabel}
-                    placeholder={text.terminalPlaceholder}
-                    autoComplete="off"
-                  />
-                </Prompt>
-              </form>
-              <div className="quick-actions">
-                {terminalCommands.filter((command) => command.quick).map((command) => (
-                  <button
-                    key={command.name}
-                    type="button"
-                    onClick={() => {
-                      playBeepSound();
-                      if (command.action === "miyabi") {
-                        setTerminalMode("miyabi");
-                      } else {
-                        setInput(command.name === "message" ? "message " : command.name);
-                        terminalInput.current?.focus();
-                      }
-                    }}
-                  >
-                    {command.name}
-                  </button>
-                ))}
-              </div>
-            </>
-          ) : terminalMode === "miyabi" ? (
-            <MiyabiChatModal embedded />
+            renderShellContent()
           ) : (
             <MiyabiChatModal embedded />
           )}
@@ -850,52 +1011,10 @@ export function TerminalBlog({ articlesByLanguage, initialProjects = [] }: { art
              <div className="fullscreen-terminal-content">
                {terminalMode === "shell" ? (
                  <div className="fullscreen-shell-body">
-                   <div className="fullscreen-terminal-log" aria-live="polite">
-                     {lines.map((line, index) => (
-                       <p key={`${line}-${index}`}>{line}</p>
-                     ))}
-                   </div>
-
-                   <form onSubmit={submit} className="fullscreen-terminal-form">
-                     <Prompt>
-                       <input
-                         ref={fullscreenTerminalInput}
-                         value={input}
-                         onChange={(event) => setInput(event.target.value)}
-                         onKeyDown={handleInputKeyDown}
-                         aria-label={text.terminalLabel}
-                         placeholder={text.terminalPlaceholder}
-                         autoComplete="off"
-                       />
-                     </Prompt>
-                   </form>
-
-                   <div className="fullscreen-quick-actions">
-                     {terminalCommands
-                       .filter((command) => command.quick)
-                       .map((command) => (
-                         <button
-                           key={command.name}
-                           type="button"
-                           onClick={() => {
-                             playBeepSound();
-                             if (command.action === "miyabi") {
-                               setTerminalMode("miyabi");
-                              } else {
-                               setInput(command.name === "message" ? "message " : command.name);
-                               fullscreenTerminalInput.current?.focus();
-                             }
-                           }}
-                         >
-                           {command.name}
-                         </button>
-                       ))}
-                   </div>
+                   {renderShellContent()}
                  </div>
-               ) : terminalMode === "miyabi" ? (
+               ) : (
                  <MiyabiChatModal embedded />
-                ) : (
-                  <MiyabiChatModal embedded />
                )}
              </div>
            </div>
@@ -913,7 +1032,11 @@ export function TerminalBlog({ articlesByLanguage, initialProjects = [] }: { art
       }}
       sfxActive={sfxActive}
       matrixActive={matrixActive}
-      onSwitchTerminalMode={(mode) => setTerminalMode(mode)}
+      onSwitchTerminalMode={(mode, session, tab) => {
+        setTerminalMode(mode);
+        if (session) setActiveShellSession(session);
+        if (tab) setArcadeTab(tab);
+      }}
       onOpenArchive={() => setArchiveOpen(true)}
     />
   </main>;

@@ -496,7 +496,8 @@ export function getTerminalCommands(language: Language): TerminalCommand[] {
       "send a message: message <text>",
        "chat with Hoshimi Miyabi (AI waifu)",
        "open Civitai artwork gallery",
-      "clear history",
+       "open games and anonymous stranger chat",
+       "clear history",
     ],
     ru: [
       "список доступных команд",
@@ -509,7 +510,8 @@ export function getTerminalCommands(language: Language): TerminalCommand[] {
       "отправить сообщение: message <текст>",
        "чат с Хосими Мияби (AI вайфу)",
        "открыть галерею артов Civitai",
-      "очистить историю",
+       "открыть игры и анонимную чат-рулетку",
+       "очистить историю",
     ],
     ko: [
       "사용 가능한 명령 목록",
@@ -522,7 +524,8 @@ export function getTerminalCommands(language: Language): TerminalCommand[] {
       "메시지 보내기: message <내용>",
        "호시미 미야비 AI 와이푸 대화",
        "Civitai 아트 갤러리 열기",
-      "기록 지우기",
+       "게임과 익명 랜덤 채팅 열기",
+       "기록 지우기",
     ],
   };
   const [
@@ -536,6 +539,7 @@ export function getTerminalCommands(language: Language): TerminalCommand[] {
     message,
     miyabi,
     galleryCmd,
+    arcade,
     clear,
   ] = descriptions[language];
   return [
@@ -571,6 +575,38 @@ export function getTerminalCommands(language: Language): TerminalCommand[] {
       description: galleryCmd,
       action: "gallery",
       quick: true,
+    },
+    {
+      name: "play",
+      aliases: ["arcade", "games", "игры"],
+      description: arcade,
+      action: "arcade",
+      quick: true,
+    },
+    {
+      name: "2fa",
+      aliases: ["totp", "auth", "mfa"],
+      description: language === "ru" ? "открыть 2FA TOTP генератор и блокнот" : language === "ko" ? "2FA TOTP 키 보관소 열기" : "open 2FA TOTP key vault",
+      action: "2fa",
+      quick: true,
+    },
+    {
+      name: "chat",
+      aliases: ["roulette", "stranger", "рулетка"],
+      description: language === "ru" ? "запустить анонимную чат-рулетку" : language === "ko" ? "익명 랜덤 채팅 룰렛 실행" : "play stranger chat roulette",
+      action: "chat",
+      quick: true,
+    },
+    {
+      name: "snake",
+      aliases: ["змейка"],
+      description: language === "ru" ? "сыграть в пиксельную змейку" : language === "ko" ? "픽셀 스네이크 게임 실행" : "play pixel Snake game",
+      action: "snake",
+    },
+    {
+      name: "wallz",
+      description: language === "ru" ? "сыграть в логическую игру Wallz" : language === "ko" ? "Wallz 퍼즐 게임 실행" : "play Wallz puzzle game",
+      action: "wallz",
     },
     { name: "clear", description: clear, action: "clear" },
   ];

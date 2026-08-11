@@ -11,11 +11,29 @@ export type Article = {
   redacted: string[];
 };
 
+export type TerminalAction =
+  | "about"
+  | "arcade"
+  | "archive"
+  | "clear"
+  | "gallery"
+  | "github"
+  | "help"
+  | "hobbies"
+  | "message"
+  | "miyabi"
+  | "projects"
+  | "stack"
+  | "2fa"
+  | "snake"
+  | "wallz"
+  | "chat";
+
 export type TerminalCommand = {
   name: string;
   aliases?: string[];
   description: string;
-  action: "about" | "archive" | "clear" | "gallery" | "github" | "help" | "hobbies" | "message" | "miyabi" | "projects" | "stack";
+  action: TerminalAction;
   quick?: boolean;
 };
 

@@ -71,8 +71,7 @@ function Code({ entry, text }: { entry: Pick<TotpEntry, "secret" | "digits" | "p
   return <button type="button" className="twofa-code" onClick={() => void copyCode()}><span>{code}</span><small>{copied ? text.copied : text.code} · {text.expires}: {remaining}s</small></button>;
 }
 
-export function TwoFactorNotebook() {
-  // The server snapshot keeps the hydration render deterministic; the browser preference follows after hydration.
+export function TwoFactorNotebook({ embedded = false }: { embedded?: boolean }) {
   const language = useSyncExternalStore<Language>(subscribeToLanguage, readLanguage, () => "en");
   const text = copy[language];
   const [quickKey, setQuickKey] = useState("");
@@ -85,6 +84,7 @@ export function TwoFactorNotebook() {
     const timer = window.setTimeout(() => setEntries(readNotebook()), 0);
     return () => window.clearTimeout(timer);
   }, []);
+
   const changeLanguage = (nextLanguage: Language) => {
     saveLanguage(nextLanguage);
   };
@@ -104,13 +104,75 @@ export function TwoFactorNotebook() {
   };
   const remove = (id: string) => { setNotebook(entries.filter((entry) => entry.id !== id)); playKeyClickSound(); };
 
-  return <main className="twofa-shell">
-    <nav className="twofa-topbar"><Link href="/" className="brand"><span className="brand-mark">&gt;_</span> mikhail_fur</Link><span>/2fa</span><div className="twofa-language-switcher" aria-label={text.language}>{(["en", "ru", "ko"] as Language[]).map((item) => <button key={item} type="button" onClick={() => changeLanguage(item)} aria-pressed={language === item}>{item.toUpperCase()}</button>)}</div><Link href="/" className="twofa-text-button">{text.back}</Link></nav>
-    <section className="twofa-window" aria-labelledby="twofa-title"><header className="twofa-window-bar"><span className="terminal-frame-controls" aria-hidden="true"><i /><i /><i /></span><span>mikhailfur@lab: /2fa</span><span className="twofa-status">{text.local}</span></header><div className="twofa-content">
-      <header className="twofa-intro"><p className="command-line"><span className="prompt"><span>mikhailfur@lab</span><b>:</b><em>~/2fa</em><b>$</b> totp --code</span></p><h1 id="twofa-title">{text.title}</h1><p>{text.lead}</p></header>
-      <section className="twofa-quick"><form onSubmit={calculate}><label>{text.key}<input value={quickKey} onChange={(event) => setQuickKey(event.target.value)} placeholder="JBSWY3DPEHPK3PXP" spellCheck={false} autoComplete="off" autoFocus /></label><button className="button button-primary">{text.getCode}</button></form>{quickEntry && <Code entry={quickEntry} text={text} />}{notice && <p className="twofa-error" role="alert">{notice}</p>}</section>
-      <section className="twofa-vault"><div className="twofa-toolbar"><span>{text.notebook}</span><span>{entries.length} {text.saved}</span></div><p className="twofa-note">{text.note}</p><div className="twofa-grid">{entries.length ? entries.map((entry) => <article className="twofa-card" key={entry.id}><div className="twofa-card-head"><div><strong>{entry.issuer}</strong><span>{entry.account || "-"}</span></div><button type="button" className="twofa-text-button" onClick={() => remove(entry.id)}>{text.remove}</button></div><Code entry={entry} text={text} /><footer><span>{entry.algorithm} · {entry.digits}D · {entry.period}S</span></footer></article>) : <p className="twofa-empty">{text.empty}</p>}</div>
-      <form className="twofa-add" onSubmit={add}><h2>{text.add}</h2><div className="twofa-form-grid twofa-simple-form"><label>{text.secret}<input required value={form.secret} onChange={(event) => setForm({ ...form, secret: event.target.value })} spellCheck={false} autoComplete="off" /></label><label>{text.name}<input required value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} /></label></div><button className="button button-primary">{text.add}</button></form></section>
-    </div></section>
-  </main>;
+  const content = (
+    <div className="twofa-content">
+      <header className="twofa-intro">
+        <p className="command-line"><span className="prompt"><span>mikhailfur@lab</span><b>:</b><em>~/2fa</em><b>$</b> totp --code</span></p>
+        <h1 id="twofa-title">{text.title}</h1>
+        <p>{text.lead}</p>
+      </header>
+      <section className="twofa-quick">
+        <form onSubmit={calculate}>
+          <label>{text.key}<input value={quickKey} onChange={(event) => setQuickKey(event.target.value)} placeholder="JBSWY3DPEHPK3PXP" spellCheck={false} autoComplete="off" autoFocus={!embedded} /></label>
+          <button className="button button-primary">{text.getCode}</button>
+        </form>
+        {quickEntry && <Code entry={quickEntry} text={text} />}
+        {notice && <p className="twofa-error" role="alert">{notice}</p>}
+      </section>
+      <section className="twofa-vault">
+        <div className="twofa-toolbar">
+          <span>{text.notebook}</span>
+          <span>{entries.length} {text.saved}</span>
+        </div>
+        <p className="twofa-note">{text.note}</p>
+        <div className="twofa-grid">
+          {entries.length ? entries.map((entry) => (
+            <article className="twofa-card" key={entry.id}>
+              <div className="twofa-card-head">
+                <div><strong>{entry.issuer}</strong><span>{entry.account || "-"}</span></div>
+                <button type="button" className="twofa-text-button" onClick={() => remove(entry.id)}>{text.remove}</button>
+              </div>
+              <Code entry={entry} text={text} />
+              <footer><span>{entry.algorithm} · {entry.digits}D · {entry.period}S</span></footer>
+            </article>
+          )) : <p className="twofa-empty">{text.empty}</p>}
+        </div>
+        <form className="twofa-add" onSubmit={add}>
+          <h2>{text.add}</h2>
+          <div className="twofa-form-grid twofa-simple-form">
+            <label>{text.secret}<input required value={form.secret} onChange={(event) => setForm({ ...form, secret: event.target.value })} spellCheck={false} autoComplete="off" /></label>
+            <label>{text.name}<input required value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} /></label>
+          </div>
+          <button className="button button-primary">{text.add}</button>
+        </form>
+      </section>
+    </div>
+  );
+
+  if (embedded) {
+    return <div className="twofa-embedded-container">{content}</div>;
+  }
+
+  return (
+    <main className="twofa-shell">
+      <nav className="twofa-topbar">
+        <Link href="/" className="brand"><span className="brand-mark">&gt;_</span> mikhail_fur</Link>
+        <span>/2fa</span>
+        <div className="twofa-language-switcher" aria-label={text.language}>
+          {(["en", "ru", "ko"] as Language[]).map((item) => (
+            <button key={item} type="button" onClick={() => changeLanguage(item)} aria-pressed={language === item}>{item.toUpperCase()}</button>
+          ))}
+        </div>
+        <Link href="/" className="twofa-text-button">{text.back}</Link>
+      </nav>
+      <section className="twofa-window" aria-labelledby="twofa-title">
+        <header className="twofa-window-bar">
+          <span className="terminal-frame-controls" aria-hidden="true"><i /><i /><i /></span>
+          <span>mikhailfur@lab: /2fa</span>
+          <span className="twofa-status">{text.local}</span>
+        </header>
+        {content}
+      </section>
+    </main>
+  );
 }
