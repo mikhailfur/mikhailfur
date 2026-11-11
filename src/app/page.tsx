@@ -1,6 +1,8 @@
-import { TerminalBlog } from "@/components/home/terminal-blog";
+import { SiteShell } from "@/components/site/site-shell";
 import { getLocalizedArticles } from "@/data/articles";
-import { getGithubProjects } from "@/data/github-projects";
+import { getGithubProjects } from "@/data/projects";
+
+export const revalidate = 3600;
 
 export default async function HomePage() {
   const [articlesByLanguage, projects] = await Promise.all([
@@ -8,11 +10,5 @@ export default async function HomePage() {
     getGithubProjects(),
   ]);
 
-  return (
-    <TerminalBlog
-      articlesByLanguage={articlesByLanguage}
-      initialProjects={projects}
-    />
-  );
+  return <SiteShell articlesByLanguage={articlesByLanguage} projects={projects} />;
 }
-

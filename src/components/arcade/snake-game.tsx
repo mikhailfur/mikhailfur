@@ -12,8 +12,8 @@ const START_DIRECTION = { x: 1, y: 0 };
 const bestScoreEvent = "mkh-snake-best";
 
 const copy = {
-  en: { title: "SNAKE.EXE", hint: "Swipe, use D-pad or Arrow keys / WASD. Eat pixels, avoid borders and self.", start: "start", pause: "pause", resume: "resume", reset: "reset", ready: "READY", paused: "PAUSED", lost: "SEGMENTATION FAULT", score: "SCORE", best: "BEST" },
-  ru: { title: "SNAKE.EXE", hint: "Свайпайте, нажимайте D-pad или стрелки / WASD. Ешьте пиксели.", start: "старт", pause: "пауза", resume: "продолжить", reset: "сброс", ready: "ГОТОВО", paused: "ПАУЗА", lost: "ОШИБКА СЕГМЕНТАЦИИ", score: "СЧЁТ", best: "РЕКОРД" },
+  en: { title: "SNAKE.EXE", hint: "Swipe, use the D-pad or Arrow keys / WASD. Eat pixels, avoid borders and yourself.", start: "start", pause: "pause", resume: "resume", reset: "reset", ready: "READY", paused: "PAUSED", lost: "SEGMENTATION FAULT", score: "SCORE", best: "BEST" },
+  ru: { title: "SNAKE.EXE", hint: "Свайпай, жми D-pad или стрелки / WASD. Ешь пиксели.", start: "старт", pause: "пауза", resume: "продолжить", reset: "сброс", ready: "ГОТОВО", paused: "ПАУЗА", lost: "ОШИБКА СЕГМЕНТАЦИИ", score: "СЧЁТ", best: "РЕКОРД" },
   ko: { title: "SNAKE.EXE", hint: "스와이프, D-pad 또는 방향키 / WASD로 조종하세요.", start: "시작", pause: "일시정지", resume: "계속", reset: "초기화", ready: "준비", paused: "일시정지", lost: "세그먼트 오류", score: "점수", best: "최고" },
 } satisfies Record<ArcadeLanguage, Record<string, string>>;
 
@@ -82,9 +82,9 @@ export function SnakeGame({ language }: { language: ArcadeLanguage }) {
     context.imageSmoothingEnabled = false;
 
     const cell = size / BOARD_SIZE;
-    context.fillStyle = "#080604";
+    context.fillStyle = "#0b090c";
     context.fillRect(0, 0, size, size);
-    context.strokeStyle = "rgba(81, 64, 47, .22)";
+    context.strokeStyle = "rgba(243, 239, 238, .08)";
     context.lineWidth = 1;
     for (let index = 1; index < BOARD_SIZE; index += 1) {
       context.beginPath();
@@ -97,10 +97,10 @@ export function SnakeGame({ language }: { language: ArcadeLanguage }) {
       context.stroke();
     }
     snake.forEach((part, index) => {
-      context.fillStyle = index === 0 ? "#ffc98b" : index % 2 ? "#f29a47" : "#c77738";
+      context.fillStyle = index === 0 ? "#f3b7c7" : index % 2 ? "#cf4b77" : "#a92e58";
       context.fillRect(part.x * cell + 1, part.y * cell + 1, cell - 2, cell - 2);
     });
-    context.fillStyle = "#f6eee4";
+    context.fillStyle = "#f3efee";
     context.fillRect(food.x * cell + cell * 0.22, food.y * cell + cell * 0.22, cell * 0.56, cell * 0.56);
   }, [food, snake]);
 

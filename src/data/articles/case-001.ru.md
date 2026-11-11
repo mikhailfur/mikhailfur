@@ -1,7 +1,7 @@
 ---
 id: case-001
-type: STANDRTED DOCUMENT
-title: Меня зовут - ...
+type: STANDARD DOCUMENT
+title: Меня зовут Михаил
 date: 2026-08-08
 excerpt: Рассказ о том кто я и коротко об этом дневнике
 redacted: Пак Михаил|Южной Кореи|университете INHA|из параллельного мира|лисиц

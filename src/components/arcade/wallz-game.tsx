@@ -19,7 +19,7 @@ const DIRECTIONS = [
 
 const copy = {
   en: {
-    goal: "Reach the top amber edge before the bot reaches yours.",
+    goal: "Reach the top pink edge before the bot reaches yours.",
     yourTurn: "YOUR TURN",
     botTurn: "BOT CALCULATING",
     won: "ROUTE COMPLETE. YOU WIN.",
@@ -30,7 +30,7 @@ const copy = {
     help: "Click a highlighted cell to move, or click any gap between cells to place a wall.",
   },
   ru: {
-    goal: "Доберись до янтарного края раньше, чем бот до твоего.",
+    goal: "Доберись до розового края раньше, чем бот до твоего.",
     yourTurn: "ТВОЙ ХОД",
     botTurn: "БОТ СЧИТАЕТ",
     won: "МАРШРУТ ЗАВЕРШЁН. ПОБЕДА.",
@@ -41,7 +41,7 @@ const copy = {
     help: "Нажмите на подсвеченную клетку для хода или на промежуток между клетками для установки стены.",
   },
   ko: {
-    goal: "봇보다 먼저 반대편 주황색 가장자리에 도달하세요.",
+    goal: "봇보다 먼저 반대편 분홍색 가장자리에 도달하세요.",
     yourTurn: "내 차례",
     botTurn: "봇 계산 중",
     won: "경로 완료. 승리했습니다.",
@@ -235,7 +235,7 @@ export function WallzGame({ language }: { language: ArcadeLanguage }) {
   return (
     <div className="wallz-layout">
       <div className="wallz-board-wrap">
-        <div className="wallz-goal wallz-goal-bot">YOUR TARGET (ROW 0)</div>
+        <div className="wallz-goal wallz-goal-bot">YOUR TARGET / ROW 0</div>
         <div className="wallz-board" role="grid" aria-label="Wallz 9 by 9 board">
           {Array.from({ length: SIZE * SIZE }, (_, index) => {
             const position = { row: Math.floor(index / SIZE), col: index % SIZE };
@@ -282,7 +282,7 @@ export function WallzGame({ language }: { language: ArcadeLanguage }) {
             });
           })}
         </div>
-        <div className="wallz-goal wallz-goal-player">BOT TARGET (ROW 8)</div>
+        <div className="wallz-goal wallz-goal-player">BOT TARGET / ROW 8</div>
       </div>
 
       <aside className="game-side-panel">
