@@ -71,6 +71,8 @@ pnpm article:translate  # перевести недостающие статьи
 
 `article:translate` читает `.env.local` или `.env`, берёт русские файлы `src/data/articles/*.ru.md` и создаёт `*.en.md` / `*.ko.md`, если их ещё нет. Нужен `OPENROUTER_API_KEY`.
 
+Отдельный редактор статей остался в `tools/article-editor/index.html`. Это автономная HTML-страница: открой её в браузере, заполни метаданные и скачай готовый Markdown. Сервер и сборка ей не нужны.
+
 ## Маршруты
 
 | Путь | Что это |
@@ -139,6 +141,9 @@ public/
   texture/             бумажная текстура
 scripts/
   translate-articles.mjs
+tools/
+  article-editor/
+    index.html
 ```
 
 ## Контакты
