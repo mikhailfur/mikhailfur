@@ -1,11 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { RotateCcw } from "lucide-react";
+import { Fragment, useEffect, useState } from "react";
+import type { MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent } from "react";
 import type { ArcadeLanguage } from "./types";
 
 type Position = { row: number; col: number };
 type Wall = { row: number; col: number; orientation: "h" | "v" };
 type Turn = "player" | "bot";
+type Mode = "move" | "h" | "v";
+type LastMove = { position: Position; side: Turn };
 
 const SIZE = 9;
 const START_PLAYER = { row: 8, col: 4 };
@@ -24,32 +28,80 @@ const copy = {
     botTurn: "BOT CALCULATING",
     won: "ROUTE COMPLETE. YOU WIN.",
     lost: "BOT REACHED YOUR EDGE.",
-    invalid: "That wall blocks a route or overlaps another wall.",
-    walls: "walls left",
+    invalid: "That wall overlaps another wall or seals off a route.",
+    you: "YOU",
+    bot: "BOT",
+    move: "move",
+    wallH: "wall ↔",
+    wallV: "wall ↕",
+    wallsLeft: "walls",
+    mode: "Board mode",
+    moveHelp: "Tap a highlighted cell to step toward the top.",
+    wallHelp: "Tap a pink gap to place a wall. Every route must stay open.",
     reset: "new match",
-    help: "Click a highlighted cell to move, or click any gap between cells to place a wall.",
+    playerTarget: "YOUR FINISH",
+    botTarget: "BOT FINISH",
+    row: "ROW",
+    top: "01",
+    bottom: "09",
+    board: "Wallz 9 by 9 board",
+    rowLabel: "row",
+    colLabel: "col",
+    legal: "legal move",
   },
   ru: {
-    goal: "Доберись до розового края раньше, чем бот до твоего.",
+    goal: "Доберись до верхнего розового края раньше, чем бот дойдёт до твоего.",
     yourTurn: "ТВОЙ ХОД",
     botTurn: "БОТ СЧИТАЕТ",
     won: "МАРШРУТ ЗАВЕРШЁН. ПОБЕДА.",
     lost: "БОТ ДОШЁЛ ДО ТВОЕГО КРАЯ.",
     invalid: "Стена перекрывает путь или накладывается на другую.",
-    walls: "стен осталось",
+    you: "ТЫ",
+    bot: "БОТ",
+    move: "движение",
+    wallH: "стена ↔",
+    wallV: "стена ↕",
+    wallsLeft: "стен",
+    mode: "Режим доски",
+    moveHelp: "Нажми на подсвеченную клетку, чтобы шагнуть вверх.",
+    wallHelp: "Нажми на розовый разрыв между клетками. Маршрут должен остаться открытым.",
     reset: "новый матч",
-    help: "Нажмите на подсвеченную клетку для хода или на промежуток между клетками для установки стены.",
+    playerTarget: "ТВОЙ ФИНИШ",
+    botTarget: "ФИНИШ БОТА",
+    row: "РЯД",
+    top: "01",
+    bottom: "09",
+    board: "Доска Wallz 9 на 9",
+    rowLabel: "ряд",
+    colLabel: "колонка",
+    legal: "можно ходить",
   },
   ko: {
-    goal: "봇보다 먼저 반대편 분홍색 가장자리에 도달하세요.",
+    goal: "봇이 내 가장자리에 도달하기 전에 위쪽 분홍색 가장자리에 먼저 도착하세요.",
     yourTurn: "내 차례",
     botTurn: "봇 계산 중",
     won: "경로 완료. 승리했습니다.",
     lost: "봇이 내 가장자리에 도달했습니다.",
     invalid: "경로를 막거나 다른 벽과 겹치는 벽입니다.",
-    walls: "벽 남음",
+    you: "나",
+    bot: "봇",
+    move: "이동",
+    wallH: "벽 ↔",
+    wallV: "벽 ↕",
+    wallsLeft: "벽",
+    mode: "보드 모드",
+    moveHelp: "강조된 칸을 눌러 위쪽으로 이동하세요.",
+    wallHelp: "분홍색 틈을 눌러 벽을 세우세요. 모든 경로는 열려 있어야 합니다.",
     reset: "새 게임",
-    help: "이동할 칸을 누르거나 칸 사이의 간격을 눌러 벽을 세우세요.",
+    playerTarget: "내 결승선",
+    botTarget: "봇 결승선",
+    row: "행",
+    top: "01",
+    bottom: "09",
+    board: "Wallz 9x9 보드",
+    rowLabel: "행",
+    colLabel: "열",
+    legal: "이동 가능",
   },
 } satisfies Record<ArcadeLanguage, Record<string, string>>;
 
@@ -171,30 +223,66 @@ export function WallzGame({ language }: { language: ArcadeLanguage }) {
   const [playerWalls, setPlayerWalls] = useState(10);
   const [botWalls, setBotWalls] = useState(10);
   const [turn, setTurn] = useState<Turn>("player");
+  const [mode, setMode] = useState<Mode>("move");
   const [winner, setWinner] = useState<Turn | null>(null);
   const [notice, setNotice] = useState("");
-  const moves = turn === "player" && !winner ? legalMoves(player, bot, walls) : [];
+  const [lastWall, setLastWall] = useState<Wall | null>(null);
+  const [lastMove, setLastMove] = useState<LastMove | null>(null);
+  const [hoverWall, setHoverWall] = useState<Wall | null>(null);
+
+  const canAct = turn === "player" && !winner;
+  const moves = canAct && mode === "move" ? legalMoves(player, bot, walls) : [];
+
+  const wallFromPoint = (clientX: number, clientY: number, board: DOMRect): Wall | null => {
+    if (mode !== "h" && mode !== "v") return null;
+    const track = board.width / 17;
+    const col = Math.max(0, Math.min(7, Math.round(((clientX - board.left) / track - 1.5) / 2)));
+    const row = Math.max(0, Math.min(7, Math.round(((clientY - board.top) / track - 1.5) / 2)));
+    return { row, col, orientation: mode };
+  };
+
+  const handleBoardClick = (event: ReactMouseEvent<HTMLDivElement>) => {
+    if (!canAct || mode === "move") return;
+    const wall = wallFromPoint(event.clientX, event.clientY, event.currentTarget.getBoundingClientRect());
+    if (wall && playerWalls > 0) placePlayerWall(wall);
+  };
+
+  const handleBoardMove = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (!canAct || mode === "move") {
+      setHoverWall(null);
+      return;
+    }
+    const wall = wallFromPoint(event.clientX, event.clientY, event.currentTarget.getBoundingClientRect());
+    if (wall && playerWalls > 0 && canPlaceWall(wall, walls, player, bot)) setHoverWall(wall);
+    else setHoverWall(null);
+  };
 
   useEffect(() => {
     if (turn !== "bot" || winner) return;
     const timer = window.setTimeout(() => {
+      setNotice("");
       const wall = botWalls > 0 ? chooseBotWall(walls, player, bot) : null;
       if (wall) {
         setWalls((current) => [...current, wall]);
         setBotWalls((count) => count - 1);
+        setLastWall(wall);
         setTurn("player");
         return;
       }
 
       const options = legalMoves(bot, player, walls);
+      if (!options.length) {
+        setTurn("player");
+        return;
+      }
       const next = options.reduce((best, option) => {
         const distance = shortestPath(option, 8, walls);
         const bestDistance = shortestPath(best, 8, walls);
         if (distance !== bestDistance) return distance < bestDistance ? option : best;
         return Math.abs(option.col - 4) < Math.abs(best.col - 4) ? option : best;
       }, options[0]);
-      if (!next) return;
       setBot(next);
+      setLastMove({ position: next, side: "bot" });
       if (next.row === 8) setWinner("bot");
       else setTurn("player");
     }, 520);
@@ -208,35 +296,100 @@ export function WallzGame({ language }: { language: ArcadeLanguage }) {
     setPlayerWalls(10);
     setBotWalls(10);
     setTurn("player");
+    setMode("move");
     setWinner(null);
     setNotice("");
+    setLastWall(null);
+    setLastMove(null);
+    setHoverWall(null);
   };
 
   const movePlayer = (position: Position) => {
-    if (turn !== "player" || winner || !moves.some((move) => samePosition(move, position))) return;
+    if (!canAct || mode !== "move" || !moves.some((move) => samePosition(move, position))) return;
     setNotice("");
     setPlayer(position);
+    setLastMove({ position, side: "player" });
     if (position.row === 0) setWinner("player");
     else setTurn("bot");
   };
 
   const placePlayerWall = (wall: Wall) => {
-    if (turn !== "player" || winner || playerWalls <= 0) return;
-    if (!canPlaceWall(wall, walls, player, bot)) {
+    if (!canAct || mode === "move" || playerWalls <= 0) return;
+    if (wall.orientation !== mode || !canPlaceWall(wall, walls, player, bot)) {
       setNotice(text.invalid);
       return;
     }
     setNotice("");
     setWalls((current) => [...current, wall]);
     setPlayerWalls((count) => count - 1);
+    setLastWall(wall);
     setTurn("bot");
   };
 
+  const stateLabel = winner === "player"
+    ? text.won
+    : winner === "bot"
+      ? text.lost
+      : turn === "player"
+        ? text.yourTurn
+        : text.botTurn;
+  const isLastMove = (position: Position) => Boolean(lastMove && samePosition(lastMove.position, position));
+  const turnClass = winner ? "is-finished" : turn === "bot" ? "is-thinking" : "is-player";
+
   return (
     <div className="wallz-layout">
-      <div className="wallz-board-wrap">
-        <div className="wallz-goal wallz-goal-bot">YOUR TARGET / ROW 0</div>
-        <div className="wallz-board" role="grid" aria-label="Wallz 9 by 9 board">
+      <div className="wallz-stage">
+        <div className="wallz-toolbar">
+          <div className="wallz-mode" role="group" aria-label={text.mode}>
+            <button
+              type="button"
+              aria-pressed={mode === "move"}
+              disabled={!canAct}
+              onClick={() => { setMode("move"); setNotice(""); }}
+            >
+              {text.move}
+            </button>
+            <button
+              type="button"
+              aria-pressed={mode === "h"}
+              disabled={!canAct || playerWalls <= 0}
+              onClick={() => { setMode("h"); setNotice(""); }}
+            >
+              {text.wallH}
+            </button>
+            <button
+              type="button"
+              aria-pressed={mode === "v"}
+              disabled={!canAct || playerWalls <= 0}
+              onClick={() => { setMode("v"); setNotice(""); }}
+            >
+              {text.wallV}
+            </button>
+            <span className="wallz-mode__count" aria-label={`${playerWalls} ${text.wallsLeft}`}>
+              {playerWalls}<small>{text.wallsLeft}</small>
+            </span>
+          </div>
+          <div className={`wallz-toolbar__right`}>
+            <span className={`wallz-turn ${turnClass}`} aria-live="polite"><i />{stateLabel}</span>
+            <button type="button" className="wallz-reset" onClick={reset} aria-label={text.reset} title={text.reset}>
+              <RotateCcw width={14} height={14} aria-hidden="true" />
+            </button>
+          </div>
+        </div>
+
+        <div className="wallz-goal wallz-goal--top">
+          <span>{text.playerTarget}</span>
+          <b>{text.row} {text.top}</b>
+        </div>
+
+        <div
+          className={`wallz-board ${mode !== "move" && canAct ? "is-wall-mode" : ""}`}
+          role="group"
+          aria-label={text.board}
+          onClick={handleBoardClick}
+          onPointerMove={handleBoardMove}
+          onPointerLeave={() => setHoverWall(null)}
+        >
           {Array.from({ length: SIZE * SIZE }, (_, index) => {
             const position = { row: Math.floor(index / SIZE), col: index % SIZE };
             const isPlayer = samePosition(position, player);
@@ -246,59 +399,100 @@ export function WallzGame({ language }: { language: ArcadeLanguage }) {
               <button
                 key={`cell-${position.row}-${position.col}`}
                 type="button"
-                className={`wallz-cell ${position.row === 0 ? "is-player-goal" : ""} ${position.row === 8 ? "is-bot-goal" : ""} ${isMove ? "is-move" : ""}`}
+                className={`wallz-cell ${position.row === 0 ? "is-player-goal" : ""} ${position.row === 8 ? "is-bot-goal" : ""} ${isMove ? "is-move" : ""} ${isLastMove(position) ? "is-last" : ""}`}
                 style={{ gridRow: position.row * 2 + 1, gridColumn: position.col * 2 + 1 }}
                 onClick={() => movePlayer(position)}
                 disabled={!isMove}
-                aria-label={`row ${position.row + 1}, col ${position.col + 1}${isMove ? ", legal move" : ""}`}
+                aria-label={`${text.rowLabel} ${position.row + 1}, ${text.colLabel} ${position.col + 1}${isMove ? `, ${text.legal}` : ""}`}
               >
-                {isPlayer ? <span className="wallz-pawn is-player">P</span> : null}
-                {isBot ? <span className="wallz-pawn is-bot">B</span> : null}
+                {isPlayer ? <span className="wallz-pawn is-player" aria-hidden="true">P</span> : null}
+                {isBot ? <span className="wallz-pawn is-bot" aria-hidden="true">B</span> : null}
               </button>
             );
           })}
+
           {Array.from({ length: 64 }, (_, index) => {
             const row = Math.floor(index / 8);
             const col = index % 8;
             return (["h", "v"] as const).map((orientation) => {
               const wall: Wall = { row, col, orientation };
               const placed = walls.some((item) => item.row === row && item.col === col && item.orientation === orientation);
-              const valid = turn === "player" && !winner && playerWalls > 0 && !placed && canPlaceWall(wall, walls, player, bot);
+              const valid = mode === orientation && canAct && playerWalls > 0 && !placed && canPlaceWall(wall, walls, player, bot);
+              if (!placed && !valid) return null;
+
+              const lineStyle = orientation === "h"
+                ? { gridRow: row * 2 + 2, gridColumn: `${col * 2 + 1} / span 3` }
+                : { gridRow: `${row * 2 + 1} / span 3`, gridColumn: col * 2 + 2 };
+              const targetStyle = { gridRow: row * 2 + 2, gridColumn: col * 2 + 2 };
+              const isLast = Boolean(lastWall && lastWall.row === row && lastWall.col === col && lastWall.orientation === orientation);
+              const isHover = Boolean(hoverWall && hoverWall.row === row && hoverWall.col === col && hoverWall.orientation === orientation);
+
+              if (placed) {
+                return (
+                  <span
+                    key={`${orientation}-${row}-${col}`}
+                    className={`wallz-wall-line is-${orientation} is-placed ${isLast ? "is-last" : ""}`}
+                    style={lineStyle}
+                    aria-hidden="true"
+                  />
+                );
+              }
 
               return (
-                <button
-                  key={`${orientation}-${row}-${col}`}
-                  type="button"
-                  disabled={!valid && !placed}
-                  className={`wallz-wall-slot is-${orientation} ${placed ? "is-placed" : ""} ${valid ? "is-valid" : ""}`}
-                  style={orientation === "h"
-                    ? { gridRow: row * 2 + 2, gridColumn: `${col * 2 + 1} / span 3` }
-                    : { gridRow: `${row * 2 + 1} / span 3`, gridColumn: col * 2 + 2 }}
-                  onClick={() => placePlayerWall(wall)}
-                  title={placed ? "Wall" : valid ? `Place ${orientation === "h" ? "horizontal" : "vertical"} wall` : undefined}
-                  aria-label={`Wall slot row ${row + 1}, col ${col + 1}`}
-                />
+                <Fragment key={`${orientation}-${row}-${col}`}>
+                  <span
+                    className={`wallz-wall-line is-${orientation} is-valid ${isHover ? "is-hover" : ""}`}
+                    style={lineStyle}
+                    aria-hidden="true"
+                  />
+                  <button
+                    type="button"
+                    className={`wallz-wall-target is-${orientation}`}
+                    style={targetStyle}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      placePlayerWall(wall);
+                    }}
+                    onMouseEnter={() => setHoverWall(wall)}
+                    onMouseLeave={() => setHoverWall(null)}
+                    onFocus={() => setHoverWall(wall)}
+                    onBlur={() => setHoverWall(null)}
+                    title={orientation === "h" ? text.wallH : text.wallV}
+                    aria-label={`${orientation === "h" ? text.wallH : text.wallV}, ${text.rowLabel} ${row + 1}, ${text.colLabel} ${col + 1}`}
+                  />
+                </Fragment>
               );
             });
           })}
+
+          {winner ? (
+            <div className={`wallz-result is-${winner}`} role="status">
+              <span className="wallz-result__kanji" aria-hidden="true">{winner === "player" ? "勝" : "負"}</span>
+              <strong>{winner === "player" ? text.won : text.lost}</strong>
+              <button type="button" className="arcade-button is-primary" onClick={reset}>
+                <RotateCcw width={14} height={14} aria-hidden="true" />
+                {text.reset}
+              </button>
+            </div>
+          ) : null}
         </div>
-        <div className="wallz-goal wallz-goal-player">BOT TARGET / ROW 8</div>
+
+        <div className="wallz-goal wallz-goal--bottom">
+          <span>{text.botTarget}</span>
+          <b>{text.row} {text.bottom}</b>
+        </div>
       </div>
 
-      <aside className="game-side-panel">
+      <aside className="game-side-panel wallz-panel">
         <p className="arcade-command"><span>&gt;</span> wallz --mode bot</p>
         <h2>WALLZ</h2>
         <p>{text.goal}</p>
-        <div className={`game-state-line ${winner ? "is-finished" : ""}`} aria-live="polite">
-          {winner === "player" ? text.won : winner === "bot" ? text.lost : turn === "player" ? text.yourTurn : text.botTurn}
-        </div>
         <div className="wallz-stats">
-          <span>YOU <b>{playerWalls}</b> {text.walls}</span>
-          <span>BOT <b>{botWalls}</b> {text.walls}</span>
+          <span><i className="is-player" />{text.you}<b>{playerWalls}</b></span>
+          <span><i className="is-bot" />{text.bot}<b>{botWalls}</b></span>
         </div>
-        <p className="game-help">{text.help}</p>
-        {notice ? <p className="game-notice">[ERR] {notice}</p> : null}
-        <button type="button" className="arcade-button" onClick={reset}>./{text.reset}</button>
+        <p className="game-help">{mode === "move" ? text.moveHelp : text.wallHelp}</p>
+        {notice ? <p className="game-notice">{notice}</p> : null}
       </aside>
     </div>
   );
