@@ -1,4 +1,4 @@
-export const languages = ["en", "ru", "ko"] as const;
+export const languages = ["ru", "en", "ko"] as const;
 export type Language = (typeof languages)[number];
 
 export type Article = {
@@ -11,6 +11,21 @@ export type Article = {
   redacted: string[];
 };
 
+export type Project = {
+  name: string;
+  description: string;
+  stack: string[];
+  url: string;
+  status: "stable" | "wip";
+  stars?: number;
+  pushedAt?: string;
+};
+
+export type StackGroup = {
+  name: string;
+  items: string[];
+};
+
 export type TerminalAction =
   | "about"
   | "arcade"
@@ -20,6 +35,7 @@ export type TerminalAction =
   | "github"
   | "help"
   | "hobbies"
+  | "music"
   | "message"
   | "miyabi"
   | "projects"
@@ -27,7 +43,8 @@ export type TerminalAction =
   | "2fa"
   | "snake"
   | "wallz"
-  | "chat";
+  | "chat"
+  | "lang";
 
 export type TerminalCommand = {
   name: string;
@@ -35,17 +52,4 @@ export type TerminalCommand = {
   description: string;
   action: TerminalAction;
   quick?: boolean;
-};
-
-export type Project = {
-  name: string;
-  description: string;
-  stack: string[];
-  url: string;
-  status: "stable" | "wip";
-};
-
-export type StackGroup = {
-  name: string;
-  items: string[];
 };

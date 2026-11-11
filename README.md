@@ -1,101 +1,160 @@
-<div align="center">
+# mikhailfur
 
-  <!-- Header Typing SVG -->
-  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=600&size=26&pause=1000&color=6366F1&center=true&vCenter=true&width=600&height=60&lines=%D0%9F%D1%80%D0%B8%D0%B2%D0%B5%D1%82!+%D0%AF+%D0%9C%D0%B8%D1%85%D0%B0%D0%B8%D0%BB+(MikhailFur)+%F0%9F%90%8B;AI+%26+Web+Developer+%F0%9F%A4%96;Open+Source+Explorer+%F0%9F%9A%80" alt="Typing SVG" />
+Портфолио Mikhail Fur: AI-инструменты, веб-проекты и заметки из Сеула. Один длинный лендинг с терминалом, галереей, аркадой и локальным 2FA-блокнотом. Интерфейс на русском, английском и корейском.
 
-  <p align="center">
-    <b>Разработчик • AI-исследователь • Создатель открытых инструментов</b>
-  </p>
+![Портфолио](./public/og.png)
 
-  <!-- Quick Badges -->
-  <p align="center">
-    <a href="https://mikhailfur.ru">
-      <img src="https://img.shields.io/badge/Website-mikhailfur.ru-6366F1?style=for-the-badge&logo=google-chrome&logoColor=white" alt="Website" />
-    </a>
-    <a href="mailto:me@mikhailfur.ru">
-      <img src="https://img.shields.io/badge/Email-me%40mikhailfur.ru-EA4335?style=for-the-badge&logo=gmail&logoColor=white" alt="Email" />
-    </a>
-    <a href="https://github.com/mikhailfur">
-      <img src="https://img.shields.io/badge/GitHub-mikhailfur-181717?style=for-the-badge&logo=github&logoColor=white" alt="GitHub" />
-    </a>
-  </p>
+## Что внутри
 
-</div>
+- **Терминал** с командами `help`, `about`, `works`, `stack`, `notes`, `gallery`, `play`, `music`, `lang`, `message`, `2fa`, `clear`. История и автодополнение по Tab.
+- **Miyabi**, лиса-ассистент: чат через OpenRouter, опциональный голос через MiniMax T2A. Может открыть нужную секцию или включить аркаду.
+- **Галерея Civitai** с возрастным гейтом 19+, фильтрами, поиском, лайтбоксом и копированием промпта.
+- **Аркада**: змейка, Wallz и анонимная чат-рулетка на Upstash Redis. Сообщения живут час.
+- **Заметки** из Markdown с frontmatter, архивом, ридером и локализованными версиями.
+- **2FA-блокнот**: TOTP-коды считаются в браузере, секреты не уходят на сервер. Страница закрыта от индексации и отдаётся с отдельным CSP.
+- **Командная палитра** по `Cmd/Ctrl + K`: секции, заметки, языки, GitHub, Telegram, запуск игр.
+- **Мелочи**: возрастной гейт, лепестки сакуры, звук, ночные секции, страницы 404/500/503, режим обслуживания.
 
----
+## Стек
 
-### 👋 Обо мне / About Me
+Next.js 16 (App Router, Turbopack), React 19, TypeScript, Tailwind CSS 4, Radix UI, Upstash Redis, Vercel Analytics (опционально).
 
-Привет! Я **Михаил** — студент, разработчик и исследователь практических инструментов на стыке **Web-разработки**, **локального AI** и **автоматизации**.
+Шрифты: Unbounded, Onest и JetBrains Mono через `next/font`; Black Han Sans, Gothic A1 и Zen Old Mincho через Fontsource. Для хангыля отдельная пара Black Han Sans / Gothic A1, для акцентных надписей — Zen Old Mincho.
 
-- 🤖 **AI & Local LLM**: Изучаю интеграцию локальных моделей (Ollama, LM Studio), prompt engineering, генерацию изображений (SDXL) и AI-агентов.
-- 💻 **Web Development**: Создаю современные интерфейсы и веб-сервисы на Next.js, React и TypeScript.
-- 🛠️ **Dev & Automation**: Настраиваю self-hosted сервисы (Docker, Dokploy), автоматизирую процессы и развиваю открытый код.
-- 📓 **mikhail_fur**: Веду личную публичную лабораторию и полевые заметки о технологиях, экспериментах и решениях.
+## Быстрый старт
 
----
+Нужны Node.js 22.13 или новее и pnpm.
 
-### 🛠️ Технологический стек / Tech Stack
+```bash
+git clone https://github.com/mikhailfur/mikhailfur.git
+cd mikhailfur
+cp .env.example .env.local
+pnpm install
+pnpm dev
+```
 
-<p align="left">
-  <strong>Web & Frontend</strong><br />
-  <img src="https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=nextdotjs&logoColor=white" alt="Next.js" />
-  <img src="https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" alt="React" />
-  <img src="https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" />
-  <img src="https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black" alt="JavaScript" />
-  <img src="https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="Tailwind CSS" />
-  <img src="https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white" alt="HTML5" />
-</p>
+Сайт откроется на [http://localhost:3000](http://localhost:3000). Без переменных окружения работают все статические секции, терминал, галерея и 2FA. Чату Miyabi нужен ключ OpenRouter, чат-рулетке в продакшене нужен Upstash.
 
-<p align="left">
-  <strong>Backend & Infrastructure</strong><br />
-  <img src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python" />
-  <img src="https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white" alt="Node.js" />
-  <img src="https://img.shields.io/badge/NestJS-E0234E?style=for-the-badge&logo=nestjs&logoColor=white" alt="NestJS" />
-  <img src="https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker" />
-  <img src="https://img.shields.io/badge/Linux-FCC624?style=for-the-badge&logo=linux&logoColor=black" alt="Linux" />
-  <img src="https://img.shields.io/badge/Git-F05032?style=for-the-badge&logo=git&logoColor=white" alt="Git" />
-</p>
+## Переменные окружения
 
-<p align="left">
-  <strong>AI Lab & Tools</strong><br />
-  <img src="https://img.shields.io/badge/Ollama-000000?style=for-the-badge&logo=ollama&logoColor=white" alt="Ollama" />
-  <img src="https://img.shields.io/badge/LM_Studio-6366F1?style=for-the-badge&logo=cpu&logoColor=white" alt="LM Studio" />
-  <img src="https://img.shields.io/badge/SDXL-8B5CF6?style=for-the-badge&logo=generative-ai&logoColor=white" alt="SDXL" />
-  <img src="https://img.shields.io/badge/Gradio-FF5500?style=for-the-badge&logo=gradio&logoColor=white" alt="Gradio" />
-  <img src="https://img.shields.io/badge/OpenRouter-0052CC?style=for-the-badge&logo=openai&logoColor=white" alt="OpenRouter" />
-</p>
+Скопируй `.env.example` в `.env.local` и заполни то, что нужно. Пустые публичные ссылки просто не показываются в контактах.
 
----
+| Переменная | Зачем |
+| --- | --- |
+| `NEXT_PUBLIC_SITE_URL` | Канонический адрес сайта для метаданных и OG-картинки. По умолчанию `https://mikhailfur.ru`. |
+| `NEXT_PUBLIC_GITHUB_USERNAME` | GitHub-аккаунт для списка проектов. По умолчанию `mikhailfur`. |
+| `NEXT_PUBLIC_GITHUB_URL`, `NEXT_PUBLIC_TELEGRAM_URL` | Основные ссылки в контактах и палитре. |
+| `NEXT_PUBLIC_DISCORD_URL`, `NEXT_PUBLIC_KAKAOTALK_URL`, `NEXT_PUBLIC_VK_URL`, `NEXT_PUBLIC_TWITCH_URL`, `NEXT_PUBLIC_XBOX_URL` | Дополнительные контакты. Оставь пустыми, если сервиса нет. |
+| `CIVITAI_USERNAME` | Автор работ в галерее. `NEXT_PUBLIC_CIVITAI_USERNAME` работает как запасной вариант. |
+| `OPENROUTER_API_KEY` | Чат Miyabi и `pnpm article:translate`. |
+| `OPENROUTER_MODEL` | Модель OpenRouter. По умолчанию `google/gemma-4-31b-it`. |
+| `MINIMAX_API_KEY` | Голос Miyabi через MiniMax T2A. Без ключа чат работает текстом. |
+| `MINIMAX_VOICE_ID`, `MINIMAX_TTS_MODEL` | Голос и модель TTS. |
+| `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` | Команда `message` в терминале. Бот должен уже иметь чат с тобой. |
+| `YANDEX_MUSIC_TOKEN` | Плашка «сейчас играет» из Yandex Music. |
+| `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` | Лимиты Miyabi и общий чат-рулетки. В разработке рулетка работает в памяти процесса. |
+| `MAINTENANCE` | `true` включает страницу 503 для всех маршрутов. Кука `devMode=true` обходит режим. |
+| `NEXT_PUBLIC_ANALYTICS` | `true` включает Vercel Analytics. Работает только на Vercel, по умолчанию выключено. |
 
-### 🚀 Избранные проекты / Featured Projects
+Приватные ключи не попадают в клиентский бандл: обращения к OpenRouter, MiniMax, Telegram и Yandex идут через route handlers в `src/app/api`.
 
-| Проект | Описание | Стек |
-| :--- | :--- | :--- |
-| 😻 **[morganai](https://github.com/mikhailfur/morganai)** | LLM NSFW ИИ-чат бот платформа | `Next.js` `TypeScript` `OpenRouter` `MiniMax TTS` |
-| 🦄 **[alyabot](https://github.com/mikhailfur/alyabot)** | ИИ ассистент Аля из аниме Аля кокетничает со мной по-русски | `telegraf` `TypeScript` `Google AI` `MiniMax TTS` |
-| 🤖 **[sd-webui-ai-wdywfm](https://github.com/mikhailfur/sd-webui-ai-wdywfm)** | AI-помощник, превращающий идею в аккуратный prompt для Stable Diffusion WebUI. | `Python` `Gradio` `LM Studio` `SDXL` |
-| 🖥️ **[mikhailfur](https://github.com/mikhailfur/mikhailfur)** | Личная публичная лаборатория и портфолио с интерактивным терминалом. | `Next.js` `TypeScript` `Tailwind` |
+## Скрипты
 
----
+```bash
+pnpm dev            # разработка
+pnpm build          # production-сборка
+pnpm start          # запуск собранного сайта
+pnpm lint           # ESLint
+pnpm typecheck      # tsc --noEmit
+pnpm article:translate  # перевести недостающие статьи на en и ko
+```
 
-### 📊 Статистика GitHub / GitHub Stats
+`article:translate` читает `.env.local` или `.env`, берёт русские файлы `src/data/articles/*.ru.md` и создаёт `*.en.md` / `*.ko.md`, если их ещё нет. Нужен `OPENROUTER_API_KEY`.
 
-<div align="center">
-  <img height="180em" src="https://github-profile-summary-cards.vercel.app/api/cards/profile-details?username=mikhailfur&theme=gruvbox&animation=draw&name=mikhailfur" alt="GitHub Stats" />
-  <img height="180em" src="https://github-profile-summary-cards.vercel.app/api/cards/repos-per-language?username=mikhailfur&theme=gruvbox&animation=draw" alt="Top Languages" />
-</div>
+Отдельный редактор статей остался в `tools/article-editor/index.html`. Это автономная HTML-страница: открой её в браузере, заполни метаданные и скачай готовый Markdown. Сервер и сборка ей не нужны.
 
----
+## Маршруты
 
-### 📬 Связаться со мной / Connect with me
+| Путь | Что это |
+| --- | --- |
+| `/` | Портфолио: hero, about, works, stack, notes, gallery, play, terminal, contact. |
+| `/2fa` | Локальный TOTP-блокнот. `noindex`, отдельный CSP, без аналитики. |
+| `/play` | Редирект на `/#play`. |
+| `/error-pages/[code]` | Страницы 404, 500, 501, 502, 503. |
+| `/api/projects` | Свежие репозитории GitHub с fallback-списком. |
+| `/api/civitai` | Работы из Civitai с возрастным рейтингом. |
+| `/api/miyabi` | Чат и TTS Miyabi. |
+| `/api/music` | Текущий трек Yandex Music. |
+| `/api/message` | Сообщение в Telegram из терминала. |
+| `/api/stranger-chat` | Комнаты анонимной чат-рулетки. |
 
-<p align="center">
-  🌐 <b>Website:</b> <a href="https://mikhailfur.ru">mikhailfur.ru</a> &nbsp;|&nbsp;
-  📧 <b>Email:</b> <a href="mailto:me@mikhailfur.ru">me@mikhailfur.ru</a> &nbsp;|&nbsp;
-  💻 <b>GitHub:</b> <a href="https://github.com/mikhailfur">@mikhailfur</a>
-</p>
+## Деплой
 
-<div align="center">
-  <sub>© MikhailFur • Built with passion for open source and AI</sub>
-</div>
+1. Залей репозиторий на GitHub и импортируй его в Vercel.
+2. Framework preset: Next.js. Install command: `pnpm install`. Build command: `pnpm build`. Node.js 22.
+3. Добавь переменные из `.env.example`. Минимум для полноценного сайта: `NEXT_PUBLIC_SITE_URL`, `NEXT_PUBLIC_GITHUB_USERNAME`, `CIVITAI_USERNAME`. Для Miyabi: `OPENROUTER_API_KEY`. Для чат-рулетки в продакшене: `UPSTASH_REDIS_REST_URL` и `UPSTASH_REDIS_REST_TOKEN`.
+4. Если нужна аналитика, поставь `NEXT_PUBLIC_ANALYTICS=true`. На других хостингах Vercel Analytics не работает.
+5. Для своего домена поменяй `NEXT_PUBLIC_SITE_URL` и пересобери проект.
+
+Локальная проверка production-сборки:
+
+```bash
+pnpm build
+PORT=3001 pnpm start
+```
+
+## Данные
+
+- **Проекты** приходят из GitHub API и кэшируются на час. Если API недоступен, показывается список из `src/data/projects.ts`.
+- **Статьи** лежат в `src/data/articles/` как Markdown с frontmatter. Лоадер собирает русскую, английскую и корейскую версии по суффиксу `.ru.md`, `.en.md`, `.ko.md`.
+- **Галерея** тянет работы с Civitai по имени автора. 19+ контент размыт до подтверждения возраста, выбор хранится в `localStorage`.
+- **Тексты интерфейса** собраны в `src/data/site.ts`. Три словаря типизированы от русского, так что пропущенный ключ ловится на `pnpm typecheck`.
+
+## Приватность и безопасность
+
+2FA-блокнот хранит секреты только в `localStorage` браузера. Коды считаются через Web Crypto, на сервер ничего не отправляется. Страница `/2fa` отдаётся с `no-store`, `no-referrer`, запретом фреймов и строгим CSP.
+
+Галерея содержит взрослые работы. Гейт 19+ не защищает детей. Это честная проверка возраста для посетителя. Не отключай размытие на публичных экранах.
+
+Пароли, токены и ключи не коммить. `.env`, `.env.local`, `.data` и `.vercel` уже в `.gitignore`.
+
+## Структура
+
+```text
+src/
+  app/                 маршруты, metadata, API, proxy
+  components/
+    site/              секции лендинга, палитра, терминал, Miyabi
+    brand/             лиса и энсо
+    ui/                Radix-обёртки
+    twofa/             TOTP-блокнот
+    arcade/            игры
+  data/                тексты, проекты, статьи, промпты
+  lib/                 i18n, чат-рулетка, утилиты
+  styles/              токены и CSS по слоям
+  types/               общие типы
+  utils/               звук
+public/
+  avatar.png           портрет
+  og.png               OG-картинка 1200×630
+  articles/            вложения к статьям
+  texture/             бумажная текстура
+scripts/
+  translate-articles.mjs
+tools/
+  article-editor/
+    index.html
+```
+
+## Контакты
+
+- GitHub: [github.com/mikhailfur](https://github.com/mikhailfur)
+- Telegram: [@dataisnotfound](https://t.me/dataisnotfound)
+- Discord: [mikhail_fur](https://discordapp.com/users/1029691592845578270)
+- Сайт: [mikhailfur.ru](https://mikhailfur.ru)
+
+## Лицензия
+
+GPL-3.0. Подробности в [LICENSE](./LICENSE).
+
+Иконки интерфейса: [Game-icons.net](https://game-icons.net/) (CC BY 3.0) и [Simple Icons](https://simpleicons.org/) (CC0).

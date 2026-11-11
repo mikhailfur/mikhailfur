@@ -5,15 +5,17 @@ const articlesDirectory = path.join(process.cwd(), "src", "data", "articles");
 const targets = ["en", "ko"];
 
 async function loadEnvironmentFile() {
-  try {
-    const source = await readFile(path.join(process.cwd(), ".env"), "utf8");
-    for (const line of source.split(/\r?\n/)) {
-      const match = line.match(/^\s*([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)\s*$/);
-      if (!match || process.env[match[1]] !== undefined) continue;
-      process.env[match[1]] = match[2].replace(/^(["'])(.*)\1$/, "$2");
+  for (const fileName of [".env.local", ".env"]) {
+    try {
+      const source = await readFile(path.join(process.cwd(), fileName), "utf8");
+      for (const line of source.split(/\r?\n/)) {
+        const match = line.match(/^\s*([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)\s*$/);
+        if (!match || process.env[match[1]] !== undefined) continue;
+        process.env[match[1]] = match[2].replace(/^(["'])(.*)\1$/, "$2");
+      }
+    } catch (error) {
+      if (error?.code !== "ENOENT") throw error;
     }
-  } catch (error) {
-    if (error?.code !== "ENOENT") throw error;
   }
 }
 

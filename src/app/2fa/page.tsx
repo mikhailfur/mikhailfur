@@ -1,26 +1,12 @@
 import type { Metadata } from "next";
-import { TerminalBlog } from "@/components/home/terminal-blog";
-import { getLocalizedArticles } from "@/data/articles";
-import { getGithubProjects } from "@/data/github-projects";
+import { TwoFactorNotebook } from "@/components/twofa/twofa-notebook";
 
 export const metadata: Metadata = {
-  title: "2FA TOTP | mikhail_fur",
-  description: "A browser-local TOTP code generator and notebook inside the mikhail_fur terminal.",
+  title: "Блокнот 2FA",
+  description: "Локальный TOTP-блокнот. Коды генерируются в браузере и никуда не отправляются.",
   robots: { index: false, follow: false },
 };
 
-export default async function TwoFactorPage() {
-  const [articlesByLanguage, projects] = await Promise.all([
-    getLocalizedArticles(),
-    getGithubProjects(),
-  ]);
-
-  return (
-    <TerminalBlog
-      articlesByLanguage={articlesByLanguage}
-      initialProjects={projects}
-      initialMode="shell"
-      initialShellSession="2fa"
-    />
-  );
+export default function TwoFactorPage() {
+  return <TwoFactorNotebook />;
 }

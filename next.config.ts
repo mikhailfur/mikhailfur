@@ -9,8 +9,8 @@ const twoFactorCsp = [
   "object-src 'none'",
   `connect-src 'self'${isDevelopment ? " ws:" : ""}`,
   "img-src 'self' data: blob:",
-  "font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net",
-  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net",
+  "font-src 'self'",
+  "style-src 'self' 'unsafe-inline'",
   `script-src 'self' 'unsafe-inline'${isDevelopment ? " 'unsafe-eval'" : ""}`,
 ].join("; ");
 
