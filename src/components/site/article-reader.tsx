@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { ArrowUpRight, Check, Link2, X } from "lucide-react";
 import { useCopy, useLanguage } from "@/lib/i18n";
+import { SiteIcon } from "@/components/icons";
 import { formatArticleDate, readingMinutes } from "@/components/site/notes";
 import { MarkdownBody } from "@/components/site/article-markdown";
 import { Dialog, DialogContent, DialogOverlay, DialogPortal, DialogTitle } from "@/components/ui/dialog";
@@ -66,7 +67,7 @@ export function ArticleReader({
             <div className="reader">
             <div className="reader__bar">
               <span className="reader__bar-label">
-                <span aria-hidden="true">記録</span>
+                <SiteIcon name="notebook" aria-hidden="true" />
                 {copy.notes.title}
               </span>
               <div className="chip-row">
@@ -112,7 +113,7 @@ export function ArticleReader({
 
             <div className="reader__foot">
               <span className="hanko hanko--small" aria-hidden="true">
-                記
+                <SiteIcon name="notebook" />
               </span>
               <button className="text-link" type="button" onClick={onClose}>
                 {copy.notes.back}

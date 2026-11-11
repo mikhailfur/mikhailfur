@@ -8,6 +8,7 @@ import { PetalField } from "@/components/site/petal-field";
 import { Enso } from "@/components/brand/enso";
 import { SeoulTime } from "@/components/site/seoul-time";
 import { MusicPresence } from "@/components/site/music-presence";
+import { SiteIcon } from "@/components/icons";
 
 const TELEGRAM = process.env.NEXT_PUBLIC_TELEGRAM_URL || "https://t.me/dataisnotfound";
 
@@ -28,8 +29,9 @@ export function Hero() {
               <span className="dot dot--live" aria-hidden="true" />
               {copy.hero.metaLocation}
             </span>
-            <span className="jp" aria-hidden="true">
-              狐の手紙 · きつねのてがみ
+            <span className="hero__meta-mark" aria-hidden="true">
+              <SiteIcon name="fox" />
+              {copy.hero.vertical}
             </span>
             <span>{copy.hero.metaYear}</span>
           </div>
@@ -39,7 +41,7 @@ export function Hero() {
             <span className="hero__name-bottom">
               {copy.hero.nameBottom}
               <span className="hanko" aria-hidden="true">
-                狐
+                <SiteIcon name="fox" />
               </span>
             </span>
           </h1>
@@ -88,18 +90,19 @@ export function Hero() {
             </div>
             <figcaption className="portrait__caption">
               <span>{copy.hero.caption}</span>
-              <span aria-hidden="true">02 / 狐</span>
+              <span aria-hidden="true">02 / FOX</span>
             </figcaption>
           </figure>
           <span className="hanko portrait__stamp" aria-hidden="true">
-            狐
+            <SiteIcon name="fox" />
           </span>
           <span className="portrait__tick" aria-hidden="true">
-            きつねのてがみ
+            FOX LETTER
           </span>
         </div>
 
         <div className="hero__vertical" aria-hidden="true">
+          <span className="hero__vertical-mark"><SiteIcon name="fox" /></span>
           <span className="vertical-reading">{copy.hero.verticalReading}</span>
           <span className="vertical-title">{copy.hero.vertical}</span>
         </div>

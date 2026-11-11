@@ -3,16 +3,17 @@
 import Link from "next/link";
 import { ArrowLeft, RefreshCw } from "lucide-react";
 import { useCopy } from "@/lib/i18n";
+import { SiteIcon, type SiteIconName } from "@/components/icons";
 import { useEffect, useState } from "react";
 
 type ErrorCode = 404 | 500 | 501 | 502 | 503;
 
-const KANJI: Record<ErrorCode, string> = {
-  404: "迷子",
-  500: "故障",
-  501: "未実装",
-  502: "門番",
-  503: "休止",
+const MARKS: Record<ErrorCode, SiteIconName> = {
+  404: "fox",
+  500: "cross",
+  501: "gear",
+  502: "shrine",
+  503: "pause",
 };
 
 export function ErrorPage({ code }: { code: ErrorCode }) {
@@ -32,11 +33,11 @@ export function ErrorPage({ code }: { code: ErrorCode }) {
         <div className="utility-head">
           <Link className="brand" href="/">
             <span className="hanko hanko--small" aria-hidden="true">
-              狐
+              <SiteIcon name="fox" />
             </span>
             <span className="brand__text">
               <span className="brand__name">{copy.hero.nameTop} {copy.hero.nameBottom}</span>
-              <span className="brand__sub">error · 迷子</span>
+              <span className="brand__sub">error · fox</span>
             </span>
           </Link>
           <Link className="utility-head__back" href="/">
@@ -49,7 +50,8 @@ export function ErrorPage({ code }: { code: ErrorCode }) {
           <div>
             <p className="error-page__code">{code}</p>
             <p className="error-page__label">
-              {copy.errors.code} {code} · {KANJI[code]}
+              <SiteIcon name={MARKS[code]} aria-hidden="true" />
+              {copy.errors.code} {code}
             </p>
           </div>
 
@@ -94,7 +96,7 @@ export function ErrorPage({ code }: { code: ErrorCode }) {
       </div>
 
       <span className="error-page__vertical" aria-hidden="true">
-        {KANJI[code]}
+        <SiteIcon name={MARKS[code]} />
       </span>
     </main>
   );

@@ -3,6 +3,7 @@
 import { ArrowUpRight } from "lucide-react";
 import { useCopy, useLanguage } from "@/lib/i18n";
 import { SectionHead } from "@/components/site/section-head";
+import { SECTION_ICONS } from "@/components/icons";
 import type { Article, Language } from "@/types/portfolio";
 
 const LOCALES: Record<Language, string> = {
@@ -40,8 +41,8 @@ export function Notes({
     <section id="notes" className="section notes">
       <div className="wrap">
         <SectionHead
-          label={copy.notes.label}
-          reading={copy.notes.reading}
+          icon={SECTION_ICONS.notes}
+          code={copy.notes.reading}
           title={copy.notes.title}
           intro={copy.notes.intro}
           aside={`${articles.length} ${copy.notes.files}`}

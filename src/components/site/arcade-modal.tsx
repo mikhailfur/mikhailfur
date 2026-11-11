@@ -8,12 +8,7 @@ import { SnakeGame } from "@/components/arcade/snake-game";
 import { WallzGame } from "@/components/arcade/wallz-game";
 import { StrangerChat } from "@/components/arcade/stranger-chat";
 import type { ArcadeTab } from "@/components/site/play";
-
-const KANJI: Record<ArcadeTab, string> = {
-  snake: "蛇",
-  wallz: "壁",
-  chat: "話",
-};
+import { ARCADE_ICONS, SiteIcon } from "@/components/icons";
 
 export function ArcadeModal({
   tab,
@@ -53,9 +48,9 @@ export function ArcadeModal({
             <div className="arcade-modal">
               <div className="arcade-modal__head">
                 <div className="arcade-modal__brand">
-                  <span className="arcade-modal__kanji" aria-hidden="true">遊</span>
+                  <span className="arcade-modal__icon" aria-hidden="true"><SiteIcon name="gamepad" /></span>
                   <div>
-                    <span className="arcade-modal__eyebrow">arcade · 遊び</span>
+                    <span className="arcade-modal__eyebrow">arcade · play</span>
                     <DialogTitle asChild>
                       <strong className="arcade-modal__title">{copy.play.arcadeTitle}</strong>
                     </DialogTitle>
@@ -83,7 +78,7 @@ export function ArcadeModal({
                         className="arcade-tab"
                         onClick={() => onTabChange(id)}
                       >
-                        <span className="arcade-tab__kanji" aria-hidden="true">{KANJI[id]}</span>
+                        <span className="arcade-tab__icon" aria-hidden="true"><SiteIcon name={ARCADE_ICONS[id]} /></span>
                         <span className="arcade-tab__label">{item.title}</span>
                         <span className="arcade-tab__index" aria-hidden="true">0{index + 1}</span>
                       </button>

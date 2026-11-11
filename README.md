@@ -1,6 +1,6 @@
 # mikhailfur
 
-Портфолио Михаила Пака: AI-инструменты, веб-проекты и заметки из Сеула. Один длинный лендинг с терминалом, галереей, аркадой и локальным 2FA-блокнотом. Интерфейс на русском, английском и корейском.
+Портфолио Mikhail Fur: AI-инструменты, веб-проекты и заметки из Сеула. Один длинный лендинг с терминалом, галереей, аркадой и локальным 2FA-блокнотом. Интерфейс на русском, английском и корейском.
 
 ![Портфолио](./public/og.png)
 
@@ -19,7 +19,7 @@
 
 Next.js 16 (App Router, Turbopack), React 19, TypeScript, Tailwind CSS 4, Radix UI, Upstash Redis, Vercel Analytics (опционально).
 
-Шрифты: Unbounded, Onest и JetBrains Mono через `next/font`; Black Han Sans, Gothic A1 и Zen Old Mincho через Fontsource. Для хангыля отдельная пара Black Han Sans / Gothic A1, для японских акцентов Zen Old Mincho.
+Шрифты: Unbounded, Onest и JetBrains Mono через `next/font`; Black Han Sans, Gothic A1 и Zen Old Mincho через Fontsource. Для хангыля отдельная пара Black Han Sans / Gothic A1, для акцентных надписей — Zen Old Mincho.
 
 ## Быстрый старт
 
@@ -150,8 +150,11 @@ tools/
 
 - GitHub: [github.com/mikhailfur](https://github.com/mikhailfur)
 - Telegram: [@dataisnotfound](https://t.me/dataisnotfound)
+- Discord: [mikhail_fur](https://discordapp.com/users/1029691592845578270)
 - Сайт: [mikhailfur.ru](https://mikhailfur.ru)
 
 ## Лицензия
 
 GPL-3.0. Подробности в [LICENSE](./LICENSE).
+
+Иконки интерфейса: [Game-icons.net](https://game-icons.net/) (CC BY 3.0) и [Simple Icons](https://simpleicons.org/) (CC0).

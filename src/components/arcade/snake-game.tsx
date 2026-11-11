@@ -9,6 +9,7 @@ import {
   Play,
   RotateCcw,
 } from "lucide-react";
+import { SiteIcon } from "@/components/icons";
 import {
   useCallback,
   useEffect,
@@ -440,7 +441,7 @@ export function SnakeGame({ language }: { language: ArcadeLanguage }) {
     : game.status === "paused"
       ? text.pausedHint
       : text.lostHint;
-  const overlayKanji = game.status === "ready" ? "蛇" : game.status === "paused" ? "休" : "断";
+  const overlayIcon = game.status === "ready" ? "snake" : game.status === "paused" ? "pause" : "cross";
   const PrimaryIcon = game.status === "running" ? Pause : Play;
   const primaryLabel = game.status === "running" ? text.pause : game.status === "paused" ? text.resume : text.start;
 
@@ -475,7 +476,7 @@ export function SnakeGame({ language }: { language: ArcadeLanguage }) {
           />
           {game.status !== "running" ? (
             <div className={`snake-overlay is-${game.status}`} aria-hidden="true">
-              <span className="snake-overlay__kanji">{overlayKanji}</span>
+              <span className="snake-overlay__icon"><SiteIcon name={overlayIcon} /></span>
               <strong>{statusLabel}</strong>
               {game.status === "lost" ? (
                 <span className="snake-overlay__score">{text.score} <b>{scoreLabel(game.score)}</b></span>
@@ -524,6 +525,7 @@ export function SnakeGame({ language }: { language: ArcadeLanguage }) {
           <span><i className="is-self" />{text.self}</span>
         </div>
         <p className="game-help">{text.keys}</p>
+        <SiteIcon name="snake" className="game-side-panel__ghost" aria-hidden="true" />
       </aside>
     </div>
   );

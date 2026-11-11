@@ -562,6 +562,11 @@ html[lang="ko"] .hero-name {
   user-select: none;
 }
 
+.hanko svg {
+  width: 58%;
+  height: 58%;
+}
+
 .hanko--small {
   width: 34px;
   height: 34px;
@@ -798,6 +803,55 @@ html[lang="ko"] .hero-name {
   color: var(--night-sakura);
 }
 
+.section-head__title {
+  display: flex;
+  min-width: 0;
+  align-items: flex-start;
+  gap: clamp(0.7rem, 1.5vw, 1.3rem);
+}
+
+.section-head__mark {
+  position: relative;
+  display: grid;
+  width: 52px;
+  height: 52px;
+  flex: none;
+  place-items: center;
+  border: 1px solid var(--line-strong);
+  background: color-mix(in srgb, var(--paper) 55%, transparent);
+  color: var(--rose);
+}
+
+.section-head__mark > svg {
+  width: 22px;
+  height: 22px;
+}
+
+.section-head__code {
+  position: absolute;
+  right: 4px;
+  bottom: 2px;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.44rem;
+  letter-spacing: 0.02em;
+  line-height: 1;
+}
+
+.section--night .section-head__mark {
+  border-color: var(--night-line-strong);
+  background: color-mix(in srgb, var(--night-soft) 55%, transparent);
+  color: var(--sakura);
+}
+
+.section--night .section-head__code {
+  color: var(--night-muted);
+}
+
+.section-head__title .section-title {
+  margin-top: -0.04em;
+}
+
 .section-head {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr) auto;
@@ -840,6 +894,11 @@ html[lang="ko"] .hero-name {
 @media (max-width: 900px) {
   .section-head {
     grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .section-head__mark {
+    width: 44px;
+    height: 44px;
   }
 
   .section-intro {
@@ -928,16 +987,6 @@ html[lang="ko"] .hero-name {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
-}
-
-.section-head__title {
-  display: flex;
-  align-items: flex-start;
-  gap: clamp(0.7rem, 1.5vw, 1.3rem);
-}
-
-.section-head__title .section-title {
-  margin-top: -0.04em;
 }
 
 section[id],

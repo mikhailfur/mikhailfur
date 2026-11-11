@@ -3,9 +3,9 @@
 import { ArrowUpRight } from "lucide-react";
 import { useCopy } from "@/lib/i18n";
 import { SectionHead } from "@/components/site/section-head";
+import { SECTION_ICONS, SiteIcon, technologyIcon } from "@/components/icons";
 import type { Project } from "@/types/portfolio";
 
-const INDEX = ["一", "二", "三", "四", "五", "六"];
 const GITHUB = process.env.NEXT_PUBLIC_GITHUB_URL || "https://github.com/mikhailfur";
 
 export function Works({ projects }: { projects: Project[] }) {
@@ -15,8 +15,8 @@ export function Works({ projects }: { projects: Project[] }) {
     <section id="works" className="section works">
       <div className="wrap">
         <SectionHead
-          label={copy.works.label}
-          reading={copy.works.reading}
+          icon={SECTION_ICONS.works}
+          code={copy.works.reading}
           title={copy.works.title}
           intro={copy.works.intro}
           aside={copy.works.source}
@@ -34,7 +34,7 @@ export function Works({ projects }: { projects: Project[] }) {
                 aria-label={`${project.name} — ${copy.works.view}`}
               >
                 <span className="work__index" aria-hidden="true">
-                  {INDEX[index] ?? String(index + 1)}
+                  {String(index + 1).padStart(2, "0")}
                 </span>
                 <div>
                   <h3 className="work__title">{project.name}</h3>
@@ -43,6 +43,7 @@ export function Works({ projects }: { projects: Project[] }) {
                 <div className="work__stack" aria-label={copy.stack.title}>
                   {project.stack.map((item) => (
                     <span className="work__tag" key={item}>
+                      <SiteIcon name={technologyIcon(item)} />
                       {item}
                     </span>
                   ))}
@@ -61,7 +62,10 @@ export function Works({ projects }: { projects: Project[] }) {
         )}
 
         <div className="works__foot">
-          <span>GitHub · @mikhailfur</span>
+          <span className="works__source">
+            <SiteIcon name="github" />
+            GitHub · @mikhailfur
+          </span>
           <a className="text-link" href={GITHUB} target="_blank" rel="noreferrer">
             {copy.works.all}
             <ArrowUpRight width={14} height={14} aria-hidden="true" />

@@ -2,6 +2,7 @@
 
 import { useCopy } from "@/lib/i18n";
 import { SectionHead } from "@/components/site/section-head";
+import { SECTION_ICONS, SiteIcon, type SiteIconName } from "@/components/icons";
 
 export function About() {
   const copy = useCopy();
@@ -11,8 +12,8 @@ export function About() {
     <section id="about" className="section about">
       <div className="wrap">
         <SectionHead
-          label={about.label}
-          reading={about.reading}
+          icon={SECTION_ICONS.about}
+          code={about.reading}
           title={about.title}
           intro={about.lead}
         />
@@ -24,7 +25,7 @@ export function About() {
             ))}
             <div className="about__signature">
               <span className="hanko hanko--small" aria-hidden="true">
-                未
+                <SiteIcon name="quill" />
               </span>
               <span className="about__signature-text">{about.signature}</span>
               <span className="muted" style={{ fontSize: "0.7rem" }}>
@@ -44,7 +45,7 @@ export function About() {
             </dl>
             <div className="about__note">
               <span className="hanko hanko--small" aria-hidden="true">
-                狐
+                <SiteIcon name="fox" />
               </span>
               <p>{about.aside}</p>
             </div>
@@ -58,9 +59,9 @@ export function About() {
           </div>
           <div className="hobbies__rail">
             {about.hobbies.map((hobby) => (
-              <article className="hobby" key={hobby.kanji}>
-                <span className="hobby__kanji" aria-hidden="true">
-                  {hobby.kanji}
+              <article className="hobby" key={hobby.icon}>
+                <span className="hobby__icon" aria-hidden="true">
+                  <SiteIcon name={hobby.icon as SiteIconName} />
                 </span>
                 <h4>{hobby.title}</h4>
                 <p>{hobby.description}</p>

@@ -3,6 +3,7 @@
 import { RotateCcw } from "lucide-react";
 import { Fragment, useEffect, useState } from "react";
 import type { MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent } from "react";
+import { SiteIcon } from "@/components/icons";
 import type { ArcadeLanguage } from "./types";
 
 type Position = { row: number; col: number };
@@ -467,7 +468,9 @@ export function WallzGame({ language }: { language: ArcadeLanguage }) {
 
           {winner ? (
             <div className={`wallz-result is-${winner}`} role="status">
-              <span className="wallz-result__kanji" aria-hidden="true">{winner === "player" ? "勝" : "負"}</span>
+              <span className="wallz-result__icon" aria-hidden="true">
+                <SiteIcon name={winner === "player" ? "trophy" : "cross"} />
+              </span>
               <strong>{winner === "player" ? text.won : text.lost}</strong>
               <button type="button" className="arcade-button is-primary" onClick={reset}>
                 <RotateCcw width={14} height={14} aria-hidden="true" />
@@ -493,6 +496,7 @@ export function WallzGame({ language }: { language: ArcadeLanguage }) {
         </div>
         <p className="game-help">{mode === "move" ? text.moveHelp : text.wallHelp}</p>
         {notice ? <p className="game-notice">{notice}</p> : null}
+        <SiteIcon name="wall" className="game-side-panel__ghost" aria-hidden="true" />
       </aside>
     </div>
   );

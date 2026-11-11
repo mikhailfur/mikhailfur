@@ -5,14 +5,9 @@ import { ArrowUpRight } from "lucide-react";
 import Link from "next/link";
 import { useCopy } from "@/lib/i18n";
 import { SectionHead } from "@/components/site/section-head";
+import { ARCADE_ICONS, SECTION_ICONS, SiteIcon } from "@/components/icons";
 
 export type ArcadeTab = "snake" | "wallz" | "chat";
-
-const KANJI: Record<ArcadeTab, string> = {
-  snake: "蛇",
-  wallz: "壁",
-  chat: "話",
-};
 
 export function Play({ onOpenArcade }: { onOpenArcade: (tab: ArcadeTab) => void }) {
   const copy = useCopy();
@@ -22,8 +17,8 @@ export function Play({ onOpenArcade }: { onOpenArcade: (tab: ArcadeTab) => void 
     <section id="play" className="section section--night play">
       <div className="wrap">
         <SectionHead
-          label={copy.play.label}
-          reading={copy.play.reading}
+          icon={SECTION_ICONS.play}
+          code={copy.play.reading}
           title={copy.play.title}
           intro={copy.play.intro}
         />
@@ -41,8 +36,8 @@ export function Play({ onOpenArcade }: { onOpenArcade: (tab: ArcadeTab) => void 
                 onMouseLeave={() => setHover(null)}
                 aria-label={`${copy.play.open}: ${item.title}`}
               >
-                <span className={`play-card__kanji${hover === id ? " is-hover" : ""}`} aria-hidden="true">
-                  {KANJI[id]}
+                <span className={`play-card__icon${hover === id ? " is-hover" : ""}`} aria-hidden="true">
+                  <SiteIcon name={ARCADE_ICONS[id]} />
                 </span>
                 <h3>{item.title}</h3>
                 <p>{item.description}</p>

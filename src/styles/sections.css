@@ -147,12 +147,16 @@ html[lang="ko"] .about__letter p:first-of-type::first-letter {
   border-right: 0;
 }
 
-.hobby__kanji {
+.hobby__icon {
   color: var(--sakura-deep);
-  font-family: var(--font-jp);
   font-size: clamp(2.2rem, 4vw, 3.2rem);
   line-height: 1;
   transition: color 320ms var(--ease-out), transform 420ms var(--ease-out);
+}
+
+.hobby__icon svg {
+  width: 1em;
+  height: 1em;
 }
 
 .hobby h4 {
@@ -177,7 +181,7 @@ html[lang="ko"] .about__letter p:first-of-type::first-letter {
   color: var(--paper);
 }
 
-.hobby:hover .hobby__kanji {
+.hobby:hover .hobby__icon {
   transform: rotate(-4deg);
   color: var(--sakura);
 }
@@ -245,6 +249,9 @@ html[lang="ko"] .about__letter p:first-of-type::first-letter {
 }
 
 .work__tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.32rem;
   color: var(--muted);
   font-family: var(--font-mono);
   font-size: 0.64rem;
@@ -252,10 +259,11 @@ html[lang="ko"] .about__letter p:first-of-type::first-letter {
   transition: color 260ms var(--ease-out);
 }
 
-.work__tag::before {
-  margin-right: 0.3rem;
+.work__tag > svg {
+  width: 12px;
+  height: 12px;
+  flex: none;
   color: var(--sakura-deep);
-  content: "/";
 }
 
 .work__status {
@@ -290,7 +298,7 @@ html[lang="ko"] .about__letter p:first-of-type::first-letter {
   color: var(--night-muted);
 }
 
-.work:hover .work__tag::before {
+.work:hover .work__tag > svg {
   color: var(--sakura);
 }
 
@@ -310,6 +318,18 @@ html[lang="ko"] .about__letter p:first-of-type::first-letter {
   font-size: 0.68rem;
 }
 
+.works__source {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.works__source svg {
+  width: 13px;
+  height: 13px;
+  color: var(--ink);
+}
+
 /* ---------- stack ---------- */
 
 .stack {
@@ -320,16 +340,13 @@ html[lang="ko"] .about__letter p:first-of-type::first-letter {
 .stack__watermark {
   position: absolute;
   z-index: 0;
-  top: 34%;
-  right: -4%;
+  top: 30%;
+  right: 1%;
+  width: min(26vw, 360px);
+  height: min(26vw, 360px);
   color: var(--rose);
-  font-family: var(--font-jp);
-  font-size: min(24vw, 340px);
-  font-weight: 600;
-  line-height: 0.8;
-  opacity: 0.05;
+  opacity: 0.045;
   pointer-events: none;
-  writing-mode: vertical-rl;
   user-select: none;
 }
 
@@ -371,7 +388,7 @@ html[lang="ko"] .about__letter p:first-of-type::first-letter {
 
 .stack__item {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 0.55rem;
   color: var(--muted);
   font-size: 0.86rem;
@@ -379,15 +396,20 @@ html[lang="ko"] .about__letter p:first-of-type::first-letter {
   transition: color 180ms var(--ease-out), transform 220ms var(--ease-out);
 }
 
-.stack__item::before {
+.stack__item > svg {
+  width: 15px;
+  height: 15px;
+  flex: none;
   color: var(--sakura-deep);
-  content: "·";
-  font-size: 1.4em;
-  line-height: 0;
+  transition: color 180ms var(--ease-out);
 }
 
 .stack__item:hover {
   transform: translateX(3px);
+  color: var(--rose);
+}
+
+.stack__item:hover > svg {
   color: var(--rose);
 }
 
@@ -800,12 +822,16 @@ html[lang="ko"] .about__letter p:first-of-type::first-letter {
   border-right: 0;
 }
 
-.play-card__kanji {
+.play-card__icon {
   color: var(--night-sakura);
-  font-family: var(--font-jp);
   font-size: clamp(3rem, 5vw, 4.4rem);
   line-height: 1;
   transition: transform 500ms var(--ease-out), color 300ms var(--ease-out);
+}
+
+.play-card__icon svg {
+  width: 1em;
+  height: 1em;
 }
 
 .play-card h3 {
@@ -857,7 +883,7 @@ html[lang="ko"] .about__letter p:first-of-type::first-letter {
   background: var(--night-raised);
 }
 
-.play-card:hover .play-card__kanji {
+.play-card:hover .play-card__icon {
   transform: rotate(-5deg) scale(1.04);
 }
 
@@ -1037,13 +1063,19 @@ html[lang="ko"] .about__letter p:first-of-type::first-letter {
 }
 
 .contact__kicker {
-  display: flex;
-  align-items: baseline;
-  gap: 1rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
   color: var(--muted);
-  font-family: var(--font-jp);
-  font-size: 0.7rem;
-  letter-spacing: 0.12em;
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  letter-spacing: 0.08em;
+}
+
+.contact__kicker svg {
+  width: 16px;
+  height: 16px;
+  color: var(--rose);
 }
 
 .contact__title {
@@ -1063,7 +1095,7 @@ html[lang="ko"] .about__letter p:first-of-type::first-letter {
 
 .contact__links {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   margin-top: clamp(2.6rem, 5vw, 4rem);
   border-top: 1px solid var(--line);
   border-bottom: 1px solid var(--line);
@@ -1102,6 +1134,9 @@ html[lang="ko"] .about__letter p:first-of-type::first-letter {
 }
 
 .contact__link-value svg {
+  width: 17px;
+  height: 17px;
+  flex: none;
   color: var(--rose);
   transition: transform 220ms var(--ease-out);
 }
@@ -1161,14 +1196,13 @@ html[lang="ko"] .about__letter p:first-of-type::first-letter {
   filter: grayscale(1);
 }
 
-.music-card__cover span {
-  display: grid;
-  width: 100%;
-  height: 100%;
-  place-items: center;
+.music-card__cover svg {
+  position: absolute;
+  inset: 50% auto auto 50%;
+  width: 17px;
+  height: 17px;
+  transform: translate(-50%, -50%);
   color: var(--rose);
-  font-family: var(--font-jp);
-  font-size: 0.85rem;
 }
 
 .music-card__text {
@@ -1223,6 +1257,18 @@ html[lang="ko"] .about__letter p:first-of-type::first-letter {
 }
 
 @media (max-width: 1024px) {
+  .contact__links {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .contact__link:nth-child(2) {
+    border-right: 0;
+  }
+
+  .contact__link:nth-child(-n + 2) {
+    border-bottom: 1px solid var(--line);
+  }
+
   .about__grid {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -1265,11 +1311,22 @@ html[lang="ko"] .about__letter p:first-of-type::first-letter {
 
 @media (max-width: 760px) {
   .section-head__title {
-    display: block;
+    display: flex;
+    gap: 0.7rem;
+  }
+
+  .section-head__mark {
+    width: 42px;
+    height: 42px;
+  }
+
+  .section-head__mark > svg {
+    width: 18px;
+    height: 18px;
   }
 
   .section-head__title .section-title {
-    margin-top: 0.35em;
+    margin-top: 0;
   }
 
   .hobbies__rail {

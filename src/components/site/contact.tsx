@@ -1,13 +1,16 @@
 "use client";
 
-import { ArrowUp, ArrowUpRight, Flower2, Github, MapPin, Send, Volume2, VolumeX } from "lucide-react";
+import { ArrowUp, ArrowUpRight, Flower2, MapPin, Volume2, VolumeX } from "lucide-react";
 import { useCopy } from "@/lib/i18n";
 import { useSettings } from "@/components/site/settings";
 import { MusicPresence } from "@/components/site/music-presence";
 import { SeoulTime } from "@/components/site/seoul-time";
+import { SiteIcon } from "@/components/icons";
 
 const TELEGRAM = process.env.NEXT_PUBLIC_TELEGRAM_URL || "https://t.me/dataisnotfound";
 const GITHUB = process.env.NEXT_PUBLIC_GITHUB_URL || "https://github.com/mikhailfur";
+const DISCORD =
+  process.env.NEXT_PUBLIC_DISCORD_URL || "https://discordapp.com/users/1029691592845578270";
 
 export function Contact() {
   const copy = useCopy();
@@ -17,8 +20,8 @@ export function Contact() {
     <footer id="contact" className="contact">
       <div className="wrap">
         <div className="contact__kicker" aria-hidden="true">
-          <span>{copy.contact.label}</span>
-          <span>{copy.contact.reading}</span>
+          <SiteIcon name="paper-plane" />
+          <span>{copy.nav.contact} / {copy.contact.reading}</span>
         </div>
         <h2 className="contact__title">{copy.contact.title}</h2>
         <p className="contact__copy">{copy.contact.copy}</p>
@@ -28,14 +31,21 @@ export function Contact() {
             <span className="contact__link-label">{copy.contact.telegram}</span>
             <span className="contact__link-value">
               @dataisnotfound
-              <Send width={16} height={16} aria-hidden="true" />
+              <SiteIcon name="telegram" />
             </span>
           </a>
           <a className="contact__link" href={GITHUB} target="_blank" rel="noreferrer">
             <span className="contact__link-label">{copy.contact.github}</span>
             <span className="contact__link-value">
               @mikhailfur
-              <Github width={16} height={16} aria-hidden="true" />
+              <SiteIcon name="github" />
+            </span>
+          </a>
+          <a className="contact__link" href={DISCORD} target="_blank" rel="noreferrer">
+            <span className="contact__link-label">{copy.contact.discord}</span>
+            <span className="contact__link-value">
+              mikhail_fur
+              <SiteIcon name="discord" />
             </span>
           </a>
           <div className="contact__link">
@@ -52,10 +62,7 @@ export function Contact() {
         <div className="contact__bottom">
           <div className="contact__signature">
             <span className="hanko hanko--small" aria-hidden="true">
-              狐
-            </span>
-            <span className="jp" aria-hidden="true">
-              またね
+              <SiteIcon name="fox" />
             </span>
             <span>{copy.footer.built}</span>
           </div>

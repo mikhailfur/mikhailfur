@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, Check, Copy, Download, KeyRound, Plus, Trash2, Upload, X } from "lucide-react";
 import { useCopy, useLanguage } from "@/lib/i18n";
+import { SiteIcon } from "@/components/icons";
 import { LanguageSwitcher } from "@/components/site/language-switcher";
 import { getTotpCode, normalizeSecret, type TotpEntry } from "@/utils/totp";
 import { playBeepSound, playKeyClickSound, playSuccessSound } from "@/utils/sfx";
@@ -200,11 +201,11 @@ export function TwoFactorNotebook() {
         <div className="utility-head">
           <Link className="brand" href="/">
             <span className="hanko hanko--small" aria-hidden="true">
-              狐
+              <SiteIcon name="fox" />
             </span>
             <span className="brand__text">
               <span className="brand__name">{copy.hero.nameTop} {copy.hero.nameBottom}</span>
-              <span className="brand__sub">2FA · 鍵</span>
+              <span className="brand__sub">2FA · KEY</span>
             </span>
           </Link>
           <div className="header-tools">
@@ -217,10 +218,10 @@ export function TwoFactorNotebook() {
         </div>
 
         <div className="twofa__intro" style={{ paddingTop: "clamp(2.4rem, 5vw, 4rem)" }}>
-          <p className="spine" aria-hidden="true" style={{ marginBottom: "1rem" }}>
-            <span className="spine__kanji">鍵</span>
-            <span className="spine__reading">かぎ</span>
-          </p>
+          <span className="section-head__mark twofa__mark" aria-hidden="true" style={{ marginBottom: "1rem" }}>
+            <SiteIcon name="key" />
+            <span className="section-head__code">2FA</span>
+          </span>
           <h1>{copy.twofa.title}</h1>
           <p>{copy.twofa.intro}</p>
           <div className="twofa__warning">

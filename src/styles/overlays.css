@@ -29,6 +29,17 @@
   }
 }
 
+@keyframes cmdk-in {
+  from {
+    transform: translate(-50%, 14px) scale(0.992);
+    opacity: 0;
+  }
+  to {
+    transform: translate(-50%, 0) scale(1);
+    opacity: 1;
+  }
+}
+
 @keyframes reader-in {
   from {
     transform: translateY(26px);
@@ -79,10 +90,15 @@
   border-radius: 2px;
   background: var(--paper-warm);
   box-shadow: 0 40px 90px -48px rgba(21, 17, 20, 0.75);
+  will-change: transform, opacity;
 }
 
 .cmdk[data-state="open"] {
-  animation: panel-in 220ms var(--ease-out);
+  animation: cmdk-in 220ms var(--ease-out) both;
+}
+
+.cmdk[data-state="closed"] {
+  transform: translateX(-50%);
 }
 
 .cmdk__top {
@@ -263,9 +279,15 @@
   align-items: center;
   gap: 0.6rem;
   color: var(--muted);
-  font-family: var(--font-jp);
+  font-family: var(--font-mono);
   font-size: 0.66rem;
   letter-spacing: 0.08em;
+}
+
+.reader__bar-label svg {
+  width: 15px;
+  height: 15px;
+  color: var(--rose);
 }
 
 .reader__close {
@@ -1081,7 +1103,7 @@
   align-items: center;
 }
 
-.arcade-modal__kanji {
+.arcade-modal__icon {
   display: grid;
   width: 38px;
   height: 38px;
@@ -1089,9 +1111,11 @@
   place-items: center;
   border: 1px solid var(--line-strong);
   color: var(--rose);
-  font-family: var(--font-jp);
-  font-size: 1.3rem;
-  line-height: 1;
+}
+
+.arcade-modal__icon svg {
+  width: 20px;
+  height: 20px;
 }
 
 .arcade-modal__eyebrow {
@@ -1136,11 +1160,15 @@
   transition: color 180ms, background-color 180ms;
 }
 
-.arcade-tab__kanji {
+.arcade-tab__icon {
   color: var(--rose);
-  font-family: var(--font-jp);
-  font-size: 0.86rem;
+  font-size: 0.9rem;
   line-height: 1;
+}
+
+.arcade-tab__icon svg {
+  width: 1em;
+  height: 1em;
 }
 
 .arcade-tab__index {
@@ -1164,7 +1192,7 @@
   color: var(--paper);
 }
 
-.arcade-tab[aria-selected="true"] .arcade-tab__kanji {
+.arcade-tab[aria-selected="true"] .arcade-tab__icon {
   color: var(--sakura);
 }
 
@@ -1417,10 +1445,19 @@
 }
 
 .error-page__label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
   margin-top: 2rem;
   color: var(--muted);
   font-family: var(--font-mono);
   font-size: 0.66rem;
+}
+
+.error-page__label svg {
+  width: 14px;
+  height: 14px;
+  color: var(--rose);
 }
 
 .error-page__copy h1 {
@@ -1478,12 +1515,16 @@
   position: absolute;
   right: var(--gutter);
   bottom: 10%;
+  width: 56px;
+  height: 56px;
   color: var(--sakura-deep);
-  font-family: var(--font-jp);
-  font-size: 1.2rem;
-  letter-spacing: 0.2em;
-  writing-mode: vertical-rl;
-  opacity: 0.55;
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.error-page__vertical svg {
+  width: 100%;
+  height: 100%;
 }
 
 @media (max-width: 960px) {
@@ -1621,10 +1662,14 @@
     padding: 0.55rem 0.8rem 0.65rem;
   }
 
-  .arcade-modal__kanji {
+  .arcade-modal__icon {
     width: 34px;
     height: 34px;
-    font-size: 1.15rem;
+  }
+
+  .arcade-modal__icon svg {
+    width: 18px;
+    height: 18px;
   }
 
   .arcade-modal__eyebrow {
@@ -1650,8 +1695,8 @@
     font-size: 0.58rem;
   }
 
-  .arcade-tab__kanji {
-    font-size: 0.8rem;
+  .arcade-tab__icon {
+    font-size: 0.82rem;
   }
 
   .arcade-tab__index {

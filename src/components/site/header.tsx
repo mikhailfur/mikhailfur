@@ -5,6 +5,7 @@ import { Menu, Search, Volume2, VolumeX, X } from "lucide-react";
 import { useCopy } from "@/lib/i18n";
 import { useSettings } from "@/components/site/settings";
 import { LanguageSwitcher } from "@/components/site/language-switcher";
+import { SiteIcon } from "@/components/icons";
 import {
   Dialog,
   DialogClose,
@@ -23,6 +24,16 @@ const NAV_ITEMS = [
 
 const TELEGRAM = process.env.NEXT_PUBLIC_TELEGRAM_URL || "https://t.me/dataisnotfound";
 const GITHUB = process.env.NEXT_PUBLIC_GITHUB_URL || "https://github.com/mikhailfur";
+const DISCORD =
+  process.env.NEXT_PUBLIC_DISCORD_URL || "https://discordapp.com/users/1029691592845578270";
+
+const NAV_ICONS = {
+  works: "briefcase",
+  notes: "notebook",
+  gallery: "camera",
+  play: "gamepad",
+  contact: "paper-plane",
+} as const;
 
 export function Header({ onOpenPalette }: { onOpenPalette: () => void }) {
   const copy = useCopy();
@@ -74,13 +85,13 @@ export function Header({ onOpenPalette }: { onOpenPalette: () => void }) {
     <>
       <header className="site-header" data-scrolled={scrolled ? "true" : "false"}>
         <div className="wrap header-inner">
-          <a className="brand" href="#top" aria-label="Mikhail Pak, home">
+          <a className="brand" href="#top" aria-label="Mikhail Fur, home">
             <span className="hanko hanko--small" aria-hidden="true">
-              狐
+              <SiteIcon name="fox" />
             </span>
             <span className="brand__text">
               <span className="brand__name">{copy.hero.nameTop} {copy.hero.nameBottom}</span>
-              <span className="brand__sub">きつねのてがみ</span>
+              <span className="brand__sub">FOX LETTER · SEOUL</span>
             </span>
           </a>
 
@@ -142,7 +153,7 @@ export function Header({ onOpenPalette }: { onOpenPalette: () => void }) {
             <DialogTitle className="sr-only">{copy.nav.menu}</DialogTitle>
             <div className="mobile-menu__top">
               <a className="brand" href="#top" onClick={() => setMenuOpen(false)}>
-                <span className="hanko hanko--small" aria-hidden="true">狐</span>
+                <span className="hanko hanko--small" aria-hidden="true"><SiteIcon name="fox" /></span>
                 <span className="brand__text">
                   <span className="brand__name">{copy.hero.nameTop} {copy.hero.nameBottom}</span>
                 </span>
@@ -162,21 +173,27 @@ export function Header({ onOpenPalette }: { onOpenPalette: () => void }) {
                   onClick={() => setMenuOpen(false)}
                 >
                   {navLabel(item.key)}
-                  <span aria-hidden="true">{item.id === "works" ? "作品" : item.id === "notes" ? "記録" : item.id === "gallery" ? "画廊" : "遊び"}</span>
+                  <span aria-hidden="true"><SiteIcon name={NAV_ICONS[item.id]} /></span>
                 </a>
               ))}
               <a className="mobile-menu__link" href="#contact" onClick={() => setMenuOpen(false)}>
                 {copy.nav.contact}
-                <span aria-hidden="true">連絡</span>
+                <span aria-hidden="true"><SiteIcon name="paper-plane" /></span>
               </a>
             </nav>
             <div className="mobile-menu__foot">
               <div className="chip-row">
                 <a className="text-link" href={TELEGRAM} target="_blank" rel="noreferrer">
+                  <SiteIcon name="telegram" />
                   Telegram
                 </a>
                 <a className="text-link" href={GITHUB} target="_blank" rel="noreferrer">
+                  <SiteIcon name="github" />
                   GitHub
+                </a>
+                <a className="text-link" href={DISCORD} target="_blank" rel="noreferrer">
+                  <SiteIcon name="discord" />
+                  Discord
                 </a>
               </div>
               <LanguageSwitcher />

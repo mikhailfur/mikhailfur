@@ -307,11 +307,15 @@
   pointer-events: none;
 }
 
-.snake-overlay__kanji {
+.snake-overlay__icon {
   color: rgba(243, 183, 199, 0.35);
-  font-family: var(--font-jp);
   font-size: clamp(2.4rem, 5vw, 3.4rem);
   line-height: 1;
+}
+
+.snake-overlay__icon svg {
+  width: 1em;
+  height: 1em;
 }
 
 .snake-overlay strong {
@@ -463,24 +467,14 @@
   box-shadow: 0 0 0 1px var(--sakura-deep);
 }
 
-.snake-panel::after,
-.wallz-panel::after {
+.game-side-panel__ghost {
   align-self: flex-end;
+  width: clamp(4.2rem, 8vw, 7rem);
+  height: clamp(4.2rem, 8vw, 7rem);
   margin-top: auto;
   color: var(--sakura-deep);
-  font-family: var(--font-jp);
-  font-size: clamp(4.2rem, 8vw, 7rem);
-  line-height: 0.8;
   opacity: 0.14;
   pointer-events: none;
-}
-
-.snake-panel::after {
-  content: "蛇";
-}
-
-.wallz-panel::after {
-  content: "壁";
 }
 
 /* ---------- wallz ---------- */
@@ -855,11 +849,15 @@
   backdrop-filter: blur(3px);
 }
 
-.wallz-result__kanji {
+.wallz-result__icon {
   color: rgba(243, 183, 199, 0.45);
-  font-family: var(--font-jp);
   font-size: 2.3rem;
   line-height: 1;
+}
+
+.wallz-result__icon svg {
+  width: 1em;
+  height: 1em;
 }
 
 .wallz-result strong {
@@ -1193,11 +1191,15 @@
   text-align: center;
 }
 
-.stranger-empty__kanji {
+.stranger-empty__icon {
   color: rgba(243, 183, 199, 0.24);
-  font-family: var(--font-jp);
   font-size: 3rem;
   line-height: 1;
+}
+
+.stranger-empty__icon svg {
+  width: 1em;
+  height: 1em;
 }
 
 .stranger-empty p {
@@ -1364,8 +1366,7 @@
     font-size: 0.5rem;
   }
 
-  .snake-panel::after,
-  .wallz-panel::after {
+  .game-side-panel__ghost {
     display: none;
   }
 

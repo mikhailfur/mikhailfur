@@ -1,14 +1,15 @@
 import type { ReactNode } from "react";
+import { SiteIcon, type SiteIconName } from "@/components/icons";
 
 export function SectionHead({
-  label,
-  reading,
+  icon,
+  code,
   title,
   intro,
   aside,
 }: {
-  label: string;
-  reading: string;
+  icon: SiteIconName;
+  code: string;
   title: ReactNode;
   intro?: ReactNode;
   aside?: ReactNode;
@@ -16,9 +17,9 @@ export function SectionHead({
   return (
     <div className="section-head">
       <div className="section-head__title">
-        <span className="spine" aria-hidden="true">
-          <span className="spine__kanji">{label}</span>
-          <span className="spine__reading">{reading}</span>
+        <span className="section-head__mark" aria-hidden="true">
+          <SiteIcon name={icon} />
+          <span className="section-head__code">{code}</span>
         </span>
         <h2 className="section-title">{title}</h2>
       </div>

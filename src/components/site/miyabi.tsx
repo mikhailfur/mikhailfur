@@ -172,7 +172,7 @@ export function Miyabi({
   return (
     <>
       <div className="miyabi-dock">
-        <span className="miyabi-dock__label">ミヤビ · AI</span>
+        <span className="miyabi-dock__label">MIYABI · AI</span>
         <button
           className="miyabi-dock__button"
           type="button"
@@ -235,7 +235,7 @@ export function Miyabi({
                   key={`${message.role}-${index}-${message.timestamp}`}
                 >
                   <span className="miyabi-msg__meta">
-                    {message.role === "assistant" ? "ミヤビ" : message.role === "user" ? "you" : "system"}
+                    {message.role === "assistant" ? "MIYABI" : message.role === "user" ? "you" : "system"}
                     <span>{message.timestamp}</span>
                   </span>
                   <div className="miyabi-msg__bubble">

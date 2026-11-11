@@ -7,7 +7,6 @@ import {
   FileText,
   FolderGit2,
   Gamepad2,
-  Github,
   Images,
   KeyRound,
   Languages,
@@ -15,7 +14,6 @@ import {
   MessageCircle,
   NotebookText,
   Search,
-  Send,
   Terminal as TerminalIcon,
   Wrench,
 } from "lucide-react";
@@ -25,9 +23,22 @@ import { languages, type Language } from "@/types/portfolio";
 import { Dialog, DialogContent, DialogOverlay, DialogPortal, DialogTitle } from "@/components/ui/dialog";
 import { playKeyClickSound } from "@/utils/sfx";
 import type { ArcadeTab } from "@/components/site/play";
+import { SiteIcon, type SiteIconName } from "@/components/icons";
 
 const GITHUB = process.env.NEXT_PUBLIC_GITHUB_URL || "https://github.com/mikhailfur";
 const TELEGRAM = process.env.NEXT_PUBLIC_TELEGRAM_URL || "https://t.me/dataisnotfound";
+const DISCORD =
+  process.env.NEXT_PUBLIC_DISCORD_URL || "https://discordapp.com/users/1029691592845578270";
+
+function brandIcon(name: SiteIconName) {
+  return function BrandGlyph(props: { width?: number; height?: number }) {
+    return <SiteIcon name={name} {...props} />;
+  };
+}
+
+const GitHubIcon = brandIcon("github");
+const TelegramIcon = brandIcon("telegram");
+const DiscordIcon = brandIcon("discord");
 
 type PaletteItem = {
   id: string;
@@ -137,7 +148,7 @@ export function CommandPalette({
         group: "GitHub",
         label: "github.com/mikhailfur",
         hint: copy.works.all,
-        icon: Github,
+        icon: GitHubIcon,
         run: () => window.open(GITHUB, "_blank", "noopener,noreferrer"),
       },
       {
@@ -145,8 +156,16 @@ export function CommandPalette({
         group: "Telegram",
         label: "@dataisnotfound",
         hint: copy.contact.telegram,
-        icon: Send,
+        icon: TelegramIcon,
         run: () => window.open(TELEGRAM, "_blank", "noopener,noreferrer"),
+      },
+      {
+        id: "discord",
+        group: "Discord",
+        label: "mikhail_fur",
+        hint: copy.contact.discord,
+        icon: DiscordIcon,
+        run: () => window.open(DISCORD, "_blank", "noopener,noreferrer"),
       },
     ];
 

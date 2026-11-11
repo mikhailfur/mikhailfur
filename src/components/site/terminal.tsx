@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useCopy, useLanguage } from "@/lib/i18n";
+import { SiteIcon } from "@/components/icons";
 import { getTerminalCommands } from "@/data/site";
 import type { Language, TerminalAction, TerminalCommand } from "@/types/portfolio";
 import { playKeyClickSound } from "@/utils/sfx";
@@ -230,9 +231,9 @@ export function Terminal({
       <div className="wrap">
         <div className="section-head">
           <div className="section-head__title">
-            <span className="spine" aria-hidden="true">
-              <span className="spine__kanji">{copy.terminal.label}</span>
-              <span className="spine__reading">{copy.terminal.reading}</span>
+            <span className="section-head__mark terminal-head__mark" aria-hidden="true">
+              <SiteIcon name="terminal" />
+              <span className="section-head__code">{copy.terminal.reading}</span>
             </span>
             <h2 className="section-title">{copy.terminal.title}</h2>
           </div>
@@ -248,7 +249,7 @@ export function Terminal({
               <i />
             </span>
             <span className="terminal-bar__title">
-              <span className="jp" aria-hidden="true">端末</span>
+              <SiteIcon name="terminal" aria-hidden="true" />
               {copy.terminal.prompt}: ~
             </span>
             <span>zsh · 80×24</span>

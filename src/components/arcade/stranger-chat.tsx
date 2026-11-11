@@ -3,6 +3,7 @@
 import type { FormEvent } from "react";
 import { useEffect, useRef, useState } from "react";
 import { Flag, LoaderCircle, LogOut, RefreshCw, Search, Send } from "lucide-react";
+import { SiteIcon } from "@/components/icons";
 import type { ArcadeLanguage } from "./types";
 
 type ChatStatus = "idle" | "joining" | "waiting" | "connected" | "disconnected";
@@ -337,7 +338,7 @@ export function StrangerChat({ language, embedded = false }: { language: ArcadeL
         >
           {status === "idle" && messages.length === 0 ? (
             <div className="stranger-empty">
-              <span className="stranger-empty__kanji" aria-hidden="true">話</span>
+              <span className="stranger-empty__icon" aria-hidden="true"><SiteIcon name="chat" /></span>
               <p>{text.idle}</p>
             </div>
           ) : null}

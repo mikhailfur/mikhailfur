@@ -237,9 +237,11 @@
 
 .mobile-menu__link span {
   color: var(--sakura-deep);
-  font-family: var(--font-jp);
-  font-size: 0.9rem;
-  letter-spacing: 0;
+}
+
+.mobile-menu__link span svg {
+  width: 18px;
+  height: 18px;
 }
 
 .mobile-menu__foot {
@@ -305,6 +307,18 @@
 .hero__meta .jp {
   font-size: 0.72rem;
   letter-spacing: 0.08em;
+}
+
+.hero__meta-mark {
+  color: var(--sakura-deep);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.hero__meta-mark svg {
+  width: 13px;
+  height: 13px;
+  color: var(--rose);
 }
 
 .hero__name {
@@ -668,6 +682,14 @@ html[lang="ko"] .hero__name-bottom .hanko {
     width: min(100%, 340px);
   }
 
+  .portrait__stamp {
+    left: 14px;
+  }
+
+  .portrait__tick {
+    right: 8px;
+  }
+
   .portrait__backdrop {
     right: -10px;
   }
@@ -744,10 +766,9 @@ html[lang="ko"] .hero__name-bottom .hanko {
   }
 
   .portrait__stamp {
-    left: -12px;
+    left: 14px;
     bottom: 42px;
     width: 52px;
     height: 52px;
-    font-size: 1.8rem;
   }
 }

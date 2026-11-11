@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useCopy } from "@/lib/i18n";
+import { SiteIcon } from "@/components/icons";
 
 type Music = {
   artist?: string;
@@ -54,7 +55,7 @@ export function MusicPresence({ compact = false }: { compact?: boolean }) {
             // eslint-disable-next-line @next/next/no-img-element
             <img src={music.coverUrl} alt="" loading="lazy" referrerPolicy="no-referrer" />
           ) : (
-            <span aria-hidden="true">音</span>
+            <SiteIcon name="music" aria-hidden="true" />
           )}
         </span>
         <span className="music-card__text">
@@ -79,7 +80,7 @@ export function MusicPresence({ compact = false }: { compact?: boolean }) {
           // eslint-disable-next-line @next/next/no-img-element
           <img src={music.coverUrl} alt="" loading="lazy" referrerPolicy="no-referrer" />
         ) : (
-          <span aria-hidden="true">音</span>
+          <SiteIcon name="music" aria-hidden="true" />
         )}
       </span>
       <span className="music-card__text">

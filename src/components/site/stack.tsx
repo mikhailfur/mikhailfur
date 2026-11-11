@@ -2,19 +2,18 @@
 
 import { useCopy } from "@/lib/i18n";
 import { SectionHead } from "@/components/site/section-head";
+import { SECTION_ICONS, SiteIcon, technologyIcon } from "@/components/icons";
 
 export function Stack() {
   const copy = useCopy();
 
   return (
     <section id="stack" className="section section--paper-deep stack">
-      <span className="stack__watermark" aria-hidden="true">
-        道具
-      </span>
+      <SiteIcon name="toolbox" className="stack__watermark" aria-hidden="true" />
       <div className="wrap">
         <SectionHead
-          label={copy.stack.label}
-          reading={copy.stack.reading}
+          icon={SECTION_ICONS.stack}
+          code={copy.stack.reading}
           title={copy.stack.title}
           intro={copy.stack.intro}
         />
@@ -25,6 +24,7 @@ export function Stack() {
               <div className="stack__items">
                 {group.items.map((item) => (
                   <span className="stack__item" key={item}>
+                    <SiteIcon name={technologyIcon(item)} />
                     {item}
                   </span>
                 ))}

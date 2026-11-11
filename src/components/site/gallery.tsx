@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ArrowUpRight, Check, Copy, Heart, Search, X } from "lucide-react";
 import { useCopy } from "@/lib/i18n";
 import { SectionHead } from "@/components/site/section-head";
+import { SECTION_ICONS, SiteIcon } from "@/components/icons";
 import {
   getDisplayRatingLabel,
   getNormalizedRating,
@@ -148,8 +149,8 @@ export function Gallery() {
     <section id="gallery" className="section section--night gallery">
       <div className="wrap">
         <SectionHead
-          label={copy.gallery.label}
-          reading={copy.gallery.reading}
+          icon={SECTION_ICONS.gallery}
+          code={copy.gallery.reading}
           title={copy.gallery.title}
           intro={copy.gallery.intro}
           aside={copy.gallery.source}
@@ -202,7 +203,7 @@ export function Gallery() {
           <div className="gallery__gate">
             <div className="gallery__gate-copy">
               <span className="hanko" aria-hidden="true">
-                秘
+                <SiteIcon name="padlock" />
               </span>
               <div>
                 <h3>{copy.gallery.gateTitle}</h3>
@@ -250,7 +251,7 @@ export function Gallery() {
                   {blurred ? (
                     <span className="gallery-card__blur">
                       <span className="hanko hanko--small" aria-hidden="true">
-                        秘
+                        <SiteIcon name="padlock" />
                       </span>
                     </span>
                   ) : null}
