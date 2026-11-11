@@ -617,7 +617,8 @@ html[lang="ko"] .hero__name-bottom .hanko {
   to {
     transform: translateY(0);
     opacity: 1;
-    clip-path: inset(0 0 0 0);
+    /* Let the stamp, side tick and enso breathe outside the frame. */
+    clip-path: inset(-5rem);
   }
 }
 
