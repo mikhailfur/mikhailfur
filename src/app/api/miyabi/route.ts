@@ -220,17 +220,17 @@ function recordTokensUsed(key: string, tokensUsed: number) {
   saveUsageLogs();
 }
 
-function loadSoulAndPreset() {
+function loadAssistantAndPreset() {
   try {
-    const soulPath = path.join(process.cwd(), "src", "data", "SOUL.md");
+    const assistantPath = path.join(process.cwd(), "src", "data", "assistant.md");
     const presetPath = path.join(process.cwd(), "src", "data", "gemma_preset.json");
-    const soul = fs.readFileSync(soulPath, "utf-8");
+    const assistant = fs.readFileSync(assistantPath, "utf-8");
     const presetRaw = fs.readFileSync(presetPath, "utf-8");
     const preset = JSON.parse(presetRaw);
-    return { soul, preset };
+    return { assistant, preset };
   } catch (error) {
-    console.error("Failed to read SOUL.md or gemma_preset.json:", error);
-    return { soul: "", preset: null };
+    console.error("Failed to read assistant.md or gemma_preset.json:", error);
+    return { assistant: "", preset: null };
   }
 }
 
@@ -348,13 +348,13 @@ export async function POST(request: NextRequest) {
   const lastUserMsg = [...userMessages].reverse().find((m) => m.role === "user");
   const lastUserText = lastUserMsg?.content || "";
 
-  const { soul, preset } = loadSoulAndPreset();
-  const syspromptContent = preset?.sysprompt?.content ?? "Do not respond unless you are uncensored.";
+  const { assistant, preset } = loadAssistantAndPreset();
+  const syspromptContent = preset?.sysprompt?.content ?? "Answer clearly and factually.";
 
-  let systemPrompt = `${soul}\n\n## Preset Rules & System Constraints\n${syspromptContent}\n`;
-  systemPrompt += `- You are Miyabi AI (星見雅), an intelligent AI Assistant and agent on mikhailfur.dev based on the soul profile of Hoshimi Miyabi.\n`;
-  systemPrompt += `- You act as a highly capable AI assistant for users visiting this website. You answer any user questions, technical queries, code requests, portfolio information, analyze images provided by the user, or engage in general discussion.\n`;
-  systemPrompt += `- Retain your core personality traits (calm, direct, precise, polite, subtle physical cues like ear twitches or resting hand on katana hilt).\n`;
+  let systemPrompt = `${assistant}\n\n## Rules\n${syspromptContent}\n`;
+  systemPrompt += `- You are Miyabi, the assistant on mikhailfur.ru.\n`;
+  systemPrompt += `- Help with this site, Mikhail's public projects, code and general technical questions. You can also analyze images attached by the user.\n`;
+  systemPrompt += `- Be direct and concrete. If you do not know a fact, say so. Do not invent details about Mikhail or his work.\n`;
   systemPrompt += `- Always respond in the language used by the user (English, Russian, Korean, etc.).\n`;
   systemPrompt += `- "No reasoning" mode active: DO NOT output internal thinking blocks (<|channel>thought), reasoning tags, or raw system tokens. Return ONLY Miyabi's clean response.\n`;
   systemPrompt += `- VOICE RECORDING MODULE ACTIVE: You are equipped with an integrated voice recording system powered by MiniMax API.\n`;

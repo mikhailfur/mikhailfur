@@ -1,18 +1,11 @@
 "use client";
 
-import type { Article } from "@/types/portfolio";
-
 type InlineProps = {
-  article: Article;
   text: string;
-  revealed: Set<string>;
-  onReveal: (word: string) => void;
 };
 
-function MarkdownInline({ article, text, revealed, onReveal }: InlineProps) {
-  const redacted = article.redacted.map((value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
+function MarkdownInline({ text }: InlineProps) {
   const tokens = [
-    redacted.length ? redacted.join("|") : "(?!)",
     "!\\[[^\\]]*\\]\\([^\\s)]+(?:\\s+\\\"[^\\\"]*\\\")?\\)",
     "\\[[^\\]]+\\]\\([^\\s)]+\\)",
     "\\*\\*[^*]+\\*\\*",
@@ -25,23 +18,6 @@ function MarkdownInline({ article, text, revealed, onReveal }: InlineProps) {
   return (
     <>
       {text.split(new RegExp(`(${tokens})`, "g")).map((part, index) => {
-        const hidden = article.redacted.find((value) => part.includes(value));
-        if (hidden) {
-          const isRevealed = revealed.has(hidden);
-          return (
-            <button
-              type="button"
-              key={`${hidden}-${index}`}
-              className={`redacted-word${isRevealed ? " is-revealed" : ""}`}
-              onClick={() => onReveal(hidden)}
-              aria-label={isRevealed ? hidden : "Reveal redacted word"}
-              title={isRevealed ? hidden : "Reveal"}
-            >
-              {hidden}
-            </button>
-          );
-        }
-
         const image = part.match(/^!\[([^\]]*)\]\(([^\s)]+)(?:\s+"[^"]*")?\)$/);
         if (image) {
           return (
@@ -71,12 +47,7 @@ function MarkdownInline({ article, text, revealed, onReveal }: InlineProps) {
   );
 }
 
-function MarkdownTable({
-  article,
-  lines,
-  revealed,
-  onReveal,
-}: Omit<InlineProps, "text"> & { lines: string[] }) {
+function MarkdownTable({ lines }: { lines: string[] }) {
   const cells = (line: string) =>
     line
       .trim()
@@ -94,7 +65,7 @@ function MarkdownTable({
           <tr>
             {header.map((cell, index) => (
               <th key={index}>
-                <MarkdownInline article={article} text={cell} revealed={revealed} onReveal={onReveal} />
+                <MarkdownInline text={cell} />
               </th>
             ))}
           </tr>
@@ -103,8 +74,8 @@ function MarkdownTable({
           {rows.map((row, rowIndex) => (
             <tr key={rowIndex}>
               {row.map((cell, cellIndex) => (
-                <td key={cellIndex}>
-                  <MarkdownInline article={article} text={cell} revealed={revealed} onReveal={onReveal} />
+                <td key={cellIndex} data-label={header[cellIndex] ?? undefined}>
+                  <MarkdownInline text={cell} />
                 </td>
               ))}
             </tr>
@@ -115,18 +86,10 @@ function MarkdownTable({
   );
 }
 
-export function MarkdownBody({
-  article,
-  revealed,
-  onReveal,
-}: {
-  article: Article;
-  revealed: Set<string>;
-  onReveal: (word: string) => void;
-}) {
+export function MarkdownBody({ content }: { content: string }) {
   return (
     <>
-      {article.content.split(/\r?\n\s*\r?\n/).map((block, index) => {
+      {content.split(/\r?\n\s*\r?\n/).map((block, index) => {
         if (block.startsWith("```")) {
           return (
             <pre key={index}>
@@ -141,7 +104,7 @@ export function MarkdownBody({
           const Tag = `h${heading[1].length}` as "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
           return (
             <Tag key={index}>
-              <MarkdownInline article={article} text={heading[2]} revealed={revealed} onReveal={onReveal} />
+              <MarkdownInline text={heading[2]} />
             </Tag>
           );
         }
@@ -152,12 +115,7 @@ export function MarkdownBody({
             <blockquote key={index}>
               {list.map((line, lineIndex) => (
                 <p key={lineIndex}>
-                  <MarkdownInline
-                    article={article}
-                    text={line.replace(/^>\s?/, "")}
-                    revealed={revealed}
-                    onReveal={onReveal}
-                  />
+                  <MarkdownInline text={line.replace(/^>\s?/, "")} />
                 </p>
               ))}
             </blockquote>
@@ -169,15 +127,7 @@ export function MarkdownBody({
           /^\|.+\|$/.test(list[0]) &&
           /^\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)+\|?$/.test(list[1])
         ) {
-          return (
-            <MarkdownTable
-              key={index}
-              article={article}
-              lines={list}
-              revealed={revealed}
-              onReveal={onReveal}
-            />
-          );
+          return <MarkdownTable key={index} lines={list} />;
         }
 
         if (list.every((line) => /^[-*]\s+\[[ xX]\]\s+/.test(line))) {
@@ -188,12 +138,7 @@ export function MarkdownBody({
                 return (
                   <li key={`${index}-${lineIndex}`}>
                     <input type="checkbox" checked={task?.[1].toLowerCase() === "x"} readOnly />
-                    <MarkdownInline
-                      article={article}
-                      text={task?.[2] ?? line}
-                      revealed={revealed}
-                      onReveal={onReveal}
-                    />
+                    <MarkdownInline text={task?.[2] ?? line} />
                   </li>
                 );
               })}
@@ -206,12 +151,7 @@ export function MarkdownBody({
             <ul key={index}>
               {list.map((line, lineIndex) => (
                 <li key={`${index}-${lineIndex}`}>
-                  <MarkdownInline
-                    article={article}
-                    text={line.replace(/^[-*]\s+/, "")}
-                    revealed={revealed}
-                    onReveal={onReveal}
-                  />
+                  <MarkdownInline text={line.replace(/^[-*]\s+/, "")} />
                 </li>
               ))}
             </ul>
@@ -223,12 +163,7 @@ export function MarkdownBody({
             <ol key={index}>
               {list.map((line, lineIndex) => (
                 <li key={`${index}-${lineIndex}`}>
-                  <MarkdownInline
-                    article={article}
-                    text={line.replace(/^\d+\.\s+/, "")}
-                    revealed={revealed}
-                    onReveal={onReveal}
-                  />
+                  <MarkdownInline text={line.replace(/^\d+\.\s+/, "")} />
                 </li>
               ))}
             </ol>
@@ -237,12 +172,7 @@ export function MarkdownBody({
 
         return (
           <p key={index}>
-            <MarkdownInline
-              article={article}
-              text={block.replace(/\r?\n/g, " ")}
-              revealed={revealed}
-              onReveal={onReveal}
-            />
+            <MarkdownInline text={block.replace(/\r?\n/g, " ")} />
           </p>
         );
       })}

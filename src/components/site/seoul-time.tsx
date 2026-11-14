@@ -19,7 +19,7 @@ export function SeoulTime({ compact = false }: { compact?: boolean }) {
 
   return (
     <span suppressHydrationWarning>
-      {compact ? time : time ? `${time} ICT` : "—"}
+      {compact ? time : time ? `${time} ICT` : "--"}
     </span>
   );
 }

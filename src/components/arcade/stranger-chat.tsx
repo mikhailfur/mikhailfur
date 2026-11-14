@@ -32,6 +32,7 @@ const copy = {
     empty: "No messages yet. Say hi.",
     channel: "#stranger",
     peer: "peer",
+    peerNone: "none",
     you: "you",
     invalid: "Use 2-20 letters, numbers, spaces, dots, dashes, or underscores.",
     reported: "Report saved. The channel was closed.",
@@ -58,6 +59,7 @@ const copy = {
     empty: "Сообщений пока нет. Скажи «привет».",
     channel: "#незнакомец",
     peer: "собеседник",
+    peerNone: "нет",
     you: "ты",
     invalid: "Используй 2-20 букв, цифр, пробелов, точек, дефисов или подчёркиваний.",
     reported: "Жалоба сохранена. Канал закрыт.",
@@ -84,6 +86,7 @@ const copy = {
     empty: "아직 메시지가 없습니다. 인사를 건네보세요.",
     channel: "#낯선사람",
     peer: "상대",
+    peerNone: "없음",
     you: "나",
     invalid: "2-20자의 문자, 숫자, 공백, 점, 대시 또는 밑줄을 사용하세요.",
     reported: "신고가 저장되고 채널이 닫혔습니다.",
@@ -323,7 +326,7 @@ export function StrangerChat({ language, embedded = false }: { language: ArcadeL
         <header>
           <span className="stranger-channel"><i className={`is-${status}`} />{text.channel}</span>
           <span className="stranger-status">{statusLabel}</span>
-          <span className="stranger-peer">{text.peer}: {session?.partnerNickname ?? "—"}</span>
+          <span className="stranger-peer">{text.peer}: {session?.partnerNickname ?? text.peerNone}</span>
         </header>
 
         <div

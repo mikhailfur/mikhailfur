@@ -101,6 +101,10 @@ export function Terminal({
         onGoTo("works");
         push([line(copy.terminal.openedProjects, "muted")]);
         break;
+      case "constitution":
+        onGoTo("constitution");
+        push([line(copy.terminal.openedConstitution, "muted")]);
+        break;
       case "archive":
         onOpenArchive();
         push([line(copy.terminal.openedArchive, "muted")]);
@@ -227,39 +231,54 @@ export function Terminal({
   };
 
   return (
-    <section id="terminal" className="section section--tight section--night terminal-section">
+    <section id="terminal" className="section-pad">
       <div className="wrap">
-        <div className="section-head">
-          <div className="section-head__title">
-            <span className="section-head__mark terminal-head__mark" aria-hidden="true">
-              <SiteIcon name="terminal" />
-              <span className="section-head__code">{copy.terminal.reading}</span>
-            </span>
-            <h2 className="section-title">{copy.terminal.title}</h2>
+        <div className="mb-8 border-t border-border pt-5">
+          <div className="grid items-start gap-4 md:grid-cols-12 md:gap-6">
+            <div className="flex items-center gap-2.5 font-mono text-[11px] uppercase tracking-[0.16em] text-muted-foreground md:col-span-3">
+              <SiteIcon name="terminal" className="size-3.5 text-rose" aria-hidden="true" />
+              <span>{copy.terminal.reading}</span>
+            </div>
+            <h2 className="font-display text-[clamp(1.65rem,3.2vw,2.35rem)] leading-[1.02] tracking-[-0.045em] md:col-span-5">
+              {copy.terminal.title}
+            </h2>
+            <p className="max-w-[46ch] text-sm leading-relaxed text-muted-foreground md:col-span-4 md:justify-self-end">
+              {copy.terminal.intro}
+            </p>
           </div>
-          <p className="section-intro">{copy.terminal.intro}</p>
-          <span className="section-aside">{copy.terminal.hint}</span>
         </div>
 
-        <div className="terminal-shell" onClick={() => inputRef.current?.focus()}>
-          <div className="terminal-bar">
-            <span className="terminal-bar__dots" aria-hidden="true">
-              <i />
-              <i />
-              <i />
+        <div
+          className="overflow-hidden rounded-xl border border-white/10 bg-night text-paper shadow-[0_30px_80px_-40px_rgba(21,17,20,0.7)]"
+          onClick={() => inputRef.current?.focus()}
+        >
+          <div className="flex h-10 items-center gap-3 border-b border-white/10 px-4">
+            <span className="flex items-center gap-1.5" aria-hidden="true">
+              <i className="size-2 rounded-full bg-rose" />
+              <i className="size-2 rounded-full bg-sakura" />
+              <i className="size-2 rounded-full bg-white/20" />
             </span>
-            <span className="terminal-bar__title">
-              <SiteIcon name="terminal" aria-hidden="true" />
+            <span className="inline-flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.1em] text-night-muted">
+              <SiteIcon name="terminal" className="size-3" aria-hidden="true" />
               {copy.terminal.prompt}: ~
             </span>
-            <span>zsh · 80×24</span>
+            <span className="ml-auto font-mono text-[10px] text-night-muted/70">zsh · 80×24</span>
           </div>
 
-          <div className="terminal-body" ref={logRef} aria-live="polite">
+          <div
+            className="h-[280px] overflow-y-auto p-4 font-mono text-[12px] leading-relaxed"
+            ref={logRef}
+            aria-live="polite"
+          >
             {lines.map((entry) => (
-              <p className={`terminal-line${entry.tone ? ` terminal-line--${entry.tone}` : ""}`} key={entry.id}>
+              <p
+                className={`terminal-line${entry.tone ? ` terminal-line--${entry.tone}` : ""} ${
+                  entry.tone === "accent" ? "text-sakura" : "text-paper/85"
+                }`}
+                key={entry.id}
+              >
                 {entry.href ? (
-                  <a href={entry.href} target="_blank" rel="noreferrer">
+                  <a href={entry.href} target="_blank" rel="noreferrer" className="underline underline-offset-2">
                     {entry.text}
                   </a>
                 ) : (
@@ -270,11 +289,11 @@ export function Terminal({
             {busy ? <p className="terminal-line terminal-line--muted">…</p> : null}
           </div>
 
-          <form className="terminal-form" onSubmit={submit}>
+          <form className="flex items-center gap-2 border-t border-white/10 px-4 py-3" onSubmit={submit}>
             <label className="sr-only" htmlFor="terminal-input">
               {copy.terminal.title}
             </label>
-            <span className="terminal-form__prompt" aria-hidden="true">
+            <span className="shrink-0 font-mono text-[11px] text-rose" aria-hidden="true">
               {copy.terminal.prompt} ~ %
             </span>
             <input
@@ -287,17 +306,26 @@ export function Terminal({
               autoComplete="off"
               spellCheck={false}
               disabled={busy}
+              className="min-w-0 flex-1 bg-transparent font-mono text-[12px] text-paper outline-none placeholder:text-night-muted/50"
             />
           </form>
 
-          <div className="terminal-quick">
+          <div className="flex flex-wrap gap-1.5 border-t border-white/10 px-4 py-2.5">
             {commands
               .filter((command) => command.quick)
               .map((command) => (
-                <button key={command.name} type="button" onClick={() => run(command.name)}>
+                <button
+                  key={command.name}
+                  type="button"
+                  onClick={() => run(command.name)}
+                  className="rounded-md border border-white/10 px-2 py-1 font-mono text-[10px] text-night-muted transition-colors hover:border-white/25 hover:text-paper"
+                >
                   {command.name}
                 </button>
               ))}
+            <span className="ml-auto self-center font-mono text-[10px] text-night-muted/60">
+              {copy.terminal.hint}
+            </span>
           </div>
         </div>
       </div>

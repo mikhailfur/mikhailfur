@@ -13,6 +13,7 @@ import {
   Mail,
   MessageCircle,
   NotebookText,
+  Scale,
   Search,
   Terminal as TerminalIcon,
   Wrench,
@@ -31,7 +32,7 @@ const DISCORD =
   process.env.NEXT_PUBLIC_DISCORD_URL || "https://discordapp.com/users/1029691592845578270";
 
 function brandIcon(name: SiteIconName) {
-  return function BrandGlyph(props: { width?: number; height?: number }) {
+  return function BrandGlyph(props: { className?: string }) {
     return <SiteIcon name={name} {...props} />;
   };
 }
@@ -45,7 +46,7 @@ type PaletteItem = {
   group: string;
   label: string;
   hint?: string;
-  icon: React.ComponentType<{ width?: number; height?: number }>;
+  icon: React.ComponentType<{ className?: string }>;
   keywords?: string;
   run: () => void;
 };
@@ -75,6 +76,7 @@ export function CommandPalette({
   const items = useMemo<PaletteItem[]>(() => {
     const sections = [
       { id: "about", label: copy.nav.about, hint: copy.about.title, icon: FileText },
+      { id: "constitution", label: copy.nav.constitution, hint: copy.constitution.intro, icon: Scale },
       { id: "works", label: copy.nav.works, hint: copy.works.intro, icon: FolderGit2 },
       { id: "stack", label: copy.nav.stack, hint: copy.stack.intro, icon: Wrench },
       { id: "notes", label: copy.nav.notes, hint: copy.notes.intro, icon: NotebookText },
@@ -252,71 +254,80 @@ export function CommandPalette({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogPortal>
-        <DialogOverlay className="cmdk-overlay" />
-        <DialogContent className="cmdk" aria-describedby={undefined} onKeyDown={onKeyDown}>
+        <DialogOverlay />
+        <DialogContent className="max-w-xl overflow-hidden p-0" aria-describedby={undefined} onKeyDown={onKeyDown} hideClose>
           <DialogTitle className="sr-only">{copy.palette.title}</DialogTitle>
-          <div className="cmdk__top">
-            <Search width={16} height={16} aria-hidden="true" />
+          <div className="flex items-center gap-2.5 border-b border-border px-4">
+            <Search className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
             <input
-              className="cmdk__input"
+              className="h-12 min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground/70"
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder={copy.palette.placeholder}
               aria-label={copy.palette.title}
               autoComplete="off"
               spellCheck={false}
+              autoFocus
             />
-            <span className="cmdk__esc">ESC</span>
+            <span className="hidden rounded border border-border px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground sm:inline">
+              ESC
+            </span>
           </div>
 
-          <div className="cmdk__list" ref={listRef}>
+          <div className="max-h-[60svh] overflow-y-auto p-1.5 sm:max-h-[52svh]" ref={listRef}>
             {groups.length ? (
               groups.map(([group, entries]) => (
-                <div className="cmdk__group" key={group}>
-                  <p className="cmdk__label">{group}</p>
+                <div className="mb-1" key={group}>
+                  <p className="px-2.5 py-1.5 font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+                    {group}
+                  </p>
                   {entries.map(({ item, index }) => {
                     const Icon = item.icon;
                     return (
                       <button
                         key={item.id}
                         type="button"
-                        className="cmdk__item"
+                        className="flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-left outline-none transition-colors data-[active=true]:bg-muted"
                         data-active={index === active}
                         data-index={index}
                         onMouseEnter={() => setActive(index)}
                         onClick={() => execute(item)}
                       >
-                        <span className="cmdk__item-icon">
-                          <Icon width={14} height={14} />
+                        <span className="grid size-7 shrink-0 place-items-center rounded-md border border-border bg-card text-muted-foreground">
+                          <Icon className="size-3.5" />
                         </span>
-                        <span className="cmdk__item-label">
-                          {item.label}
-                          {item.hint ? <small>{item.hint}</small> : null}
+                        <span className="min-w-0 flex-1">
+                          <span className="block truncate text-sm">{item.label}</span>
+                          {item.hint ? (
+                            <span className="mt-0.5 block truncate text-[11px] text-muted-foreground">
+                              {item.hint}
+                            </span>
+                          ) : null}
                         </span>
-                        <span className="cmdk__item-key">
-                          <ArrowUpRight width={13} height={13} aria-hidden="true" />
-                        </span>
+                        <ArrowUpRight className="size-3.5 shrink-0 text-muted-foreground" aria-hidden="true" />
                       </button>
                     );
                   })}
                 </div>
               ))
             ) : (
-              <p className="cmdk__empty">{copy.palette.empty}</p>
+              <p className="px-3 py-8 text-center text-sm text-muted-foreground">{copy.palette.empty}</p>
             )}
           </div>
 
-          <div className="cmdk__foot">
-            <span>
-              <kbd>↑</kbd>
-              <kbd>↓</kbd> {copy.palette.hint}
+          <div className="hidden items-center gap-4 border-t border-border bg-muted/35 px-4 py-2.5 font-mono text-[10px] text-muted-foreground sm:flex">
+            <span className="inline-flex items-center gap-1">
+              <kbd className="rounded border border-border bg-card px-1">↑</kbd>
+              <kbd className="rounded border border-border bg-card px-1">↓</kbd>
+              {copy.palette.hint}
             </span>
-            <span>
-              <kbd>↵</kbd> {copy.play.open}
+            <span className="inline-flex items-center gap-1">
+              <kbd className="rounded border border-border bg-card px-1">↵</kbd>
+              {copy.play.open}
             </span>
-            <span>
-              <kbd>⌘</kbd>
-              <kbd>K</kbd>
+            <span className="ml-auto inline-flex items-center gap-1">
+              <kbd className="rounded border border-border bg-card px-1">⌘</kbd>
+              <kbd className="rounded border border-border bg-card px-1">K</kbd>
             </span>
           </div>
         </DialogContent>

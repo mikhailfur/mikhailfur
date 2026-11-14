@@ -49,19 +49,19 @@ export function MusicPresence({ compact = false }: { compact?: boolean }) {
 
   if (compact) {
     return (
-      <span className="music-card">
-        <span className="music-card__cover">
+      <span className="inline-flex min-w-0 items-center gap-2">
+        <span className="grid size-5 shrink-0 place-items-center overflow-hidden rounded border border-border bg-muted/50 text-muted-foreground">
           {music.coverUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={music.coverUrl} alt="" loading="lazy" referrerPolicy="no-referrer" />
+            <img src={music.coverUrl} alt="" loading="lazy" referrerPolicy="no-referrer" className="size-full object-cover" />
           ) : (
-            <SiteIcon name="music" aria-hidden="true" />
+            <SiteIcon name="music" className="size-3" aria-hidden="true" />
           )}
         </span>
-        <span className="music-card__text">
-          <span className="music-card__label">{label}</span>
-          <span className="music-card__title">{music.title || copy.hero.nothingPlaying}</span>
-          {music.artist ? <span className="music-card__artist">{music.artist}</span> : null}
+        <span className="min-w-0 truncate font-mono text-[11px] tracking-[0.02em]">
+          <span className="text-muted-foreground">{label}</span>
+          {music.title ? <span className="text-foreground"> {music.title}</span> : null}
+          {music.artist ? <span className="text-muted-foreground"> · {music.artist}</span> : null}
         </span>
       </span>
     );
@@ -69,27 +69,27 @@ export function MusicPresence({ compact = false }: { compact?: boolean }) {
 
   return (
     <a
-      className="music-card"
+      className="flex min-w-0 items-center gap-2.5 rounded-md border border-border px-2.5 py-1.5 transition-colors hover:bg-muted/50"
       href={music.url}
       target="_blank"
       rel="noreferrer"
-      aria-label={music.title ? `${label}: ${music.title} — ${music.artist}` : label}
+      aria-label={music.title ? `${label}: ${music.title}, ${music.artist}` : label}
     >
-      <span className="music-card__cover">
+      <span className="grid size-7 shrink-0 place-items-center overflow-hidden rounded border border-border bg-muted/50 text-muted-foreground">
         {music.coverUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={music.coverUrl} alt="" loading="lazy" referrerPolicy="no-referrer" />
+          <img src={music.coverUrl} alt="" loading="lazy" referrerPolicy="no-referrer" className="size-full object-cover" />
         ) : (
-          <SiteIcon name="music" aria-hidden="true" />
+          <SiteIcon name="music" className="size-3.5" aria-hidden="true" />
         )}
       </span>
-      <span className="music-card__text">
-        <span className="music-card__label">
+      <span className="grid min-w-0 leading-tight">
+        <span className="flex items-center gap-1.5 font-mono text-[9px] uppercase tracking-[0.12em] text-muted-foreground">
           {label}
-          {music.state === "playing" ? <span className="dot dot--live" style={{ marginLeft: 6 }} /> : null}
+          {music.state === "playing" ? <span className="size-1 rounded-full bg-rose" aria-hidden="true" /> : null}
         </span>
-        <span className="music-card__title">{music.title || copy.hero.nothingPlaying}</span>
-        {music.artist ? <span className="music-card__artist">{music.artist}</span> : null}
+        {music.title ? <span className="truncate text-xs text-foreground">{music.title}</span> : null}
+        {music.artist ? <span className="truncate text-[10px] text-muted-foreground">{music.artist}</span> : null}
       </span>
     </a>
   );

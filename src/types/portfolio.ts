@@ -8,7 +8,37 @@ export type Article = {
   date: string;
   excerpt: string;
   content: string;
-  redacted: string[];
+};
+
+export type ConstitutionSection = {
+  id: string;
+  number: string;
+  title: string;
+  content: string;
+};
+
+export type ConstitutionPart = {
+  id: string;
+  number: string;
+  title: string;
+  intro: string;
+  sections: ConstitutionSection[];
+};
+
+export type ConstitutionPreamble = {
+  title: string;
+  subtitle: string;
+  adopted: string;
+  place: string;
+  edition: string;
+  motto: string;
+  content: string;
+};
+
+export type Constitution = {
+  preamble: ConstitutionPreamble | null;
+  parts: ConstitutionPart[];
+  localized: boolean;
 };
 
 export type Project = {
@@ -16,7 +46,7 @@ export type Project = {
   description: string;
   stack: string[];
   url: string;
-  status: "stable" | "wip";
+  status: "stable" | "wip" | "archived";
   stars?: number;
   pushedAt?: string;
 };
@@ -29,6 +59,7 @@ export type StackGroup = {
 export type TerminalAction =
   | "about"
   | "arcade"
+  | "constitution"
   | "archive"
   | "clear"
   | "gallery"

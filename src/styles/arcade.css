@@ -259,12 +259,14 @@
 
 .snake-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+  grid-template-columns: minmax(0, 540px) minmax(0, 1fr);
   gap: clamp(1.2rem, 3vw, 2.2rem);
   align-items: start;
 }
 
 .snake-stage {
+  width: 100%;
+  max-width: 540px;
   min-width: 0;
 }
 
@@ -468,6 +470,7 @@
 }
 
 .game-side-panel__ghost {
+  display: none;
   align-self: flex-end;
   width: clamp(4.2rem, 8vw, 7rem);
   height: clamp(4.2rem, 8vw, 7rem);
@@ -481,12 +484,14 @@
 
 .wallz-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+  grid-template-columns: minmax(0, 540px) minmax(0, 1fr);
   gap: clamp(1.2rem, 3vw, 2.2rem);
   align-items: start;
 }
 
 .wallz-stage {
+  width: 100%;
+  max-width: 540px;
   min-width: 0;
 }
 

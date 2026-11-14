@@ -1,9 +1,18 @@
 import type { SiteIconName } from "@/components/icons/site-icon";
 
-export type SectionIconKey = "about" | "works" | "stack" | "notes" | "gallery" | "play" | "contact";
+export type SectionIconKey =
+  | "about"
+  | "constitution"
+  | "works"
+  | "stack"
+  | "notes"
+  | "gallery"
+  | "play"
+  | "contact";
 
 export const SECTION_ICONS: Record<SectionIconKey, SiteIconName> = {
   about: "letter",
+  constitution: "scales",
   works: "briefcase",
   stack: "toolbox",
   notes: "notebook",
@@ -56,6 +65,13 @@ const TECH_ICONS: Record<string, SiteIconName> = {
   sdf: "ai",
   telegram: "telegram",
   discord: "discord",
+  vencord: "discord",
+  allidroid: "mobile",
+  protonvpn: "shield",
+  rich: "terminal",
+  benchmark: "chart",
+  aiagents: "ai",
+  aisafety: "shield",
   restapi: "network",
   rest: "network",
   api: "network",
@@ -73,5 +89,5 @@ export function technologyIcon(name: string): SiteIconName {
     .toLowerCase()
     .replace(/\.js/g, "")
     .replace(/[^a-z0-9가-힣]/g, "");
-  return TECH_ICONS[key] ?? "network";
+  return TECH_ICONS[key] ?? "tag";
 }

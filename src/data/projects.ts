@@ -54,7 +54,35 @@ const TOPIC_MAP: Record<string, string> = {
   node: "Node.js",
   nodejs: "Node.js",
   docker: "Docker",
+  protonvpn: "ProtonVPN",
+  "ai-agents": "AI Agents",
+  "ai-safety": "AI Safety",
+  "discord-mod": "Discord",
+  "vencord-plugin": "Vencord",
+  allicord: "Allicord",
+  allidroid: "Allidroid",
+  benchmark: "Benchmark",
+  mcp: "MCP",
+  rich: "Rich",
+  terminal: "Terminal",
+  textual: "Textual",
+  tui: "TUI",
+  vpn: "VPN",
+  "world-map": "World Map",
+  "red-team": "Red Team",
 };
+
+function cleanDescription(value: string) {
+  return value
+    .replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/gu, "")
+    .replace(/https?:\/\/\S+/g, "")
+    .replace(/github\.com\/\S+/g, "")
+    .replace(/\binstall:\s*/gi, "")
+    .replace(/\s*—\s*/g, ": ")
+    .replace(/\s+/g, " ")
+    .replace(/\s+([.,:;])/g, "$1")
+    .trim();
+}
 
 function extractDescriptionFromReadme(readme: string): string | null {
   if (!readme) return null;
@@ -80,6 +108,7 @@ function extractDescriptionFromReadme(readme: string): string | null {
     let line = trimmed;
     line = line.replace(/^[#>\s\-*+\d.]+\s*/, "").trim();
     line = line.replace(/\[([^\]]+)\]\([^)]+\)/g, "$1");
+    line = line.replace(/https?:\/\/\S+/g, "").trim();
     line = line.replace(/[*_~`]/g, "").trim();
 
     if (
@@ -161,7 +190,11 @@ export async function getGithubProjects(username = GITHUB_USERNAME): Promise<Pro
         if (Array.isArray(repo.topics)) {
           for (const topic of repo.topics) {
             const lower = topic.toLowerCase();
-            stackSet.add(TOPIC_MAP[lower] || topic.charAt(0).toUpperCase() + topic.slice(1));
+            const fallback = lower
+              .split("-")
+              .map((word) => (word === "ai" ? "AI" : word.charAt(0).toUpperCase() + word.slice(1)))
+              .join(" ");
+            stackSet.add(TOPIC_MAP[lower] || fallback);
           }
         }
         if (stackSet.size === 0) stackSet.add("GitHub");
@@ -170,7 +203,7 @@ export async function getGithubProjects(username = GITHUB_USERNAME): Promise<Pro
         const pushedTime = repo.pushed_at ? new Date(repo.pushed_at).getTime() : 0;
         const daysSincePush = (now - pushedTime) / (1000 * 60 * 60 * 24);
 
-        const repoDescription = repo.description?.trim();
+        const repoDescription = cleanDescription(repo.description ?? "");
         const curated = FALLBACK_PROJECTS.find((project) => project.name === repo.name);
         const description =
           repoDescription && repoDescription.length >= 30
@@ -182,7 +215,7 @@ export async function getGithubProjects(username = GITHUB_USERNAME): Promise<Pro
           description,
           stack: Array.from(stackSet).slice(0, 4),
           url: repo.html_url,
-          status: repo.archived || daysSincePush > 90 ? "stable" : "wip",
+          status: repo.archived ? "archived" : daysSincePush > 90 ? "stable" : "wip",
           stars: repo.stargazers_count,
           pushedAt: repo.pushed_at,
         };

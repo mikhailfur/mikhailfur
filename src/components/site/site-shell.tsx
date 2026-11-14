@@ -5,6 +5,7 @@ import { useLanguage } from "@/lib/i18n";
 import { Header } from "@/components/site/header";
 import { Hero } from "@/components/site/hero";
 import { About } from "@/components/site/about";
+import { Constitution } from "@/components/site/constitution";
 import { Works } from "@/components/site/works";
 import { Stack } from "@/components/site/stack";
 import { Notes } from "@/components/site/notes";
@@ -17,17 +18,23 @@ import { ArticleArchive } from "@/components/site/article-archive";
 import { ArcadeModal } from "@/components/site/arcade-modal";
 import { CommandPalette } from "@/components/site/command-palette";
 import { Miyabi } from "@/components/site/miyabi";
-import type { Article, Language, Project } from "@/types/portfolio";
+import type { Article, Constitution as ConstitutionData, Language, Project } from "@/types/portfolio";
 
 export function SiteShell({
   projects,
   articlesByLanguage,
+  constitutionByLanguage,
 }: {
   projects: Project[];
   articlesByLanguage: Record<Language, Article[]>;
+  constitutionByLanguage: Record<Language, ConstitutionData>;
 }) {
   const { language } = useLanguage();
   const articles = useMemo(() => articlesByLanguage[language] ?? [], [articlesByLanguage, language]);
+  const constitution = useMemo(
+    () => constitutionByLanguage[language] ?? { preamble: null, parts: [], localized: false },
+    [constitutionByLanguage, language],
+  );
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [archiveOpen, setArchiveOpen] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -109,6 +116,7 @@ export function SiteShell({
       <main>
         <Hero />
         <About />
+        <Constitution constitution={constitution} />
         <Works projects={projects} />
         <Stack />
         <Notes articles={articles} onOpenArticle={openArticle} onOpenArchive={openArchive} />

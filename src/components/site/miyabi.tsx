@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { ArrowUp, ImagePlus, RotateCcw, Trash2, X } from "lucide-react";
+import { ArrowUp, ImagePlus, RotateCcw, Sparkles, Trash2, X } from "lucide-react";
 import { useCopy } from "@/lib/i18n";
-import { KitsuneMark } from "@/components/brand/kitsune-mark";
 import { Dialog, DialogContent, DialogOverlay, DialogPortal, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import { playBeepSound, playSuccessSound } from "@/utils/sfx";
 
 type Role = "user" | "assistant" | "system";
@@ -171,112 +171,138 @@ export function Miyabi({
 
   return (
     <>
-      <div className="miyabi-dock">
-        <span className="miyabi-dock__label">MIYABI · AI</span>
-        <button
-          className="miyabi-dock__button"
+      <div className="fixed bottom-5 right-5 z-40">
+        <Button
+          className="size-11 rounded-full border-border bg-background p-0 shadow-[0_12px_30px_-12px_rgba(21,17,20,0.4)] hover:bg-card"
+          variant="outline"
+          size="icon"
           type="button"
           onClick={() => onOpenChange(true)}
           aria-label={copy.miyabi.open}
+          title={copy.miyabi.open}
         >
-          <span className="miyabi-dock__pulse" aria-hidden="true" />
-          <KitsuneMark size={27} />
-        </button>
+          <Sparkles className="size-5 text-rose" aria-hidden="true" />
+        </Button>
       </div>
 
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogPortal>
-          <DialogOverlay className="miyabi-overlay" />
-          <DialogContent className="miyabi-drawer" aria-describedby={undefined}>
-            <div className="miyabi-head">
-              <div className="miyabi-head__identity">
-                <span className="miyabi-head__mark" aria-hidden="true">
-                  <KitsuneMark size={22} />
+          <DialogOverlay />
+          <DialogContent
+            className="flex h-[min(82svh,680px)] max-w-md flex-col overflow-hidden p-0"
+            aria-describedby={undefined}
+            hideClose
+          >
+            <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-3">
+              <div className="flex min-w-0 items-center gap-2.5">
+                <span className="grid size-8 shrink-0 place-items-center rounded-md bg-blush text-rose">
+                  <Sparkles className="size-5" aria-hidden="true" />
                 </span>
-                <span className="miyabi-head__name">
+                <span className="grid min-w-0 leading-tight">
                   <DialogTitle asChild>
-                    <strong>{copy.miyabi.title}</strong>
+                    <strong className="truncate text-sm tracking-[-0.01em]">{copy.miyabi.title}</strong>
                   </DialogTitle>
-                  <span>{copy.miyabi.subtitle}</span>
+                  <span className="truncate text-[11px] text-muted-foreground">{copy.miyabi.subtitle}</span>
                 </span>
               </div>
-              <div className="miyabi-head__actions">
-                <button
-                  className="miyabi-tool"
+              <div className="flex shrink-0 items-center gap-1">
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
                   type="button"
                   onClick={clear}
                   title={copy.miyabi.clear}
                   aria-label={copy.miyabi.clear}
                 >
-                  <RotateCcw width={14} height={14} />
-                </button>
-                <button
-                  className="miyabi-tool"
+                  <RotateCcw className="size-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
                   type="button"
                   onClick={() => onOpenChange(false)}
                   title={copy.miyabi.close}
                   aria-label={copy.miyabi.close}
                 >
-                  <X width={16} height={16} />
-                </button>
+                  <X className="size-4" />
+                </Button>
               </div>
             </div>
 
-            <div className="miyabi-stream" ref={streamRef}>
+            <div className="flex-1 space-y-4 overflow-y-auto p-4" ref={streamRef}>
               {messages.length === 0 ? (
-                <div className="miyabi-intro">
-                  <p>{copy.miyabi.greeting}</p>
+                <div className="rounded-lg border border-dashed border-border bg-muted/25 p-4 text-sm leading-relaxed text-muted-foreground">
+                  {copy.miyabi.greeting}
                 </div>
               ) : null}
 
               {messages.map((message, index) => (
                 <div
-                  className={`miyabi-msg miyabi-msg--${message.role}`}
+                  className={`flex flex-col gap-1 ${message.role === "user" ? "items-end" : "items-start"}`}
                   key={`${message.role}-${index}-${message.timestamp}`}
                 >
-                  <span className="miyabi-msg__meta">
+                  <span className="px-1 font-mono text-[9px] uppercase tracking-[0.1em] text-muted-foreground">
                     {message.role === "assistant" ? "MIYABI" : message.role === "user" ? "you" : "system"}
-                    <span>{message.timestamp}</span>
+                    <span className="ml-1.5 opacity-60">{message.timestamp}</span>
                   </span>
-                  <div className="miyabi-msg__bubble">
+                  <div
+                    className={
+                      message.role === "user"
+                        ? "max-w-[85%] rounded-lg rounded-tr-sm bg-primary px-3 py-2 text-sm text-primary-foreground"
+                        : message.role === "system"
+                          ? "max-w-[90%] rounded-lg border border-rose/20 bg-blush px-3 py-2 text-sm text-rose-deep"
+                          : "max-w-[85%] rounded-lg rounded-tl-sm bg-muted px-3 py-2 text-sm text-foreground"
+                    }
+                  >
                     {message.image ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img className="miyabi-msg__image" src={message.image} alt="" />
+                      <img className="mb-2 max-h-56 w-full rounded-md object-cover" src={message.image} alt="" />
                     ) : null}
-                    {message.content}
+                    <span className="whitespace-pre-wrap">{message.content}</span>
                   </div>
                   {message.audioUrl ? (
-                    <div className="miyabi-voice">
-                      <audio src={message.audioUrl} controls preload="metadata" />
-                    </div>
+                    <audio className="mt-1 w-full max-w-[85%]" src={message.audioUrl} controls preload="metadata" />
                   ) : null}
                 </div>
               ))}
 
               {loading ? (
-                <div className="miyabi-typing" aria-live="polite">
+                <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground" aria-live="polite">
                   {copy.miyabi.thinking}
-                  <i />
-                  <i />
-                  <i />
+                  <span className="inline-flex gap-0.5">
+                    <i className="size-1 animate-bounce rounded-full bg-rose [animation-delay:-0.2s]" />
+                    <i className="size-1 animate-bounce rounded-full bg-rose [animation-delay:-0.1s]" />
+                    <i className="size-1 animate-bounce rounded-full bg-rose" />
+                  </span>
                 </div>
               ) : null}
             </div>
 
-            <div className="miyabi-compose">
-              {notice ? <p className="notice" style={{ marginBottom: "0.5rem", padding: "0.5rem 0.6rem" }}>{notice}</p> : null}
+            <div className="border-t border-border p-3">
+              {notice ? (
+                <p className="mb-2 rounded-md border border-rose/20 bg-blush px-2.5 py-1.5 text-[11px] text-rose-deep">
+                  {notice}
+                </p>
+              ) : null}
               {image ? (
-                <div className="miyabi-attach">
+                <div className="mb-2 flex items-center gap-2 rounded-md border border-border bg-muted/40 p-1.5">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={image} alt={copy.miyabi.attached} />
-                  <span>{copy.miyabi.attached}</span>
-                  <button type="button" onClick={() => setImage(null)} aria-label={copy.miyabi.remove}>
-                    <Trash2 width={13} height={13} />
-                  </button>
+                  <img src={image} alt={copy.miyabi.attached} className="size-10 rounded object-cover" />
+                  <span className="text-[11px] text-muted-foreground">{copy.miyabi.attached}</span>
+                  <Button
+                    className="ml-auto"
+                    variant="ghost"
+                    size="icon-sm"
+                    type="button"
+                    onClick={() => setImage(null)}
+                    aria-label={copy.miyabi.remove}
+                  >
+                    <Trash2 className="size-3.5" />
+                  </Button>
                 </div>
               ) : null}
 
-              <div className="miyabi-input-row">
+              <div className="flex items-end gap-1.5 rounded-lg border border-input bg-background p-1.5 focus-within:border-rose/60 focus-within:ring-2 focus-within:ring-ring/15">
                 <textarea
                   ref={inputRef}
                   value={input}
@@ -290,19 +316,28 @@ export function Miyabi({
                   placeholder={copy.miyabi.placeholder}
                   rows={1}
                   aria-label={copy.miyabi.placeholder}
+                  className="max-h-32 min-h-9 flex-1 resize-none bg-transparent px-1 py-2 text-sm outline-none placeholder:text-muted-foreground/70"
                 />
-                <button
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
                   type="button"
-                  className="miyabi-tool"
                   onClick={() => fileRef.current?.click()}
                   title={copy.miyabi.attach}
                   aria-label={copy.miyabi.attach}
                 >
-                  <ImagePlus width={16} height={16} />
-                </button>
-                <button type="submit" onClick={() => void send()} disabled={loading || (!input.trim() && !image)} aria-label={copy.miyabi.send}>
-                  <ArrowUp width={17} height={17} />
-                </button>
+                  <ImagePlus className="size-4" />
+                </Button>
+                <Button
+                  variant="default"
+                  size="icon-sm"
+                  type="button"
+                  onClick={() => void send()}
+                  disabled={loading || (!input.trim() && !image)}
+                  aria-label={copy.miyabi.send}
+                >
+                  <ArrowUp className="size-4" />
+                </Button>
                 <input
                   ref={fileRef}
                   type="file"
@@ -316,13 +351,12 @@ export function Miyabi({
                 />
               </div>
 
-              <div className="miyabi-tools">
-                <span className="miyabi-tools__left">
-                  <span>{copy.miyabi.note}</span>
-                </span>
-                <button className="miyabi-tool" type="button" onClick={clear} aria-label={copy.miyabi.reset}>
-                  <RotateCcw width={13} height={13} />
-                </button>
+              <div className="mt-2 flex items-center justify-between gap-2">
+                <span className="text-[10px] text-muted-foreground">{copy.miyabi.note}</span>
+                <Button variant="ghost" size="xs" type="button" onClick={clear} aria-label={copy.miyabi.reset}>
+                  <RotateCcw className="size-3" />
+                  {copy.miyabi.reset}
+                </Button>
               </div>
             </div>
           </DialogContent>

@@ -4,6 +4,8 @@ import { ArrowUpRight } from "lucide-react";
 import { useCopy } from "@/lib/i18n";
 import { SectionHead } from "@/components/site/section-head";
 import { SECTION_ICONS, SiteIcon, technologyIcon } from "@/components/icons";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import type { Project } from "@/types/portfolio";
 
 const GITHUB = process.env.NEXT_PUBLIC_GITHUB_URL || "https://github.com/mikhailfur";
@@ -12,7 +14,7 @@ export function Works({ projects }: { projects: Project[] }) {
   const copy = useCopy();
 
   return (
-    <section id="works" className="section works">
+    <section id="works" className="section-pad">
       <div className="wrap">
         <SectionHead
           icon={SECTION_ICONS.works}
@@ -23,53 +25,69 @@ export function Works({ projects }: { projects: Project[] }) {
         />
 
         {projects.length ? (
-          <div className="works__list">
+          <div className="border-t border-border">
             {projects.map((project, index) => (
               <a
-                className="work"
+                className="group flex flex-col gap-4 border-b border-border px-2 py-5 transition-colors hover:bg-card md:grid md:grid-cols-12 md:items-start md:gap-6 md:px-3"
                 key={project.url}
                 href={project.url}
                 target="_blank"
                 rel="noreferrer"
-                aria-label={`${project.name} — ${copy.works.view}`}
+                aria-label={`${project.name}: ${copy.works.view}`}
               >
-                <span className="work__index" aria-hidden="true">
-                  {String(index + 1).padStart(2, "0")}
-                </span>
-                <div>
-                  <h3 className="work__title">{project.name}</h3>
-                  <p className="work__desc">{project.description}</p>
+                <div className="flex items-center justify-between md:contents">
+                  <span className="font-mono text-[11px] text-muted-foreground md:order-1 md:col-span-1">
+                    {String(index + 1).padStart(2, "0")}
+                  </span>
+                  <div className="flex items-center justify-end gap-3 md:order-4 md:col-span-2 md:items-start">
+                    {project.status === "archived" ? (
+                      <Badge variant="secondary">
+                        <span className="size-1 rounded-full bg-muted-foreground/50" aria-hidden="true" />
+                        {copy.works.statusArchived}
+                      </Badge>
+                    ) : null}
+                    <ArrowUpRight
+                      className="size-4 text-muted-foreground transition-[color,transform] group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-rose"
+                      aria-hidden="true"
+                    />
+                  </div>
                 </div>
-                <div className="work__stack" aria-label={copy.stack.title}>
+                <div className="min-w-0 md:order-2 md:col-span-5">
+                  <h3 className="break-words text-lg font-semibold leading-tight tracking-[-0.02em] transition-colors group-hover:text-rose md:text-xl">
+                    {project.name}
+                  </h3>
+                  <p className="mt-1.5 max-w-[56ch] break-words text-sm leading-relaxed text-muted-foreground [overflow-wrap:anywhere]">
+                    {project.status === "archived" ? copy.works.archivedNote : project.description}
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-1.5 md:order-3 md:col-span-4">
                   {project.stack.map((item) => (
-                    <span className="work__tag" key={item}>
-                      <SiteIcon name={technologyIcon(item)} />
+                    <Badge variant="outline" key={item} className="normal-case tracking-normal">
+                      <SiteIcon name={technologyIcon(item)} className="size-2.5" aria-hidden="true" />
                       {item}
-                    </span>
+                    </Badge>
                   ))}
                 </div>
-                <span className="work__status" data-status={project.status}>
-                  {project.status === "stable" ? copy.works.statusStable : copy.works.statusWip}
-                </span>
-                <ArrowUpRight className="work__arrow" width={18} height={18} aria-hidden="true" />
               </a>
             ))}
           </div>
         ) : (
-          <p className="notice" style={{ marginTop: "2rem" }}>
+          <p className="rounded-md border border-border bg-card px-4 py-3 text-sm text-muted-foreground">
             {copy.works.empty}
           </p>
         )}
 
-        <div className="works__foot">
-          <span className="works__source">
-            <SiteIcon name="github" />
+        <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
+          <span className="inline-flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+            <SiteIcon name="github" className="size-3.5" aria-hidden="true" />
             GitHub · @mikhailfur
           </span>
-          <a className="text-link" href={GITHUB} target="_blank" rel="noreferrer">
-            {copy.works.all}
-            <ArrowUpRight width={14} height={14} aria-hidden="true" />
-          </a>
+          <Button variant="ghost" size="sm" asChild>
+            <a href={GITHUB} target="_blank" rel="noreferrer">
+              {copy.works.all}
+              <ArrowUpRight className="size-3.5" aria-hidden="true" />
+            </a>
+          </Button>
         </div>
       </div>
     </section>

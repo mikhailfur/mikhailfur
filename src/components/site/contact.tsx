@@ -1,11 +1,13 @@
 "use client";
 
-import { ArrowUp, ArrowUpRight, Flower2, MapPin, Volume2, VolumeX } from "lucide-react";
+import { ArrowUp, ArrowUpRight, MapPin, Volume2, VolumeX } from "lucide-react";
 import { useCopy } from "@/lib/i18n";
 import { useSettings } from "@/components/site/settings";
 import { MusicPresence } from "@/components/site/music-presence";
 import { SeoulTime } from "@/components/site/seoul-time";
 import { SiteIcon } from "@/components/icons";
+import { Avatar } from "@/components/site/avatar";
+import { Button } from "@/components/ui/button";
 
 const TELEGRAM = process.env.NEXT_PUBLIC_TELEGRAM_URL || "https://t.me/dataisnotfound";
 const GITHUB = process.env.NEXT_PUBLIC_GITHUB_URL || "https://github.com/mikhailfur";
@@ -14,81 +16,95 @@ const DISCORD =
 
 export function Contact() {
   const copy = useCopy();
-  const { soundOn, petalsOn, toggleSound, togglePetals } = useSettings();
+  const { soundOn, toggleSound } = useSettings();
 
   return (
-    <footer id="contact" className="contact">
+    <footer id="contact" className="border-t border-border bg-muted/35 pb-24 pt-[var(--section-y)]">
       <div className="wrap">
-        <div className="contact__kicker" aria-hidden="true">
-          <SiteIcon name="paper-plane" />
-          <span>{copy.nav.contact} / {copy.contact.reading}</span>
-        </div>
-        <h2 className="contact__title">{copy.contact.title}</h2>
-        <p className="contact__copy">{copy.contact.copy}</p>
-
-        <div className="contact__links">
-          <a className="contact__link" href={TELEGRAM} target="_blank" rel="noreferrer">
-            <span className="contact__link-label">{copy.contact.telegram}</span>
-            <span className="contact__link-value">
-              @dataisnotfound
-              <SiteIcon name="telegram" />
-            </span>
-          </a>
-          <a className="contact__link" href={GITHUB} target="_blank" rel="noreferrer">
-            <span className="contact__link-label">{copy.contact.github}</span>
-            <span className="contact__link-value">
-              @mikhailfur
-              <SiteIcon name="github" />
-            </span>
-          </a>
-          <a className="contact__link" href={DISCORD} target="_blank" rel="noreferrer">
-            <span className="contact__link-label">{copy.contact.discord}</span>
-            <span className="contact__link-value">
-              mikhail_fur
-              <SiteIcon name="discord" />
-            </span>
-          </a>
-          <div className="contact__link">
-            <span className="contact__link-label">
-              {copy.contact.location} · {copy.contact.time}
-            </span>
-            <span className="contact__link-value">
-              Seoul · <SeoulTime compact />
-              <MapPin width={16} height={16} aria-hidden="true" />
-            </span>
+        <div className="grid gap-8 md:grid-cols-12">
+          <div className="md:col-span-7">
+            <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
+              <SiteIcon name="paper-plane" className="size-3.5 text-rose" aria-hidden="true" />
+              {copy.nav.contact} / {copy.contact.reading}
+            </div>
+            <h2 className="mt-4 font-display text-[clamp(2.3rem,5.4vw,3.8rem)] leading-[0.98] tracking-[-0.05em]">
+              {copy.contact.title}
+            </h2>
+            <p className="mt-4 max-w-[52ch] text-sm leading-relaxed text-muted-foreground">
+              {copy.contact.copy}
+            </p>
+          </div>
+          <div className="md:col-span-5 md:pt-7">
+            <div className="grid gap-2 sm:grid-cols-2 md:grid-cols-1">
+              {[
+                { label: copy.contact.telegram, value: "@dataisnotfound", href: TELEGRAM, icon: "telegram" as const },
+                { label: copy.contact.github, value: "@mikhailfur", href: GITHUB, icon: "github" as const },
+                { label: copy.contact.discord, value: "mikhail_fur", href: DISCORD, icon: "discord" as const },
+              ].map((link) => (
+                <a
+                  key={link.label}
+                  className="group flex items-center gap-3 rounded-md border border-border bg-background px-3 py-2.5 transition-colors hover:border-rose/25 hover:bg-card"
+                  href={link.href}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  <SiteIcon name={link.icon} className="size-4 text-rose" aria-hidden="true" />
+                  <span className="grid leading-tight">
+                    <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-muted-foreground">
+                      {link.label}
+                    </span>
+                    <span className="text-sm">{link.value}</span>
+                  </span>
+                  <ArrowUpRight
+                    className="ml-auto size-3.5 text-muted-foreground transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
+                    aria-hidden="true"
+                  />
+                </a>
+              ))}
+              <div className="flex items-center gap-3 rounded-md border border-border bg-background px-3 py-2.5">
+                <MapPin className="size-4 text-rose" aria-hidden="true" />
+                <span className="grid leading-tight">
+                  <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-muted-foreground">
+                    {copy.contact.location} · {copy.contact.time}
+                  </span>
+                  <span className="text-sm">
+                    <SeoulTime compact />
+                  </span>
+                </span>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div className="contact__bottom">
-          <div className="contact__signature">
-            <span className="hanko hanko--small" aria-hidden="true">
-              <SiteIcon name="fox" />
-            </span>
-            <span>{copy.footer.built}</span>
+        <div className="mt-12 flex flex-wrap items-center justify-between gap-4 border-t border-border pt-5">
+          <div className="flex items-center gap-2.5">
+            <Avatar className="size-6 rounded" />
+            <span className="text-xs text-muted-foreground">{copy.footer.built}</span>
           </div>
 
-          <div className="contact__utilities">
+          <div className="flex flex-wrap items-center gap-1.5">
             <MusicPresence />
-            <button className="contact__utility" type="button" onClick={togglePetals} aria-pressed={petalsOn}>
-              <Flower2 width={13} height={13} aria-hidden="true" />
-              {petalsOn ? copy.footer.petalsOn : copy.footer.petalsOff}
-            </button>
-            <button className="contact__utility" type="button" onClick={toggleSound} aria-pressed={soundOn}>
-              {soundOn ? <Volume2 width={13} height={13} /> : <VolumeX width={13} height={13} />}
+            <Button variant="ghost" size="xs" type="button" onClick={toggleSound} aria-pressed={soundOn}>
+              {soundOn ? <Volume2 className="size-3" /> : <VolumeX className="size-3" />}
               {soundOn ? copy.footer.soundOn : copy.footer.soundOff}
-            </button>
-            <a className="contact__utility" href="#top">
-              {copy.footer.backToTop}
-              <ArrowUp width={13} height={13} aria-hidden="true" />
-            </a>
+            </Button>
+            <Button variant="ghost" size="xs" asChild>
+              <a href="#top">
+                {copy.footer.backToTop}
+                <ArrowUp className="size-3" aria-hidden="true" />
+              </a>
+            </Button>
           </div>
         </div>
 
-        <div className="contact__bottom" style={{ paddingTop: "1rem", borderTop: "1px solid var(--line)", marginTop: "1.5rem" }}>
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-[11px] text-muted-foreground">
           <span>{copy.footer.privacy}</span>
-          <a className="contact__utility" href={GITHUB} target="_blank" rel="noreferrer">
+          <a className="transition-colors hover:text-foreground" href="https://fontawesome.com/license/free" target="_blank" rel="noreferrer">
+            {copy.footer.icons}
+          </a>
+          <a className="inline-flex items-center gap-1 transition-colors hover:text-foreground" href={GITHUB} target="_blank" rel="noreferrer">
             {copy.footer.source}
-            <ArrowUpRight width={12} height={12} aria-hidden="true" />
+            <ArrowUpRight className="size-3" aria-hidden="true" />
           </a>
         </div>
       </div>

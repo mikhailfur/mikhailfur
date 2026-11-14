@@ -25,7 +25,6 @@ function parseArticle(source: string, fileName: string): Article {
     title: fields.title,
     date: fields.date,
     excerpt: fields.excerpt,
-    redacted: fields.redacted ? fields.redacted.split("|").map((value) => value.trim()).filter(Boolean) : [],
     content: match[2].trim(),
   };
 }

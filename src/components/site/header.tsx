@@ -1,22 +1,27 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Menu, Search, Volume2, VolumeX, X } from "lucide-react";
+import { ArrowUpRight, Menu, Search, Volume2, VolumeX, X } from "lucide-react";
 import { useCopy } from "@/lib/i18n";
 import { useSettings } from "@/components/site/settings";
 import { LanguageSwitcher } from "@/components/site/language-switcher";
 import { SiteIcon } from "@/components/icons";
+import { Avatar } from "@/components/site/avatar";
+import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogOverlay,
-  DialogPortal,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetOverlay,
+  SheetPortal,
+  SheetTitle,
+} from "@/components/ui/sheet";
 
 const NAV_ITEMS = [
+  { id: "about", key: "about" },
+  { id: "constitution", key: "constitution" },
   { id: "works", key: "works" },
+  { id: "stack", key: "stack" },
   { id: "notes", key: "notes" },
   { id: "gallery", key: "gallery" },
   { id: "play", key: "play" },
@@ -26,14 +31,6 @@ const TELEGRAM = process.env.NEXT_PUBLIC_TELEGRAM_URL || "https://t.me/dataisnot
 const GITHUB = process.env.NEXT_PUBLIC_GITHUB_URL || "https://github.com/mikhailfur";
 const DISCORD =
   process.env.NEXT_PUBLIC_DISCORD_URL || "https://discordapp.com/users/1029691592845578270";
-
-const NAV_ICONS = {
-  works: "briefcase",
-  notes: "notebook",
-  gallery: "camera",
-  play: "gamepad",
-  contact: "paper-plane",
-} as const;
 
 export function Header({ onOpenPalette }: { onOpenPalette: () => void }) {
   const copy = useCopy();
@@ -46,7 +43,7 @@ export function Header({ onOpenPalette }: { onOpenPalette: () => void }) {
   useEffect(() => {
     const update = () => {
       const top = window.scrollY;
-      setScrolled(top > 20);
+      setScrolled(top > 12);
       const max = document.documentElement.scrollHeight - window.innerHeight;
       setProgress(max > 0 ? Math.min(1, top / max) : 0);
     };
@@ -72,7 +69,7 @@ export function Header({ onOpenPalette }: { onOpenPalette: () => void }) {
           .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
         if (visible) setActive(visible.target.id);
       },
-      { rootMargin: "-35% 0px -55% 0px", threshold: [0, 0.2, 0.5] },
+      { rootMargin: "-30% 0px -60% 0px", threshold: [0, 0.2, 0.5] },
     );
 
     sections.forEach((section) => observer.observe(section));
@@ -83,124 +80,161 @@ export function Header({ onOpenPalette }: { onOpenPalette: () => void }) {
 
   return (
     <>
-      <header className="site-header" data-scrolled={scrolled ? "true" : "false"}>
-        <div className="wrap header-inner">
-          <a className="brand" href="#top" aria-label="Mikhail Fur, home">
-            <span className="hanko hanko--small" aria-hidden="true">
-              <SiteIcon name="fox" />
-            </span>
-            <span className="brand__text">
-              <span className="brand__name">{copy.hero.nameTop} {copy.hero.nameBottom}</span>
-              <span className="brand__sub">FOX LETTER · SEOUL</span>
+      <header
+        data-scrolled={scrolled ? "true" : "false"}
+        className="sticky top-0 z-50 border-b border-transparent bg-background/85 backdrop-blur-xl transition-colors data-[scrolled=true]:border-border"
+      >
+        <div className="wrap flex h-16 items-center justify-between gap-4">
+          <a className="flex min-w-0 items-center gap-2.5" href="#top" aria-label="Mikhail Fur, home">
+            <Avatar className="size-7 rounded-md" />
+            <span className="whitespace-nowrap text-[13px] font-semibold leading-none tracking-[-0.02em]">
+              {copy.hero.nameTop} {copy.hero.nameBottom}
             </span>
           </a>
 
-          <nav className="main-nav" aria-label={copy.nav.menu}>
+          <nav className="hidden items-center gap-0.5 xl:flex" aria-label={copy.nav.menu}>
             {NAV_ITEMS.map((item) => (
               <a
                 key={item.id}
-                className="nav-link"
+                className="rounded-md px-2.5 py-1.5 text-[13px] text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground aria-[current=true]:bg-muted/60 aria-[current=true]:text-foreground"
                 href={`#${item.id}`}
                 aria-current={active === item.id ? "true" : undefined}
               >
                 {navLabel(item.key)}
               </a>
             ))}
-            <a className="nav-link" href="#contact">
+            <a
+              className="rounded-md px-2.5 py-1.5 text-[13px] text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground"
+              href="#contact"
+            >
               {copy.nav.contact}
             </a>
           </nav>
 
-          <div className="header-tools">
-            <button
-              className="command-trigger"
+          <div className="flex items-center gap-1">
+            <Button
+              variant="outline"
+              size="sm"
+              className="hidden gap-2 text-muted-foreground sm:inline-flex"
               type="button"
               onClick={onOpenPalette}
               aria-label={copy.terminal.title}
             >
-              <Search width={13} height={13} aria-hidden="true" />
+              <Search className="size-3.5" aria-hidden="true" />
               <span>{copy.terminal.title}</span>
-              <kbd>⌘K</kbd>
-            </button>
+              <kbd className="ml-1 rounded border border-border bg-muted/50 px-1 font-mono text-[10px] leading-4 text-muted-foreground">
+                ⌘K
+              </kbd>
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              className="sm:hidden"
+              type="button"
+              onClick={onOpenPalette}
+              aria-label={copy.terminal.title}
+            >
+              <Search className="size-4" />
+            </Button>
             <LanguageSwitcher />
-            <button
-              className="icon-btn"
+            <Button
+              variant="ghost"
+              size="icon-sm"
               type="button"
               onClick={toggleSound}
               aria-label={soundOn ? copy.footer.soundOn : copy.footer.soundOff}
               title={soundOn ? copy.footer.soundOn : copy.footer.soundOff}
               aria-pressed={soundOn}
             >
-              {soundOn ? <Volume2 width={16} height={16} /> : <VolumeX width={16} height={16} />}
-            </button>
-            <button
-              className="icon-btn mobile-menu-trigger"
+              {soundOn ? <Volume2 className="size-4" /> : <VolumeX className="size-4" />}
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              className="xl:hidden"
               type="button"
               onClick={() => setMenuOpen(true)}
               aria-label={copy.nav.menu}
             >
-              <Menu width={18} height={18} />
-            </button>
+              <Menu className="size-4" />
+            </Button>
           </div>
         </div>
-        <span className="header-progress" style={{ ["--progress" as string]: progress }} aria-hidden="true" />
+        <span
+          className="absolute inset-x-0 -bottom-px h-px origin-left bg-rose"
+          style={{ transform: `scaleX(${progress})` }}
+          aria-hidden="true"
+        />
       </header>
 
-      <Dialog open={menuOpen} onOpenChange={setMenuOpen}>
-        <DialogPortal>
-          <DialogOverlay />
-          <DialogContent className="mobile-menu" aria-describedby={undefined}>
-            <DialogTitle className="sr-only">{copy.nav.menu}</DialogTitle>
-            <div className="mobile-menu__top">
-              <a className="brand" href="#top" onClick={() => setMenuOpen(false)}>
-                <span className="hanko hanko--small" aria-hidden="true"><SiteIcon name="fox" /></span>
-                <span className="brand__text">
-                  <span className="brand__name">{copy.hero.nameTop} {copy.hero.nameBottom}</span>
+      <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
+        <SheetPortal>
+          <SheetOverlay />
+          <SheetContent aria-describedby={undefined} hideClose className="overflow-x-hidden">
+            <SheetTitle className="sr-only">{copy.nav.menu}</SheetTitle>
+            <div className="flex h-10 items-center justify-between">
+              <a className="flex items-center gap-2.5" href="#top" onClick={() => setMenuOpen(false)}>
+                <Avatar className="size-7 rounded-md" />
+                <span className="whitespace-nowrap text-[13px] font-semibold leading-none tracking-[-0.02em]">
+                  {copy.hero.nameTop} {copy.hero.nameBottom}
                 </span>
               </a>
-              <DialogClose asChild>
-                <button className="icon-btn" type="button" aria-label={copy.nav.close}>
-                  <X width={20} height={20} />
-                </button>
-              </DialogClose>
+              <SheetClose asChild>
+                <Button variant="ghost" size="icon-sm" type="button" aria-label={copy.nav.close}>
+                  <X className="size-4" />
+                </Button>
+              </SheetClose>
             </div>
-            <nav className="mobile-menu__nav" aria-label={copy.nav.menu}>
+
+            <nav className="mt-4 grid" aria-label={copy.nav.menu}>
               {NAV_ITEMS.map((item) => (
                 <a
                   key={item.id}
-                  className="mobile-menu__link"
+                  className="flex items-center justify-between border-b border-border py-3.5 text-[15px] font-medium"
                   href={`#${item.id}`}
                   onClick={() => setMenuOpen(false)}
                 >
                   {navLabel(item.key)}
-                  <span aria-hidden="true"><SiteIcon name={NAV_ICONS[item.id]} /></span>
+                  <ArrowUpRight className="size-4 text-muted-foreground" aria-hidden="true" />
                 </a>
               ))}
-              <a className="mobile-menu__link" href="#contact" onClick={() => setMenuOpen(false)}>
+              <a
+                className="flex items-center justify-between border-b border-border py-3.5 text-[15px] font-medium"
+                href="#contact"
+                onClick={() => setMenuOpen(false)}
+              >
                 {copy.nav.contact}
-                <span aria-hidden="true"><SiteIcon name="paper-plane" /></span>
+                <ArrowUpRight className="size-4 text-muted-foreground" aria-hidden="true" />
               </a>
             </nav>
-            <div className="mobile-menu__foot">
-              <div className="chip-row">
-                <a className="text-link" href={TELEGRAM} target="_blank" rel="noreferrer">
-                  <SiteIcon name="telegram" />
-                  Telegram
-                </a>
-                <a className="text-link" href={GITHUB} target="_blank" rel="noreferrer">
-                  <SiteIcon name="github" />
-                  GitHub
-                </a>
-                <a className="text-link" href={DISCORD} target="_blank" rel="noreferrer">
-                  <SiteIcon name="discord" />
-                  Discord
-                </a>
-              </div>
+
+            <div className="mt-5 flex items-center justify-between">
+              <span className="text-xs text-muted-foreground">{copy.footer.language}</span>
               <LanguageSwitcher />
             </div>
-          </DialogContent>
-        </DialogPortal>
-      </Dialog>
+
+            <div className="mt-auto grid gap-4 pt-8">
+              <div className="grid gap-1.5">
+                {[
+                  { label: "Telegram", href: TELEGRAM, icon: "telegram" as const },
+                  { label: "GitHub", href: GITHUB, icon: "github" as const },
+                  { label: "Discord", href: DISCORD, icon: "discord" as const },
+                ].map((link) => (
+                  <Button key={link.label} variant="outline" size="sm" asChild className="justify-between">
+                    <a href={link.href} target="_blank" rel="noreferrer">
+                      <span className="inline-flex items-center gap-2">
+                        <SiteIcon name={link.icon} className="size-3.5" aria-hidden="true" />
+                        {link.label}
+                      </span>
+                      <ArrowUpRight className="size-3.5 text-muted-foreground" aria-hidden="true" />
+                    </a>
+                  </Button>
+                ))}
+              </div>
+            </div>
+          </SheetContent>
+        </SheetPortal>
+      </Sheet>
     </>
   );
 }

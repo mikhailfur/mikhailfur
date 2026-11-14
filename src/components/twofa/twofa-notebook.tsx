@@ -4,10 +4,15 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, Check, Copy, Download, KeyRound, Plus, Trash2, Upload, X } from "lucide-react";
 import { useCopy, useLanguage } from "@/lib/i18n";
-import { SiteIcon } from "@/components/icons";
+import { Avatar } from "@/components/site/avatar";
 import { LanguageSwitcher } from "@/components/site/language-switcher";
 import { getTotpCode, normalizeSecret, type TotpEntry } from "@/utils/totp";
 import { playBeepSound, playKeyClickSound, playSuccessSound } from "@/utils/sfx";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 const STORAGE_KEY = "mikhailfur.twofa.notebook";
 
@@ -79,17 +84,22 @@ function Code({
   return (
     <button
       type="button"
-      className="twofa__digits"
+      className="group w-full rounded-md border border-border bg-background p-2.5 text-left transition-colors hover:border-rose/25 hover:bg-card"
       onClick={() => void copyCode()}
       aria-label={`${label}: ${code}. ${copy.twofa.copy}`}
     >
-      <span>{code}</span>
-      <span className="twofa__countdown">
-        {copied ? <Check width={11} height={11} /> : <Copy width={11} height={11} />}
-        {copied ? copy.twofa.copied : `${copy.twofa.expires} ${remaining}s`}
+      <span className="flex items-center justify-between gap-3">
+        <span className="font-mono text-xl tracking-[0.18em] tabular-nums">{code}</span>
+        <span className="inline-flex items-center gap-1 font-mono text-[9px] uppercase tracking-[0.08em] text-muted-foreground">
+          {copied ? <Check className="size-3 text-rose" /> : <Copy className="size-3" />}
+          {copied ? copy.twofa.copied : `${copy.twofa.expires} ${remaining}s`}
+        </span>
       </span>
-      <span className="twofa__bar" aria-hidden="true">
-        <i style={{ width: `${Math.max(0, Math.min(100, (remaining / entry.period) * 100))}%` }} />
+      <span className="mt-2 block h-1 overflow-hidden rounded-full bg-muted" aria-hidden="true">
+        <i
+          className="block h-full rounded-full bg-rose transition-[width] duration-1000 ease-linear"
+          style={{ width: `${Math.max(0, Math.min(100, (remaining / entry.period) * 100))}%` }}
+        />
       </span>
     </button>
   );
@@ -196,110 +206,134 @@ export function TwoFactorNotebook() {
   };
 
   return (
-    <main className="utility-page">
-      <div className="wrap">
-        <div className="utility-head">
-          <Link className="brand" href="/">
-            <span className="hanko hanko--small" aria-hidden="true">
-              <SiteIcon name="fox" />
+    <main className="min-h-dvh">
+      <div className="wrap py-4">
+        <div className="flex h-12 items-center justify-between gap-3 border-b border-border">
+          <Link className="flex items-center gap-2.5" href="/">
+            <Avatar className="size-7 rounded-md" />
+            <span className="text-[13px] font-semibold leading-none tracking-[-0.02em]">
+              {copy.hero.nameTop} {copy.hero.nameBottom}
             </span>
-            <span className="brand__text">
-              <span className="brand__name">{copy.hero.nameTop} {copy.hero.nameBottom}</span>
-              <span className="brand__sub">2FA · KEY</span>
+            <span className="hidden font-mono text-[9px] uppercase tracking-[0.12em] text-muted-foreground sm:inline">
+              2FA · KEY
             </span>
           </Link>
-          <div className="header-tools">
+          <div className="flex items-center gap-1.5">
             <LanguageSwitcher />
-            <Link className="utility-head__back" href="/">
-              <ArrowLeft width={14} height={14} aria-hidden="true" />
-              {copy.twofa.back}
-            </Link>
+            <Button variant="ghost" size="sm" asChild>
+              <Link href="/">
+                <ArrowLeft className="size-3.5" aria-hidden="true" />
+                {copy.twofa.back}
+              </Link>
+            </Button>
           </div>
         </div>
 
-        <div className="twofa__intro" style={{ paddingTop: "clamp(2.4rem, 5vw, 4rem)" }}>
-          <span className="section-head__mark twofa__mark" aria-hidden="true" style={{ marginBottom: "1rem" }}>
-            <SiteIcon name="key" />
-            <span className="section-head__code">2FA</span>
-          </span>
-          <h1>{copy.twofa.title}</h1>
-          <p>{copy.twofa.intro}</p>
-          <div className="twofa__warning">
-            <KeyRound width={15} height={15} aria-hidden="true" />
+        <div className="max-w-2xl py-10 md:py-14">
+          <Badge variant="outline">2FA · LOCAL ONLY</Badge>
+          <h1 className="mt-4 font-display text-[clamp(2rem,5vw,3rem)] leading-[1.02] tracking-[-0.05em]">
+            {copy.twofa.title}
+          </h1>
+          <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{copy.twofa.intro}</p>
+          <div className="mt-4 flex items-start gap-2 rounded-md border border-rose/15 bg-blush px-3 py-2.5 text-xs leading-relaxed text-rose-deep">
+            <KeyRound className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
             <span>{copy.twofa.security}</span>
           </div>
         </div>
 
-        <div className="twofa">
-          <section aria-label={copy.twofa.title}>
-            <div className="twofa__form" style={{ marginBottom: "1rem" }}>
-              <h2>{copy.twofa.quick}</h2>
-              <form onSubmit={calculate} className="twofa__form-row" style={{ alignItems: "end" }}>
-                <label className="field" style={{ flex: 1 }}>
-                  <span>{copy.twofa.secret}</span>
-                  <input
-                    value={quickKey}
-                    onChange={(event) => setQuickKey(event.target.value)}
-                    placeholder="JBSWY3DPEHPK3PXP"
-                    spellCheck={false}
-                    autoComplete="off"
-                  />
-                </label>
-                <button className="btn btn--primary" type="submit">
-                  {copy.twofa.quickAction}
-                </button>
-              </form>
-              {quickEntry ? (
-                <div className="twofa__entry" style={{ marginTop: "0.8rem" }}>
-                  <div className="twofa__issuer">
-                    <strong>{copy.twofa.code}</strong>
-                    <span>{language.toUpperCase()} · TOTP</span>
+        <div className="grid gap-4 pb-16 lg:grid-cols-[1.1fr_0.9fr]">
+          <div className="grid content-start gap-4">
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle>{copy.twofa.quick}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={calculate} className="flex flex-col gap-2 sm:flex-row sm:items-end">
+                  <div className="grid flex-1 gap-1.5">
+                    <Label htmlFor="quick-secret">{copy.twofa.secret}</Label>
+                    <Input
+                      id="quick-secret"
+                      value={quickKey}
+                      onChange={(event) => setQuickKey(event.target.value)}
+                      placeholder="JBSWY3DPEHPK3PXP"
+                      spellCheck={false}
+                      autoComplete="off"
+                      className="font-mono text-xs"
+                    />
                   </div>
-                  <Code entry={quickEntry} label={copy.twofa.code} onCopied={() => {}} />
-                </div>
-              ) : null}
-              {notice ? <p className="notice" role="alert">{notice}</p> : null}
-            </div>
-
-            <div className="twofa__list" style={{ marginTop: "1.6rem" }}>
-              <div className="hobbies__head" style={{ paddingBottom: "0.8rem" }}>
-                <h3 style={{ fontFamily: "var(--font-display)", fontSize: "1.1rem" }}>{copy.twofa.saved}</h3>
-                <span className="mono" style={{ color: "var(--muted)" }}>{entries.length} · {copy.twofa.local}</span>
-              </div>
-
-              {!loaded ? null : entries.length ? (
-                entries.map((entry) => (
-                  <article className="twofa__entry" key={entry.id}>
-                    <div className="twofa__issuer">
-                      <strong>{entry.issuer}</strong>
-                      <span>{entry.account || "—"} · {entry.algorithm} · {entry.digits}D · {entry.period}S</span>
+                  <Button variant="default" size="sm" type="submit">
+                    {copy.twofa.quickAction}
+                  </Button>
+                </form>
+                {quickEntry ? (
+                  <div className="mt-4 grid gap-2 rounded-md border border-border bg-card p-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <strong className="text-sm">{copy.twofa.code}</strong>
+                      <span className="font-mono text-[9px] uppercase tracking-[0.1em] text-muted-foreground">
+                        {language.toUpperCase()} · TOTP
+                      </span>
                     </div>
-                    <Code entry={entry} label={entry.issuer} onCopied={() => {}} />
-                    <div className="twofa__actions">
-                      <button
-                        className="icon-btn"
-                        type="button"
-                        onClick={() => remove(entry.id)}
-                        aria-label={`${copy.twofa.delete}: ${entry.issuer}`}
-                      >
-                        <Trash2 width={14} height={14} />
-                      </button>
-                    </div>
-                  </article>
-                ))
-              ) : (
-                <p className="twofa__empty">{copy.twofa.empty}</p>
-              )}
+                    <Code entry={quickEntry} label={copy.twofa.code} onCopied={() => {}} />
+                  </div>
+                ) : null}
+                {notice ? (
+                  <p className="mt-3 rounded-md border border-rose/20 bg-blush px-2.5 py-1.5 text-xs text-rose-deep" role="alert">
+                    {notice}
+                  </p>
+                ) : null}
+              </CardContent>
+            </Card>
 
-              <div className="twofa__tools">
-                <button className="btn btn--small" type="button" onClick={exportJson} disabled={!entries.length}>
-                  <Download width={13} height={13} />
+            <Card>
+              <CardHeader className="flex-row items-center justify-between gap-3 pb-3">
+                <CardTitle>{copy.twofa.saved}</CardTitle>
+                <span className="font-mono text-[10px] uppercase tracking-[0.08em] text-muted-foreground">
+                  {entries.length} · {copy.twofa.local}
+                </span>
+              </CardHeader>
+              <CardContent className="p-0">
+                {!loaded ? (
+                  <div className="h-16 animate-pulse border-t border-border bg-muted/40" />
+                ) : entries.length ? (
+                  <div className="divide-y divide-border border-t border-border">
+                    {entries.map((entry) => (
+                      <article className="flex items-start gap-3 p-3" key={entry.id}>
+                        <div className="min-w-0 flex-1">
+                          <strong className="block truncate text-sm">{entry.issuer}</strong>
+                          <span className="mt-0.5 block truncate font-mono text-[9px] uppercase tracking-[0.06em] text-muted-foreground">
+                            {entry.account || "-"} · {entry.algorithm} · {entry.digits}D · {entry.period}S
+                          </span>
+                        </div>
+                        <div className="w-[170px] shrink-0">
+                          <Code entry={entry} label={entry.issuer} onCopied={() => {}} />
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="icon-sm"
+                          type="button"
+                          onClick={() => remove(entry.id)}
+                          aria-label={`${copy.twofa.delete}: ${entry.issuer}`}
+                        >
+                          <Trash2 className="size-3.5" aria-hidden="true" />
+                        </Button>
+                      </article>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="border-t border-border px-4 py-6 text-center text-xs text-muted-foreground">
+                    {copy.twofa.empty}
+                  </p>
+                )}
+              </CardContent>
+              <CardFooter className="flex flex-wrap gap-2 border-t border-border pt-3">
+                <Button variant="outline" size="xs" type="button" onClick={exportJson} disabled={!entries.length}>
+                  <Download className="size-3" />
                   {copy.twofa.export}
-                </button>
-                <button className="btn btn--small" type="button" onClick={() => fileRef.current?.click()}>
-                  <Upload width={13} height={13} />
+                </Button>
+                <Button variant="outline" size="xs" type="button" onClick={() => fileRef.current?.click()}>
+                  <Upload className="size-3" />
                   {copy.twofa.import}
-                </button>
+                </Button>
                 <input
                   ref={fileRef}
                   type="file"
@@ -311,52 +345,62 @@ export function TwoFactorNotebook() {
                     event.target.value = "";
                   }}
                 />
-              </div>
-            </div>
-          </section>
+              </CardFooter>
+            </Card>
+          </div>
 
-          <form className="twofa__form" onSubmit={add}>
-            <h2>{copy.twofa.add}</h2>
-            <label className="field">
-              <span>{copy.twofa.issuer}</span>
-              <input
-                required
-                value={form.issuer}
-                onChange={(event) => setForm({ ...form, issuer: event.target.value })}
-                autoComplete="organization"
-              />
-            </label>
-            <label className="field">
-              <span>{copy.twofa.account}</span>
-              <input
-                value={form.account}
-                onChange={(event) => setForm({ ...form, account: event.target.value })}
-                autoComplete="username"
-              />
-            </label>
-            <label className="field">
-              <span>{copy.twofa.secret}</span>
-              <input
-                required
-                value={form.secret}
-                onChange={(event) => setForm({ ...form, secret: event.target.value })}
-                spellCheck={false}
-                autoComplete="off"
-              />
-            </label>
-            <div className="twofa__form-actions">
-              <button className="btn btn--primary" type="submit">
-                <Plus width={14} height={14} />
-                {copy.twofa.add}
-              </button>
-              {notice ? (
-                <button className="btn btn--ghost btn--small" type="button" onClick={() => setNotice("")}>
-                  <X width={13} height={13} />
-                  {copy.twofa.cancel}
-                </button>
-              ) : null}
-            </div>
-          </form>
+          <Card className="h-fit">
+            <CardHeader className="pb-3">
+              <CardTitle>{copy.twofa.add}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <form className="grid gap-3" onSubmit={add}>
+                <div className="grid gap-1.5">
+                  <Label htmlFor="issuer">{copy.twofa.issuer}</Label>
+                  <Input
+                    id="issuer"
+                    required
+                    value={form.issuer}
+                    onChange={(event) => setForm({ ...form, issuer: event.target.value })}
+                    autoComplete="organization"
+                  />
+                </div>
+                <div className="grid gap-1.5">
+                  <Label htmlFor="account">{copy.twofa.account}</Label>
+                  <Input
+                    id="account"
+                    value={form.account}
+                    onChange={(event) => setForm({ ...form, account: event.target.value })}
+                    autoComplete="username"
+                  />
+                </div>
+                <div className="grid gap-1.5">
+                  <Label htmlFor="secret">{copy.twofa.secret}</Label>
+                  <Input
+                    id="secret"
+                    required
+                    value={form.secret}
+                    onChange={(event) => setForm({ ...form, secret: event.target.value })}
+                    spellCheck={false}
+                    autoComplete="off"
+                    className="font-mono text-xs"
+                  />
+                </div>
+                <div className="mt-1 flex flex-wrap gap-2">
+                  <Button variant="default" size="sm" type="submit">
+                    <Plus className="size-3.5" aria-hidden="true" />
+                    {copy.twofa.add}
+                  </Button>
+                  {notice ? (
+                    <Button variant="ghost" size="sm" type="button" onClick={() => setNotice("")}>
+                      <X className="size-3.5" aria-hidden="true" />
+                      {copy.twofa.cancel}
+                    </Button>
+                  ) : null}
+                </div>
+              </form>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </main>

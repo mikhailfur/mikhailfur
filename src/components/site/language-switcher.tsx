@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, ChevronDown } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { languageNames, languageShort } from "@/data/site";
 import { useLanguage } from "@/lib/i18n";
 import { languages } from "@/types/portfolio";
@@ -10,6 +10,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
 
 export function LanguageSwitcher() {
   const { language, copy, setLanguage } = useLanguage();
@@ -17,18 +18,23 @@ export function LanguageSwitcher() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button className="lang-trigger" type="button" aria-label={copy.footer.language}>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="gap-1 px-2 font-mono text-[11px] uppercase tracking-[0.06em]"
+          type="button"
+          aria-label={copy.footer.language}
+        >
           {languageShort[language]}
-          <ChevronDown width={12} height={12} aria-hidden="true" />
-        </button>
+          <ChevronDown className="size-3 opacity-60" aria-hidden="true" />
+        </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         {languages.map((item) => (
-          <DropdownMenuItem key={item} onSelect={() => setLanguage(item)}>
-            <span>{languageNames[item]}</span>
-            <span>
+          <DropdownMenuItem key={item} onSelect={() => setLanguage(item)} checked={item === language}>
+            <span className="flex-1">{languageNames[item]}</span>
+            <span className="font-mono text-[10px] uppercase text-muted-foreground">
               {languageShort[item]}
-              {item === language ? <Check width={12} height={12} aria-hidden="true" /> : null}
             </span>
           </DropdownMenuItem>
         ))}

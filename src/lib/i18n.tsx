@@ -20,6 +20,7 @@ function isLanguage(value: string | null): value is Language {
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const [language, setLanguageState] = useState<Language>("ru");
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
     try {
@@ -27,10 +28,13 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
       if (isLanguage(stored)) setLanguageState(stored);
     } catch {
       // Storage can be unavailable in private contexts.
+    } finally {
+      setReady(true);
     }
   }, []);
 
   useEffect(() => {
+    if (!ready) return;
     document.documentElement.lang = language;
     document.documentElement.dataset.language = language;
     try {
@@ -38,7 +42,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     } catch {
       // Ignore storage failures.
     }
-  }, [language]);
+  }, [language, ready]);
 
   const setLanguage = useCallback((next: Language) => {
     setLanguageState(next);

@@ -1,9 +1,10 @@
 "use client";
 
-import type { KeyboardEvent } from "react";
 import { X } from "lucide-react";
 import { useCopy, useLanguage } from "@/lib/i18n";
 import { Dialog, DialogContent, DialogOverlay, DialogPortal, DialogTitle } from "@/components/ui/dialog";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
 import { SnakeGame } from "@/components/arcade/snake-game";
 import { WallzGame } from "@/components/arcade/wallz-game";
 import { StrangerChat } from "@/components/arcade/stranger-chat";
@@ -24,88 +25,70 @@ export function ArcadeModal({
   const active = tab ?? "snake";
   const items = copy.play.items;
 
-  const handleTabsKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-    const keys = ["ArrowLeft", "ArrowRight", "Home", "End"];
-    if (!keys.includes(event.key)) return;
-    event.preventDefault();
-    const current = items.findIndex((item) => item.id === active);
-    const nextIndex = event.key === "Home"
-      ? 0
-      : event.key === "End"
-        ? items.length - 1
-        : (current + (event.key === "ArrowRight" ? 1 : -1) + items.length) % items.length;
-    const nextId = items[nextIndex].id as ArcadeTab;
-    onTabChange(nextId);
-    event.currentTarget.querySelector<HTMLButtonElement>(`[data-tab="${nextId}"]`)?.focus();
-  };
-
   return (
     <Dialog open={Boolean(tab)} onOpenChange={(open) => !open && onClose()}>
       <DialogPortal>
-        <DialogOverlay className="arcade-overlay" />
+        <DialogOverlay />
         {tab ? (
-          <DialogContent className="arcade-scroll" aria-describedby={undefined} hideClose>
-            <div className="arcade-modal">
-              <div className="arcade-modal__head">
-                <div className="arcade-modal__brand">
-                  <span className="arcade-modal__icon" aria-hidden="true"><SiteIcon name="gamepad" /></span>
-                  <div>
-                    <span className="arcade-modal__eyebrow">arcade · play</span>
-                    <DialogTitle asChild>
-                      <strong className="arcade-modal__title">{copy.play.arcadeTitle}</strong>
-                    </DialogTitle>
-                  </div>
+          <DialogContent
+            className="flex max-h-[min(90svh,900px)] max-w-5xl flex-col overflow-hidden p-0"
+            aria-describedby={undefined}
+            hideClose
+          >
+            <div className="flex flex-wrap items-center gap-3 border-b border-border px-4 py-3">
+              <div className="flex items-center gap-2.5">
+                <span className="grid size-8 place-items-center rounded-md bg-rose text-white">
+                  <SiteIcon name="gamepad" className="size-4" aria-hidden="true" />
+                </span>
+                <div>
+                  <span className="block font-mono text-[9px] uppercase tracking-[0.14em] text-muted-foreground">
+                    arcade · play
+                  </span>
+                  <DialogTitle asChild>
+                    <strong className="block text-sm tracking-[-0.01em]">{copy.play.arcadeTitle}</strong>
+                  </DialogTitle>
                 </div>
+              </div>
 
-                <div
-                  className="arcade-modal__tabs"
-                  role="tablist"
-                  aria-label={copy.play.arcadeTitle}
-                  onKeyDown={handleTabsKeyDown}
-                >
-                  {items.map((item, index) => {
+              <Tabs
+                className="order-3 w-full sm:order-none sm:ml-auto sm:w-auto"
+                value={active}
+                onValueChange={(value) => onTabChange(value as ArcadeTab)}
+              >
+                <TabsList className="h-8 w-full sm:w-auto">
+                  {items.map((item) => {
                     const id = item.id as ArcadeTab;
                     return (
-                      <button
+                      <TabsTrigger
                         key={item.id}
-                        type="button"
-                        role="tab"
-                        id={`arcade-tab-${id}`}
-                        data-tab={id}
-                        aria-selected={id === active}
-                        aria-controls={`arcade-panel-${id}`}
-                        tabIndex={id === active ? 0 : -1}
-                        className="arcade-tab"
-                        onClick={() => onTabChange(id)}
+                        value={id}
+                        className="h-7 flex-1 gap-1.5 sm:flex-none"
+                        aria-label={item.title}
                       >
-                        <span className="arcade-tab__icon" aria-hidden="true"><SiteIcon name={ARCADE_ICONS[id]} /></span>
-                        <span className="arcade-tab__label">{item.title}</span>
-                        <span className="arcade-tab__index" aria-hidden="true">0{index + 1}</span>
-                      </button>
+                        <SiteIcon name={ARCADE_ICONS[id]} className="size-3" aria-hidden="true" />
+                        <span>{item.title}</span>
+                      </TabsTrigger>
                     );
                   })}
-                </div>
+                </TabsList>
+              </Tabs>
 
-                <button
-                  className="arcade-modal__close"
-                  type="button"
-                  onClick={onClose}
-                  aria-label={copy.play.close}
-                >
-                  <X width={16} height={16} />
-                </button>
-              </div>
-
-              <div
-                className="arcade-modal__body"
-                id={`arcade-panel-${active}`}
-                role="tabpanel"
-                aria-labelledby={`arcade-tab-${active}`}
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                className="ml-auto sm:ml-0"
+                type="button"
+                onClick={onClose}
+                aria-label={copy.play.close}
               >
-                {active === "snake" ? <SnakeGame language={language} /> : null}
-                {active === "wallz" ? <WallzGame language={language} /> : null}
-                {active === "chat" ? <StrangerChat language={language} embedded /> : null}
-              </div>
+                <X className="size-4" />
+              </Button>
+            </div>
+
+            <div className="min-h-0 flex-1 overflow-y-auto p-3 sm:p-5">
+              {active === "snake" ? <SnakeGame language={language} /> : null}
+              {active === "wallz" ? <WallzGame language={language} /> : null}
+              {active === "chat" ? <StrangerChat language={language} embedded /> : null}
             </div>
           </DialogContent>
         ) : null}
